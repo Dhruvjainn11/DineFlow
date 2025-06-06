@@ -46,7 +46,7 @@ MONGO_URI=your_mongodb_connection_string
 
 JWT_SECRET=your_jwt_secret
 
-5. Start the server:
+6. Start the server:
 
    npm run dev
 
