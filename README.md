@@ -17,7 +17,7 @@ DineFlow is a modern MERN-stack application designed to streamline the dine-in o
 - **Real-time Communication**: Socket.IO
 - **Authentication**: JWT (JSON Web Tokens)
 - **QR Code Generation**: qrcode library
-- 
+  
 ## Installation
 
 1. Clone the repository:
@@ -25,23 +25,29 @@ DineFlow is a modern MERN-stack application designed to streamline the dine-in o
    git clone https://github.com/Dhruvjainn11/DineFlow.git
 
 2. Navigate to the project directory:
+   
    cd DineFlow
 
-3. Install server dependencies:
+4. Install server dependencies:
+   
 cd server
+
 npm install
 
-4. Set up environment variables:
+5. Set up environment variables:
 
 Create a .env file in the server directory.
 
 Add the following variables:
 
 PORT=5000
+
 MONGO_URI=your_mongodb_connection_string
+
 JWT_SECRET=your_jwt_secret
 
 5. Start the server:
+
    npm run dev
 
 
