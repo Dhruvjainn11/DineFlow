@@ -90,7 +90,7 @@ JWT_SECRET=your_jwt_secret
 
 A comprehensive Postman collection is available to test all API endpoints. You can import the collection using the following link:
 
-[Download Postman Collection](link_to_your_postman_collection)
+[Download Postman Collection](./postman/DineFlow.postman_collection.json)
 
 Ensure to set the appropriate environment variables and headers as required.
 
