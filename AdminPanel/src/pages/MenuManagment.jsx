@@ -3,6 +3,8 @@ import React, { useEffect, useState } from "react";
 import { getMenus } from "../services/menuService";
 import MenuForm from "../components/MenuForm";
 import MenuItem from "../components/MenuItem";
+import CategoryForm from "../components/CategoryForm";
+import AdminLayout from "../layouts/AdminLayout";
 
 const MenuManagement = () => {
   const [menus, setMenus] = useState([]);
@@ -19,18 +21,22 @@ const MenuManagement = () => {
   };
 
   return (
-    <div className="p-6">
+    <AdminLayout>
+    <div className="">
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-xl font-bold">Menu Management</h2>
+      <div className="flex space-x-2">  
+       
         <button
           onClick={() => {
             setEditData(null);
             setShowForm(true);
           }}
-          className="bg-blue-600 text-white px-4 py-2 rounded"
+          className="bg-blue-600 text-white px-4 py-2 rounded hover:cursor-pointer"
         >
           + Add Menu Item
         </button>
+        </div>
       </div>
 
       {menus.length === 0 ? (
@@ -58,7 +64,12 @@ const MenuManagement = () => {
           editData={editData}
         />
       )}
+
+      
+     
+
     </div>
+    </AdminLayout>
   );
 };
 

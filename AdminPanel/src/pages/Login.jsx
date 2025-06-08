@@ -21,7 +21,7 @@ const Login = () => {
       const { data } = await api.post("/auth/login", { username, password });
 
       // ✅ Save token in localStorage
-      localStorage.setItem("token", data.token);
+      localStorage.setItem("token",`Bearer ${data.token}`);
 
       // ✅ Navigate to admin dashboard
       navigate("/admin");
