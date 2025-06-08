@@ -16,7 +16,7 @@ const app = express();
 const server = createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: '*',
+    origin: 'http://localhost:5173',
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
   },
 });
@@ -26,8 +26,8 @@ app.use(cors());
 app.use(express.json());
 
 mongoose.connect(process.env.MONGO_URI)
-  .then(() => console.log('MongoDB connected'))
-  .catch((err) => console.error(err));
+.then(() => console.log('MongoDB connected'))
+.catch((err) => console.error(err));
 
 app.get('/', (req, res) => {
   res.send('DineFlow backend is running!');
@@ -42,7 +42,7 @@ app.use('/api/auth', authRoutes);
 // Socket.IO logic
 io.on('connection', (socket) => {
   console.log(`🟢 User connected: ${socket.id}`);
-
+  
   socket.on('disconnect', () => {
     console.log(`🔴 User disconnected: ${socket.id}`);
   });

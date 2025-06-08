@@ -1,5 +1,6 @@
 import express from 'express';
 import MenuItem from '../models/Menu.js';
+import upload from '../middleware/uploadMiddleware.js';
 
 const router = express.Router();
 
@@ -29,9 +30,10 @@ router.get('/:id', async (req, res) =>
 }
 );
 
-router.post('/', async (req, res) => {
-  const { name, description, price, imageUrl, category, available } = req.body;
-
+router.post('/' ,async (req, res) => {
+  console.log("Received request body:", req.body);
+  
+  const { name, description, price, imageUrl , category, available } = req.body;
   if (!name || !price || !category) {
     return res.status(400).json({ message: 'Name, price, and category are required' });
   }
