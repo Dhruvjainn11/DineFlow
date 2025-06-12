@@ -2,12 +2,12 @@ import { Link, useLocation } from "react-router-dom";
 import React from "react";
 
 const links = [
-  { name: "Dashboard", path: "/admin" },
+  { name: "Analytics", path: "/admin/analytics" },
   { name: "Menu", path: "/admin/menu" },
   { name: "Categories", path: "/admin/categories" },
   { name: "Tables", path: "/admin/tables" },
   { name: "Orders", path: "/admin/orders" },
-  { name: "Analytics", path: "/admin/analytics" },
+  { name: "Payment", path: "/admin/payment" },
 ];
 
 const Sidebar = () => {

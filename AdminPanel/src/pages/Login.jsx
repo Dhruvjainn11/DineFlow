@@ -24,7 +24,9 @@ const Login = () => {
       localStorage.setItem("token",`Bearer ${data.token}`);
 
       // ✅ Navigate to admin dashboard
-      navigate("/admin");
+      console.log("Login successful, navigating to admin...");
+      navigate("/admin/analytics");
+      
     } catch (err) {
       setError(err.response?.data?.message || "Login failed");
     }

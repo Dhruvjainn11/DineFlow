@@ -10,6 +10,9 @@ export default function MenuItemForm({ onSubmit, onClose }) {
   const [categories, setCategories] = useState([]); // State to hold categories
   const [menuItems, setMenuItems] = useState([]); // State to hold menu items
   const [imageUrl, setImageUrl] = useState("");
+  const [isUploading, setIsUploading] = useState(false);
+
+  
   const handleUpload = (url) => {
     console.log("Image uploaded URL:", url);
    
@@ -35,8 +38,19 @@ export default function MenuItemForm({ onSubmit, onClose }) {
 
   formData.append('imageUrl', imageUrl); // ✅ input field named `image`
 
+    if (isUploading) {
+    alert("Image is still uploading. Please wait.");
+    return;
+  }
+
+  if (!imageUrl) {
+    alert("Please upload an image.");
+    return;
+  }
+
   try {
     await createMenu(formData); // function that calls POST /menu
+    onClose(); // Close the modal after submission
     reset();
   } catch (err) {
     console.error("Error submitting menu:", err);
@@ -144,7 +158,7 @@ useEffect(() => {
       {/* Description */}
       <div>
         <label className="block mb-1 font-medium">Description</label>
-        <textarea
+        <input
           {...register("description", { required: "Description is required" })}
           className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring focus:ring-blue-300"
           placeholder="Short description of the item"
@@ -155,7 +169,9 @@ useEffect(() => {
       {/* Image Upload */}
       <div>
         <label className="block mb-1 font-medium">Upload Image</label>
-        <ImageDropzone onUpload={handleUpload} />
+        <ImageDropzone onUpload={handleUpload} 
+         onUploadStatus={(status) => setIsUploading(status)}
+         />
       
       </div>
     </div>

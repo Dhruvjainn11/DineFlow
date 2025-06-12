@@ -4,20 +4,22 @@ import imageCompression from "browser-image-compression";
 import axios from "axios";
 import { useDropzone } from "react-dropzone";
 
-export default function ImageDropzone({ onUpload }) {
+export default function ImageDropzone({ onUpload, onUploadStatus }) {
   const [preview, setPreview] = useState(null);
+   const [isUploading, setIsUploading] = useState(false);
   const {
- 
-    setValue,
     formState: { errors },
   } = useForm();
 
 //   const maxFileSize = 10 * 1024 * 1024; // 10MB
 
-
+ 
 const onDrop = async (acceptedFiles) => {
     if (!acceptedFiles.length) return;
     const file = acceptedFiles[0];
+
+       onUploadStatus?.(true);
+     setIsUploading(true);
 
     try {
       // Compress image
@@ -40,9 +42,14 @@ const onDrop = async (acceptedFiles) => {
 
       // Pass back URL to parent
       onUpload(res.data.secure_url);
+      setPreview(res.data.secure_url);
     } catch (error) {
       alert("Failed to upload image");
     }
+     finally {
+    setIsUploading(false);
+     onUploadStatus?.(false); // <-- done
+  }
   };
 
   const { getRootProps, getInputProps } = useDropzone({
