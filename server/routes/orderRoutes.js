@@ -2,6 +2,7 @@
 import express from 'express';
 import Order from '../models/Order.js';
 import Table from '../models/Table.js';
+import MenuItem from '../models/Menu.js';
 import { protect, allowRoles } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
@@ -11,23 +12,44 @@ router.post('/', async (req, res) => {
   try {
     const { tableNumber, items } = req.body;
 
+    // Fetch all involved menu items from DB
+    const menuItemIds = items.map(item => item.menuItem);
+    const menuItems = await MenuItem.find({ _id: { $in: menuItemIds } });
+
+    // Calculate totalPrice
+    let totalPrice = 0;
+    items.forEach(orderItem => {
+      const menuItem = menuItems.find(mi => mi._id.toString() === orderItem.menuItem);
+      if (menuItem) {
+        totalPrice += menuItem.price * orderItem.quantity;
+      }
+    });
+
+    // Create new order with totalPrice
     const newOrder = new Order({
       tableNumber,
       items,
-      
+      totalPrice,
     });
+
+    if(newOrder){
+      // Update table status to Occupied
+      await Table.findByIdAndUpdate(tableNumber, {
+        status: 'Occupied',
+        currentOrder: newOrder._id,
+      });
+    }
 
     const savedOrder = await newOrder.save();
     res.status(201).json(savedOrder);
   } catch (err) {
-    console.log(err.message);
-    
+    console.error("Error placing order:", err.message);
     res.status(500).json({ error: 'Failed to place order' });
   }
 });
 
 // 🔒 Get all orders (for kitchen or admin)
-router.get('/', protect, allowRoles('admin', 'kitchen'), async (req, res) => {
+router.get('/', async (req, res) => {
   try {
     const orders = await Order.find()
       .populate('tableNumber')

@@ -47,6 +47,8 @@ router.post('/' ,async (req, res) => {
       category,
       available
     });
+      const io = req.app.get("io");
+      io.emit("menuCreated", newMenuItem); 
 
     const savedMenuItem = await newMenuItem.save();
     res.status(201).json(savedMenuItem);
@@ -70,6 +72,9 @@ router.put('/:id', async (req, res) => {
         if (!updatedMenuItem) {
             return res.status(404).json({ message: 'Menu item not found' });
         }
+
+        const io = req.app.get("io");
+        io.emit("menuUpdated", updatedMenuItem); 
         res.status(200).json(updatedMenuItem);
     } catch (error) {
         res.status(500).json({ message: 'Error updating menu item', error });
@@ -83,6 +88,8 @@ router.delete('/:id', async (req, res) => {
         if (!deletedMenuItem) {
             return res.status(404).json({ message: 'Menu item not found' });
         }
+        const io = req.app.get("io");
+        io.emit("menuDeleted", deletedMenuItem._id);
 
         res.status(200).json({ message: 'Menu item deleted successfully' });
         } catch (error) {

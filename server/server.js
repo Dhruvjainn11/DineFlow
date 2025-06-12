@@ -10,6 +10,7 @@ import categoryRoutes from './routes/categoryRoutes.js';
 import orderRoutes from './routes/orderRoutes.js';
 import tableRoutes from './routes/tableRoutes.js';
 import authRoutes from './routes/authRoutes.js';
+import analyticsRoutes from './routes/analyticsRoutes.js';
 dotenv.config();
 
 const app = express();
@@ -38,6 +39,7 @@ app.use('/api/categories', categoryRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/tables', tableRoutes);
 app.use('/api/auth', authRoutes);
+app.use('/api/analytics',analyticsRoutes); 
 
 // Socket.IO logic
 io.on('connection', (socket) => {
