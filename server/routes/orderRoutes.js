@@ -39,8 +39,17 @@ router.post('/', async (req, res) => {
         currentOrder: newOrder._id,
       });
     }
+   
+  
+
 
     const savedOrder = await newOrder.save();
+
+      const populatedOrder = await Order.findById(savedOrder._id)
+  .populate("items.menuItem")
+  .populate("tableNumber");
+
+req.app.get("io").emit("orderPlaced", populatedOrder);
     res.status(201).json(savedOrder);
   } catch (err) {
     console.error("Error placing order:", err.message);
@@ -51,7 +60,7 @@ router.post('/', async (req, res) => {
 // 🔒 Get all orders (for kitchen or admin)
 router.get('/', async (req, res) => {
   try {
-    const orders = await Order.find()
+    const orders = await Order.find({ status: { $ne: "Completed" } })
       .populate('tableNumber')
       .populate('items.menuItem')
       .sort({ createdAt: -1 });
@@ -88,14 +97,49 @@ router.put('/:id', async (req, res) => {
     }
 
      // Emit real-time update using io
-    const io = req.app.get('io');
-    io.emit('orderStatusUpdated', updatedOrder); // 📢 send to all clients
+    
 
     res.json(updatedOrder);
   } catch (err) {
     res.status(500).json({ error: 'Failed to update order status' });
   }
 });
+
+// PUT /orders/:id/status
+router.put('/:id/status', async (req, res) => {
+  const { status } = req.body;
+  const order = await Order.findByIdAndUpdate(
+    req.params.id,
+    { status },
+    { new: true }
+  ).populate("tableNumber items.menuItem");
+
+  req.app.get('io').emit("orderUpdated", order);
+
+  const io = req.app.get('io');
+    io.emit('orderStatusUpdated', order); // 📢 send to all clients
+
+    if (order.status === "Completed" || order.status) {
+      console.log("Emitting orderStatusUpdated with:", order); 
+  io.emit("orderCompleted", order);
+}
+
+  res.json(order);
+});
+
+// GET /orders?status=Pending,In Progress
+router.get('/', async (req, res) => {
+  const statuses = req.query.status?.split(',') || [];
+  const filter = statuses.length ? { status: { $in: statuses } } : {};
+
+  const orders = await Order.find(filter)
+    .populate("tableNumber items.menuItem")
+    .sort({ createdAt: -1 });
+
+  res.json(orders);
+});
+
+
 
 // Customer requests payment
 router.put('/:id/request-payment', async (req, res) => {
