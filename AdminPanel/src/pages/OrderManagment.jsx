@@ -1,13 +1,45 @@
 import React, { useEffect, useState } from "react";
 import AdminLayout from "../layouts/AdminLayout";
 import { getOrders } from "../services/orderService";
+import { socket } from "../utils/socket";
 
 const OrderManagment = () => {
   const [orders, setOrders] = useState([]);
-
   useEffect(() => {
     fetchOrders();
-  }, []);
+    
+    const handleOrderStatusUpdated = (updatedOrder) => {
+    
+    console.log("Socket received:", updatedOrder);
+    if (updatedOrder.status === "Completed") {
+      setOrders((prev) =>
+        prev.filter((order) => order._id !== updatedOrder._id)
+      );
+    } else {
+      setOrders((prev) =>
+        prev.map((order) =>
+          order._id === updatedOrder._id ? updatedOrder : order
+        )
+      );
+    }
+  };
+
+   socket.on("orderPlaced", (populatedOrder) => {
+        console.log("✅ Received new order:", populatedOrder);
+        setOrders((prev) => [...prev, populatedOrder]);
+      });
+  
+
+  socket.on("orderCompleted", handleOrderStatusUpdated);
+
+
+
+  return () => {
+    socket.off("orderCompleted", handleOrderStatusUpdated);
+    socket.off("orderPlaced");
+  };
+}, []);
+
 
   const fetchOrders = async () => {
     try {

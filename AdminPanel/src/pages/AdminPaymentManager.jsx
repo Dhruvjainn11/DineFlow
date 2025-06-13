@@ -65,11 +65,14 @@ export default function AdminPaymentManager() {
               <tbody>
                 {orders.map((order) => (
                   <tr key={order._id} className="border-t">
-                    <td className="p-3">{order.tableNumber?.name || "N/A"}</td>
+                    <td className="p-3">{order.tableNumber?.tableNumber || "N/A"}</td>
                     <td className="p-3">₹{order.totalPrice}</td>
                     <td className="p-3">{new Date(order.paymentRequestedAt).toLocaleString()}</td>
                     <td className="p-3">
-                      <button onClick={() => handleMarkComplete(order._id)}>Mark Complete</button>
+                      <button className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition cursor-pointer"
+                        disabled={order.paymentStatus === "Completed"}
+                      
+                      onClick={() => handleMarkComplete(order._id)}>Mark Complete</button>
                     </td>
                   </tr>
                 ))}

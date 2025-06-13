@@ -10,6 +10,7 @@ import TableManagment from "./pages/TableManagment";
 import OrderManagment from "./pages/OrderManagment";
 import Analytics from "./pages/Analytics";
 import AdminPaymentManager from "./pages/AdminPaymentManager";
+import KitchenDashboard from "./pages/kitchen/KitchenDashboard";
 
 function App() {
   useEffect(() => {
@@ -29,6 +30,7 @@ function App() {
           <Route path="/admin/orders" element={<OrderManagment />} />
           <Route path="/admin/analytics" element={<Analytics />} />
           <Route path="/admin/payment" element={<AdminPaymentManager />} />
+          <Route path="/kitchen/dashboard" element={<KitchenDashboard />} />
         </Route>
     </Routes>
   );

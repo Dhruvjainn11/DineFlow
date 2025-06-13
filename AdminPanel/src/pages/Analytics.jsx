@@ -43,6 +43,8 @@ export default function Analytics() {
   if (!data) return <div className="p-6 text-red-500">Failed to load analytics</div>;
 
   const { totalOrders, payments, tables } = data;
+  console.log(data);
+  
 
   const paymentData = [
     { name: "Pending", value: payments.pending },
