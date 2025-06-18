@@ -8,38 +8,50 @@ const router = express.Router();
 
 router.get("/summary", protect, allowRoles("admin"), async (req, res) => {
   try {
-    // Order stats
+    // Total Orders
     const totalOrders = await Order.countDocuments();
-    const pendingPayments = await Order.countDocuments({
-      paymentStatus: "Pending",
-    });
-    const requestedPayments = await Order.countDocuments({
-      paymentStatus: "Requested",
-    });
-    const completedPayments = await Order.countDocuments({
-      paymentStatus: "Completed",
-    });
 
+    // Payment breakdown
+    const [pendingPayments, requestedPayments, completedPayments] = await Promise.all([
+      Order.countDocuments({ paymentStatus: "Pending" }),
+      Order.countDocuments({ paymentStatus: "Requested" }),
+      Order.countDocuments({ paymentStatus: "Completed" }),
+    ]);
+
+    // Total Revenue
     const totalRevenueAgg = await Order.aggregate([
       { $match: { paymentStatus: "Completed" } },
       { $group: { _id: null, total: { $sum: "$totalPrice" } } },
     ]);
     const totalRevenue = totalRevenueAgg[0]?.total || 0;
 
-    // Table stats
-    const totalTables = await Table.countDocuments();
-    const statusCounts = await Table.aggregate([
-      {
-        $group: {
-          _id: "$status",
-          count: { $sum: 1 },
-        },
-      },
-    ]);
-    const tableStatus = statusCounts.reduce((acc, item) => {
-      acc[item._id] = item.count;
-      return acc;
-    }, {});
+    // Get all tables with their current orders
+    const allTables = await Table.find().populate({
+      path: "currentOrder",
+      model: "Order",
+      options: { sort: { createdAt: -1 } }, // latest order first
+    });
+
+    // Count table statuses
+    const tableStatusCounts = {
+      EMPTY: 0,
+      ORDERED: 0,
+      PREPARING: 0,
+      SERVED: 0,
+      PAID: 0,
+    };
+
+    allTables.forEach((table) => {
+      const latestOrder = table.currentOrder?.[0]; // latest order if exists
+      if (!latestOrder) {
+        tableStatusCounts.EMPTY++;
+      } else {
+        const status = latestOrder.status;
+        if (tableStatusCounts[status] !== undefined) {
+          tableStatusCounts[status]++;
+        }
+      }
+    });
 
     res.json({
       totalOrders,
@@ -50,16 +62,17 @@ router.get("/summary", protect, allowRoles("admin"), async (req, res) => {
         totalRevenue,
       },
       tables: {
-        total: totalTables,
-        ...tableStatus, // e.g. { EMPTY: 4, ORDERED: 2, DONE: 1 }
+        total: allTables.length,
+        Available: allTables.filter((t) => t.status === "Available").length,
+        Occupied: allTables.filter((t) => t.status === "Occupied").length,
+        ...tableStatusCounts,
       },
     });
   } catch (err) {
     console.error("Analytics Error:", err);
-    res
-      .status(500)
-      .json({ message: "Failed to load analytics", error: err.message });
+    res.status(500).json({ message: "Failed to load analytics", error: err.message });
   }
 });
+
 
 export default router;

@@ -1,7 +1,8 @@
 // server/routes/tableRoutes.js
 import express from 'express';
 import Table from '../models/Table.js';
-import QRCode  from 'qrcode'; // Assuming you have a QR code generation library
+import QRCode  from 'qrcode';
+import Order from '../models/Order.js'; // Assuming you have a QR code generation library
 
 const router = express.Router();
 
@@ -21,7 +22,7 @@ router.post('/', async (req, res) => {
     const { tableNumber } = req.body;
 
     // Create the URL or unique identifier to encode in QR
-  const qrText = `localhost:5173//api/table/${tableNumber}`; // Adjust this URL as needed
+  const qrText = `http://192.168.31.34:5173/table/${tableNumber}`; // Adjust this URL as needed
 
    const qrCodeDataUrl = await QRCode.toDataURL(qrText);
 
@@ -77,6 +78,18 @@ router.delete('/:id', async (req, res) => {
   } catch (err) {
     res.status(500).json({ error: 'Failed to delete table' });
   }
+});
+
+router.get("/:id/current-order", async (req, res) => {
+  const { id } = req.params;
+  const table = await Table.findOne({ tableNumber: id }).populate("currentOrder");
+  if (!table || !table.currentOrder) return res.status(404).json({ error: "No current order" });
+
+  const order = await Order.findById(table.currentOrder)
+    .populate("items.menuItem")
+    .populate("tableNumber");
+
+  res.json(order);
 });
 
 export default router;

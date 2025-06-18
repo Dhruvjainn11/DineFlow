@@ -10,11 +10,11 @@ const tableSchema = new mongoose.Schema(
       enum: ["Available", "Occupied"],
       default: "Available",
     },
-    currentOrder: {
+    currentOrder: [{
       type: mongoose.Schema.Types.ObjectId,
       ref: "Order",
       default: null,
-    },
+    }],
   },
   {
     timestamps: true,
