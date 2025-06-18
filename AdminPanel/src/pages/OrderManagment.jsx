@@ -24,10 +24,9 @@ const OrderManagment = () => {
     }
   };
 
-   socket.on("orderPlaced", (populatedOrder) => {
-        console.log("✅ Received new order:", populatedOrder);
-        setOrders((prev) => [...prev, populatedOrder]);
-      });
+    socket.on("newOrder", (newOrder) =>
+           setOrders((prev) => [...prev, newOrder])
+         );
   
 
   socket.on("orderCompleted", handleOrderStatusUpdated);
@@ -36,7 +35,7 @@ const OrderManagment = () => {
 
   return () => {
     socket.off("orderCompleted", handleOrderStatusUpdated);
-    socket.off("orderPlaced");
+    socket.off("newOrder");
   };
 }, []);
 

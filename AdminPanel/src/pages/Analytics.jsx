@@ -14,11 +14,9 @@ import {
   CartesianGrid,
   Legend,
 } from "recharts";
-import { Table2, CheckCircle, Clock3, Loader, AlertCircle } from "lucide-react";
+import { Table, Clock, CheckCircle, Loader2, Circle, CreditCard } from "lucide-react";
 
-
-
-const COLORS = ["#8884d8", "#ffc658", "#82ca9d"];
+const COLORS = ["#6366f1", "#f59e0b", "#10b981"]; // Indigo, Amber, Emerald
 
 export default function Analytics() {
   const [data, setData] = useState(null);
@@ -39,12 +37,24 @@ export default function Analytics() {
     fetchAnalytics();
   }, []);
 
-  if (loading) return <div className="p-6 text-lg">Loading...</div>;
-  if (!data) return <div className="p-6 text-red-500">Failed to load analytics</div>;
+  if (loading) return (
+    <AdminLayout>
+      <div className="flex justify-center items-center h-64">
+        <Loader2 className="animate-spin h-8 w-8 text-indigo-500" />
+      </div>
+    </AdminLayout>
+  );
+
+  if (!data) return (
+    <AdminLayout>
+      <div className="p-6 text-red-500 flex items-center gap-2">
+        <Circle className="h-4 w-4 fill-current" />
+        Failed to load analytics data
+      </div>
+    </AdminLayout>
+  );
 
   const { totalOrders, payments, tables } = data;
-  console.log(data);
-  
 
   const paymentData = [
     { name: "Pending", value: payments.pending },
@@ -54,131 +64,141 @@ export default function Analytics() {
 
   const tableData = [
     { name: "Occupied", value: tables.Occupied },
-    { name: "Free", value: tables.Available },
+    { name: "Available", value: tables.Available },
   ];
+
+
 
   return (
     <AdminLayout>
-      <div className="p-8 space-y-8">
-        <h1 className="text-3xl font-bold text-gray-800">Dashboard Analytics</h1>
+      <div className="p-6 space-y-8">
+        {/* Header */}
+        <div className="space-y-2">
+          <h1 className="text-3xl font-bold text-gray-900">Restaurant Analytics</h1>
+          <p className="text-gray-500">Real-time overview of your restaurant operations</p>
+        </div>
 
+        {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="p-6 rounded-xl shadow-lg bg-white border">
-            <h2 className="text-xl font-semibold">Total Orders</h2>
-            <p className="text-3xl font-bold text-blue-600">{totalOrders}</p>
+          <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-500">Total Orders</p>
+                <p className="mt-1 text-3xl font-semibold text-indigo-600">{totalOrders}</p>
+              </div>
+              <div className="p-3 bg-indigo-50 rounded-lg">
+                <Table className="h-6 w-6 text-indigo-600" />
+              </div>
+            </div>
           </div>
 
-          <div className="p-6 rounded-xl shadow-lg bg-white border">
-            <h2 className="text-xl font-semibold">Total Revenue</h2>
-            <p className="text-3xl font-bold text-green-600">₹{payments.totalRevenue}</p>
+          <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-500">Total Revenue</p>
+                <p className="mt-1 text-3xl font-semibold text-emerald-600">₹{payments.totalRevenue}</p>
+              </div>
+              <div className="p-3 bg-emerald-50 rounded-lg">
+                <CreditCard className="h-6 w-6 text-emerald-600" />
+              </div>
+            </div>
           </div>
 
-          <div className="p-6 rounded-xl shadow-lg bg-white border space-y-2">
-            <h2 className="text-xl font-semibold">Payments</h2>
-            <p>🟡 Pending: <span className="font-semibold">{payments.pending}</span></p>
-            <p>🔵 Requested: <span className="font-semibold">{payments.requested}</span></p>
-            <p>✅ Completed: <span className="font-semibold">{payments.completed}</span></p>
-          </div>
-        </div>
-
-        {/* Charts */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Payment Status Pie Chart */}
-          <div className="bg-white p-6 rounded-xl shadow-lg border">
-            <h2 className="text-xl font-semibold mb-4">Payment Status</h2>
-            <ResponsiveContainer width="100%" height={300}>
-              <PieChart>
-                <Pie
-                  data={paymentData}
-                  dataKey="value"
-                  nameKey="name"
-                  outerRadius={100}
-                  label
-                >
-                  {paymentData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                  ))}
-                </Pie>
-                <Tooltip />
-                <Legend />
-              </PieChart>
-            </ResponsiveContainer>
-          </div>
-
-          {/* Table Occupancy Bar Chart */}
-          <div className="bg-white p-6 rounded-xl shadow-lg border">
-            <h2 className="text-xl font-semibold mb-4">Table Occupancy</h2>
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={tableData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="name" />
-                <YAxis allowDecimals={false} />
-                <Tooltip />
-                <Legend />
-                <Bar dataKey="value" fill="#8884d8" />
-              </BarChart>
-            </ResponsiveContainer>
+          <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
+            <div className="space-y-3">
+              <p className="text-sm font-medium text-gray-500">Payment Status</p>
+              <div className="flex items-center justify-between">
+                <span className="text-gray-600">Pending</span>
+                <span className="font-medium">{payments.pending}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-gray-600">Requested</span>
+                <span className="font-medium">{payments.requested}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-gray-600">Completed</span>
+                <span className="font-medium">{payments.completed}</span>
+              </div>
+            </div>
           </div>
         </div>
 
-        {/* Table Status List */}
-        <div className="bg-white p-6 rounded-2xl shadow-md border">
-  <h2 className="text-2xl font-semibold mb-6 text-gray-800">🪑 Table Status Overview</h2>
+        {/* Charts Section */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Payment Status Chart */}
+          <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm">
+            <div className="mb-4">
+              <h2 className="text-lg font-semibold text-gray-900">Payment Status Distribution</h2>
+              <p className="text-sm text-gray-500">Breakdown of payment statuses</p>
+            </div>
+            <div className="h-[300px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={paymentData}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={60}
+                    outerRadius={90}
+                    paddingAngle={5}
+                    dataKey="value"
+                    label
+                  >
+                    {paymentData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip 
+                    formatter={(value) => [`${value} payments`, '']}
+                    labelFormatter={(name) => <span className="font-semibold">{name}</span>}
+                  />
+                  <Legend />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
 
-  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-    {/* Total Tables */}
-    <div className="flex items-center gap-4 p-4 border rounded-xl shadow-sm bg-gray-50">
-      <div className="p-3 bg-blue-100 text-blue-600 rounded-full">
-        <Table2 className="w-6 h-6" />
-      </div>
-      <div>
-        <p className="text-sm text-gray-500">Total Tables</p>
-        <p className="text-xl font-bold text-gray-800">{tables.total}</p>
-      </div>
-    </div>
+          {/* Table Occupancy Chart */}
+          <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm">
+            <div className="mb-4">
+              <h2 className="text-lg font-semibold text-gray-900">Table Occupancy</h2>
+              <p className="text-sm text-gray-500">Current table availability status</p>
+            </div>
+            <div className="h-[300px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={tableData}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                  <XAxis 
+                    dataKey="name" 
+                    axisLine={false}
+                    tickLine={false}
+                  />
+                  <YAxis 
+                    allowDecimals={false} 
+                    axisLine={false}
+                    tickLine={false}
+                  />
+                  <Tooltip 
+                    cursor={{ fill: '#f3f4f6' }}
+                    formatter={(value) => [`${value} tables`, '']}
+                    labelFormatter={(name) => ''}
+                  />
+                  <Bar 
+                    dataKey="value" 
+                    radius={[4, 4, 0, 0]}
+                    barSize={40}
+                  >
+                    {tableData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={index === 0 ? "#6366f1" : "#10b981"} />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+        </div>
 
-    {/* Table Status Cards */}
-    <div className="flex items-center gap-4 p-4 border rounded-xl shadow-sm bg-gray-50">
-      <div className="p-3 bg-gray-200 text-gray-800 rounded-full">
-        <AlertCircle className="w-6 h-6" />
-      </div>
-      <div>
-        <p className="text-sm text-gray-500">Empty</p>
-        <p className="text-xl font-bold">{tables.EMPTY || 0}</p>
-      </div>
-    </div>
-
-    <div className="flex items-center gap-4 p-4 border rounded-xl shadow-sm bg-yellow-50">
-      <div className="p-3 bg-yellow-300 text-yellow-800 rounded-full">
-        <Clock3 className="w-6 h-6" />
-      </div>
-      <div>
-        <p className="text-sm text-gray-500">Ordered</p>
-        <p className="text-xl font-bold">{tables.ORDERED || 0}</p>
-      </div>
-    </div>
-
-    <div className="flex items-center gap-4 p-4 border rounded-xl shadow-sm bg-red-50">
-      <div className="p-3 bg-red-300 text-red-800 rounded-full">
-        <Loader className="w-6 h-6 animate-spin" />
-      </div>
-      <div>
-        <p className="text-sm text-gray-500">Done</p>
-        <p className="text-xl font-bold">{tables.DONE || 0}</p>
-      </div>
-    </div>
-
-    <div className="flex items-center gap-4 p-4 border rounded-xl shadow-sm bg-green-50">
-      <div className="p-3 bg-green-300 text-green-800 rounded-full">
-        <CheckCircle className="w-6 h-6" />
-      </div>
-      <div>
-        <p className="text-sm text-gray-500">Paid</p>
-        <p className="text-xl font-bold">{tables.PAID || 0}</p>
-      </div>
-    </div>
-  </div>
-</div>
+       
       </div>
     </AdminLayout>
   );

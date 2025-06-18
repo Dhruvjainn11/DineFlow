@@ -102,7 +102,7 @@ export default function TableManagement({ onClose }) {
                   <div
                     key={i}
                     className={`absolute w-10 h-10  rounded-full shadow-lg ${
-                      (table.orders?.length || 0) > i
+                      (table.Order?.length || 0) > i
                         ? "bg-yellow-600"
                         : "bg-gray-300"
                     }`}
@@ -156,7 +156,7 @@ export default function TableManagement({ onClose }) {
       Status: {selectedTable.status}
     </p>
     <p className="font-medium">
-      Orders: {selectedTable.orders?.length || 0}
+      Orders: {selectedTable.currentOrder?.length || 0}
     </p>
 
     <button
