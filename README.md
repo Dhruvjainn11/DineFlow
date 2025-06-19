@@ -30,9 +30,9 @@ DineFlow is a modern MERN-stack application designed to streamline the dine-in o
 
 4. Install server dependencies:
    
-cd server
+   cd server
 
-npm install
+   npm install
 
 5. Set up environment variables:
 
@@ -51,41 +51,28 @@ JWT_SECRET=your_jwt_secret
    npm run dev
 
 
+5. 📡 Socket.IO Events
+   | Event               | From     | To       | Purpose                    |
+| ------------------- | -------- | -------- | -------------------------- |
+| `orderPlaced`       | Customer | Kitchen  | Notify new order           |
+| `orderStatusUpdate` | Kitchen  | Customer | Update status of an order  |
+| `paymentRequested`  | Customer | Admin    | Notify admin for billing   |
+| `paymentCompleted`  | Admin    | Customer | Payment marked as complete |
 
 
-### 5. API Documentation
+6. 🚧 Future Improvements
+Role-based Access (e.g. staff)
+
+Sales & Order Report Downloads
+
+PWA Support
+
+Feedback & Ratings System
+
+Multi-language Support
 
 
-```markdown
-## API Endpoints
 
-### Authentication
-- **POST** `/api/users/login`: Authenticate user and retrieve token.
-
-### Categories
-- **POST** `/api/categories`: Create a new category.
-- **GET** `/api/categories`: Retrieve all categories.
-- **PUT** `/api/categories/:id`: Update a specific category.
-- **DELETE** `/api/categories/:id`: Delete a specific category.
-
-### Menu Items
-- **POST** `/api/menu`: Add a new menu item.
-- **GET** `/api/menu`: Retrieve all menu items.
-- **PUT** `/api/menu/:id`: Update a specific menu item.
-- **DELETE** `/api/menu/:id`: Delete a specific menu item.
-
-### Tables
-- **POST** `/api/tables`: Create a new table.
-- **GET** `/api/tables`: Retrieve all tables.
-- **PUT** `/api/tables/:id`: Update a specific table.
-- **DELETE** `/api/tables/:id`: Delete a specific table.
-
-### Orders
-- **POST** `/api/orders`: Place a new order.
-- **GET** `/api/orders`: Retrieve all orders.
-- **PUT** `/api/orders/:id`: Update order status.
-- **DELETE** `/api/orders/:id`: Delete an order.
-```
 ## Postman Collection
 
 A comprehensive Postman collection is available to test all API endpoints. You can import the collection using the following link:
