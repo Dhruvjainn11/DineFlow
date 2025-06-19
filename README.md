@@ -51,15 +51,6 @@ JWT_SECRET=your_jwt_secret
    npm run dev
 
 
-5. 📡 Socket.IO Events
-   | Event               | From     | To       | Purpose                    |
-| ------------------- | -------- | -------- | -------------------------- |
-| `orderPlaced`       | Customer | Kitchen  | Notify new order           |
-| `orderStatusUpdate` | Kitchen  | Customer | Update status of an order  |
-| `paymentRequested`  | Customer | Admin    | Notify admin for billing   |
-| `paymentCompleted`  | Admin    | Customer | Payment marked as complete |
-
-
 6. 🚧 Future Improvements
 Role-based Access (e.g. staff)
 
