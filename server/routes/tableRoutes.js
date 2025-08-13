@@ -22,7 +22,7 @@ router.post('/', async (req, res) => {
     const { tableNumber } = req.body;
 
     // Create the URL or unique identifier to encode in QR
-  const qrText = `http://192.168.31.34:5173/table/${tableNumber}`; // Adjust this URL as needed
+  const qrText = `http://192.168.236.119:5173/table/${tableNumber}`; // Adjust this URL as needed
 
    const qrCodeDataUrl = await QRCode.toDataURL(qrText);
 

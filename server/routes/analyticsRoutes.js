@@ -18,12 +18,88 @@ router.get("/summary", protect, allowRoles("admin"), async (req, res) => {
       Order.countDocuments({ paymentStatus: "Completed" }),
     ]);
 
-    // Total Revenue
+    // Total Revenue - only from completed payments
     const totalRevenueAgg = await Order.aggregate([
       { $match: { paymentStatus: "Completed" } },
       { $group: { _id: null, total: { $sum: "$totalPrice" } } },
     ]);
     const totalRevenue = totalRevenueAgg[0]?.total || 0;
+
+    // Get 7-day daily statistics
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+    sevenDaysAgo.setHours(0, 0, 0, 0);
+
+    // Get all orders from the last 7 days
+    const dailyStats = await Order.aggregate([
+      {
+        $match: {
+          createdAt: { $gte: sevenDaysAgo }
+        }
+      },
+      {
+        $group: {
+          _id: {
+            $dateToString: {
+              format: "%Y-%m-%d",
+              date: "$createdAt"
+            }
+          },
+          orders: { $sum: 1 },
+          revenue: { $sum: "$totalPrice" }
+        }
+      },
+      {
+        $sort: { _id: 1 }
+      }
+    ]);
+
+    // Fill in missing days with zero values
+    const dailyStatsMap = {};
+    dailyStats.forEach(stat => {
+      dailyStatsMap[stat._id] = {
+        date: stat._id,
+        orders: stat.orders,
+        revenue: stat.revenue
+      };
+    });
+
+    const completeDailyStats = [];
+    for (let i = 6; i >= 0; i--) {
+      const date = new Date();
+      date.setDate(date.getDate() - i);
+      date.setHours(0, 0, 0, 0);
+      const dateStr = date.toISOString().split('T')[0];
+      
+      completeDailyStats.push({
+        date: dateStr,
+        orders: dailyStatsMap[dateStr]?.orders || 0,
+        revenue: dailyStatsMap[dateStr]?.revenue || 0
+      });
+    }
+
+    // Get today's specific stats
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
+    const todayStats = await Order.aggregate([
+      {
+        $match: {
+          createdAt: { $gte: today, $lt: tomorrow }
+        }
+      },
+      {
+        $group: {
+          _id: null,
+          orders: { $sum: 1 },
+          revenue: { $sum: "$totalPrice" }
+        }
+      }
+    ]);
+
+    const todayData = todayStats[0] || { orders: 0, revenue: 0 };
 
     // Get all tables with their current orders
     const allTables = await Table.find().populate({
@@ -67,12 +143,13 @@ router.get("/summary", protect, allowRoles("admin"), async (req, res) => {
         Occupied: allTables.filter((t) => t.status === "Occupied").length,
         ...tableStatusCounts,
       },
+      dailyStats: completeDailyStats,
+      todayStats: todayData,
     });
   } catch (err) {
     console.error("Analytics Error:", err);
     res.status(500).json({ message: "Failed to load analytics", error: err.message });
   }
 });
-
 
 export default router;
