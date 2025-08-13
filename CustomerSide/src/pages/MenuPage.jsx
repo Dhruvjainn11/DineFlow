@@ -1,11 +1,14 @@
-import React, { useEffect, useState } from "react";
+// MenuPage.jsx
+
+import React, { useEffect, useState, useRef } from "react";
 import { useParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { setTableId } from "../redux/slices/tableSlice";
 import { addToCart, removeFromCart } from "../redux/slices/cartSlice";
 import api from "../utils/api";
-import { FiHome, FiShoppingCart, FiClock, FiCreditCard, FiSearch, FiPlus, FiMinus } from "react-icons/fi";
+import { FiSearch, FiPlus, FiMinus, FiX } from "react-icons/fi";
 import CustomerFooter from "../components/CustomerFooter";
+import MenuItemModal from "../components/MenuItemModal";
 
 export default function MenuPage() {
   const { tableId } = useParams();
@@ -13,27 +16,58 @@ export default function MenuPage() {
   const cartItems = useSelector((state) => state.cart.items);
 
   const [menus, setMenus] = useState([]);
+  const [categories, setCategories] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
+  const [selectedItem, setSelectedItem] = useState(null);
+  const [activeCategory, setActiveCategory] = useState(null);
+  const [showDetailModal, setShowDetailModal] = useState(false);
+  const [detailItem, setDetailItem] = useState(null);
+  const categoryRefs = useRef({});
 
   useEffect(() => {
     dispatch(setTableId(tableId));
 
     const fetchData = async () => {
       try {
-        const menuRes = await api.get("/menu");
+        const [menuRes, categoriesRes] = await Promise.all([
+          api.get("/menu"),
+          api.get("/categories"),
+        ]);
         setMenus(menuRes.data);
+        setCategories(categoriesRes.data);
       } catch (err) {
-        console.error("Failed to fetch menu data", err);
+        console.error("Failed to fetch data", err);
       }
     };
 
     fetchData();
   }, [tableId, dispatch]);
 
-  const filteredMenus = menus.filter(menu => 
+  const filteredMenus = menus.filter(menu =>
     menu.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     menu.description.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  ).filter(menu => menu.available !== false); // Only show available items
+
+  const getCategoryName = (categoryId) => {
+    const cat = categories.find(c => c._id === categoryId);
+    return cat ? cat.name : "Others";
+  };
+
+  const getCategoryById = (categoryId) => {
+    return categories.find(c => c._id === categoryId);
+  };
+
+  // Group by category ID - handle both populated and unpopulated category data
+  const groupedMenus = filteredMenus.reduce((acc, item) => {
+    // Handle both populated category object and category ID string
+    const categoryId = item.category && typeof item.category === 'object' 
+      ? item.category._id 
+      : item.category;
+    
+    if (!acc[categoryId]) acc[categoryId] = [];
+    acc[categoryId].push(item);
+    return acc;
+  }, {});
 
   const getItemQuantity = (itemId) => {
     if (!cartItems) return 0;
@@ -42,82 +76,272 @@ export default function MenuPage() {
   };
 
   const handleRemoveFromCart = (item) => {
-    const itemInCart = cartItems.find(cartItem => cartItem._id === item._id);
+    const itemInCart = cartItems.find(cartItem => item.selectedSize 
+      ? cartItem.cartItemId === `${item._id}-${item.selectedSize.label}`
+      : cartItem._id === item._id
+    );
     if (itemInCart && itemInCart.quantity > 1) {
       dispatch({
         type: 'cart/updateQty',
-        payload: { id: item._id, quantity: itemInCart.quantity - 1 }
+        payload: { id: itemInCart.cartItemId, quantity: itemInCart.quantity - 1 }
       });
     } else {
-      dispatch(removeFromCart(item._id));
+      dispatch(removeFromCart(itemInCart.cartItemId));
+    }
+  };
+
+  const handleAddToCart = (item, size = null) => {
+    if (item.sizes && item.sizes.length > 0 && !size) {
+      setSelectedItem(item);
+      return;
+    }
+    dispatch(addToCart({ ...item, selectedSize: size }));
+  };
+
+  const handleCloseModal = () => {
+    setSelectedItem(null);
+  };
+
+  const handleItemClick = (item) => {
+    setDetailItem(item);
+    setShowDetailModal(true);
+  };
+
+  const handleCloseDetailModal = () => {
+    setShowDetailModal(false);
+    setDetailItem(null);
+  };
+
+  const scrollToCategory = (categoryId) => {
+    const category = getCategoryById(categoryId);
+    setActiveCategory(categoryId);
+    const element = categoryRefs.current[categoryId];
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
   };
 
   return (
     <div className="max-w-[480px] mx-auto bg-amber-50 min-h-screen pb-16">
       {/* Header with Search */}
-      <div className="sticky top-0 z-10 bg-white shadow-sm p-4 border-b border-amber-100">
-        <h1 className="text-2xl font-bold text-center text-amber-900 mb-4">DineFlow Menu</h1>
-        <div className="relative">
-          <FiSearch className="absolute left-3 top-3 text-amber-400" />
-          <input
-            type="text"
-            placeholder="Search menu items..."
-            className="w-full pl-10 pr-4 py-2 rounded-full border border-amber-200 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
+      <div className="sticky top-0 z-20 bg-white shadow-sm border-b border-amber-100">
+        <div className="p-4">
+          <h1 className="text-2xl font-bold text-center text-amber-900 mb-4">DineFlow Menu</h1>
+          <div className="relative">
+            <FiSearch className="absolute left-3 top-3 text-amber-400" />
+            <input
+              type="text"
+              placeholder="Search menu items..."
+              className="w-full pl-10 pr-4 py-2 rounded-full border border-amber-200 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+        </div>
+
+        {/* Category Navigation Bar */}
+        <div className="px-4 pb-2">
+          <div className="flex gap-2 overflow-x-auto scrollbar-hide">
+            <button
+              onClick={() => scrollToCategory('all')}
+              className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
+                activeCategory === 'all' || !activeCategory
+                  ? 'bg-amber-500 text-white'
+                  : 'bg-amber-100 text-amber-700 hover:bg-amber-200'
+              }`}
+            >
+              All Items
+            </button>
+            {categories.map((category) => (
+              <button
+                key={category._id}
+                onClick={() => scrollToCategory(category._id)}
+                className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
+                  activeCategory === category._id
+                    ? 'bg-amber-500 text-white'
+                    : 'bg-amber-100 text-amber-700 hover:bg-amber-200'
+                }`}
+              >
+                {category.name}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
-      {/* Menu Items */}
-      <div className="p-4 mt-5 grid grid-cols-2 gap-4">
-        {filteredMenus.map((item) => {
-          const quantity = getItemQuantity(item._id);
+      {/* Menu Items Grouped by Category */}
+      <div className="p-4 mt-2 space-y-8">
+        {Object.entries(groupedMenus).map(([categoryId, items]) => {
+          const category = getCategoryById(categoryId);
+          const categoryName = category ? category.name : "Others";
+          
           return (
-            <div key={item._id} className="bg-white rounded-xl shadow-sm overflow-hidden transition-transform hover:scale-[1.02] border border-amber-100 hover:shadow-md">
-              <div className="relative pt-[100%]">
-                <img
-                  src={item.imageUrl}
-                  alt={item.name}
-                  className="absolute top-0 left-6 w-36 h-36 object-fit rounded-full border-4 border-white shadow-lg"
-                />
-              </div>
-              <div className="relative bottom-6 p-3">
-                <h2 className="font-semibold text-base text-amber-900 truncate">{item.name}</h2>
-                <p className="text-sm text-amber-700 mb-1 truncate">{item.description}</p>
-                <div className="flex justify-between items-center mt-2">
-                  <p className="font-bold text-amber-600">₹{item.price}</p>
-                  {quantity > 0 ? (
-                    <div className="flex items-center space-x-2">
-                      <button 
-                        className="p-1 bg-amber-100 text-amber-700 rounded-full hover:bg-amber-200 transition-colors"
-                        onClick={() => handleRemoveFromCart(item)}
-                      >
-                        <FiMinus size={14} />
-                      </button>
-                      <span className="text-sm font-medium text-amber-800">{quantity}</span>
-                      <button 
-                        className="p-1 bg-amber-100 text-amber-700 rounded-full hover:bg-amber-200 transition-colors"
-                        onClick={() => dispatch(addToCart(item))}
-                      >
-                        <FiPlus size={14} />
-                      </button>
-                    </div>
-                  ) : (
-                    <button
-                      className="px-3 py-1 bg-gradient-to-r from-amber-500 to-amber-600 text-white text-sm rounded-full hover:from-amber-600 hover:to-amber-700 transition-colors shadow-sm"
-                      onClick={() => dispatch(addToCart(item))}
+            <section 
+              key={categoryId} 
+              ref={(el) => categoryRefs.current[categoryId] = el}
+              className="scroll-mt-24"
+            >
+              <h2 className="text-xl font-bold text-amber-900 mb-4 flex items-center">
+                <span className="bg-amber-500 w-1 h-6 rounded-full mr-3"></span>
+                {categoryName}
+              </h2>
+              <div className="grid grid-cols-2 gap-4">
+                {items.map((item) => {
+                  const quantity = getItemQuantity(item._id);
+                  const displayPrice = item.sizes && item.sizes.length > 0
+                    ? `From ₹${item.sizes.reduce((min, s) => s.price < min ? s.price : min, Infinity)}`
+                    : `₹${item.price}`;
+
+                  return (
+                    <div
+                      key={item._id}
+                      className="bg-white rounded-xl shadow-sm overflow-hidden transition-transform hover:scale-[1.02] border border-amber-100 hover:shadow-md cursor-pointer"
+                      onClick={() => handleItemClick(item)}
                     >
-                      Add
-                    </button>
-                  )}
-                </div>
+                      <div className="relative pt-[100%]">
+                        <img
+                          src={item.imageUrl}
+                          alt={item.name}
+                          className="absolute top-0 left-6 w-36 h-36 object-fit rounded-full border-4 border-white shadow-lg"
+                        />
+                        {/* Jain Indicator */}
+                        {item.jain && (
+                          <div className="absolute top-2 right-2 bg-green-500 text-white text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center shadow-lg">
+                            J
+                          </div>
+                        )}
+                      </div>
+                      <div className="relative bottom-6 p-3">
+                        <h2 className="font-semibold text-base text-amber-900 truncate">{item.name}</h2>
+                        <p className="text-sm text-amber-700 mb-1 truncate">{item.description}</p>
+                        <div className="flex justify-between items-center mt-2">
+                          <p className="font-bold text-amber-600">{displayPrice}</p>
+                          {quantity > 0 ? (
+                            <div className="flex items-center space-x-2">
+                              <button
+                                className="p-1 bg-amber-100 text-amber-700 rounded-full hover:bg-amber-200 transition-colors"
+                                onClick={(e) => { e.stopPropagation(); handleRemoveFromCart(item); }}
+                              >
+                                <FiMinus size={14} />
+                              </button>
+                              <span className="text-sm font-medium text-amber-800">{quantity}</span>
+                              <button
+                                className="p-1 bg-amber-100 text-amber-700 rounded-full hover:bg-amber-200 transition-colors"
+                                onClick={(e) => { e.stopPropagation(); handleAddToCart(item); }}
+                              >
+                                <FiPlus size={14} />
+                              </button>
+                            </div>
+                          ) : (
+                            <button
+                              className="px-3 py-1 bg-gradient-to-r from-amber-500 to-amber-600 text-white text-sm rounded-full hover:from-amber-600 hover:to-amber-700 transition-colors shadow-sm"
+                              onClick={(e) => { e.stopPropagation(); handleAddToCart(item); }}
+                            >
+                              Add
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
-            </div>
+            </section>
           );
         })}
       </div>
+      
+      {/* Size Selection Modal */}
+      {selectedItem && <MenuItemModal item={selectedItem} onClose={handleCloseModal} />}
+
+      {/* Detail Modal */}
+      {showDetailModal && detailItem && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl max-w-md w-full max-h-[90vh] overflow-y-auto">
+            {/* Header */}
+            <div className="relative">
+              <img
+                src={detailItem.imageUrl}
+                alt={detailItem.name}
+                className="w-full h-48 object-cover rounded-t-2xl"
+              />
+              <button
+                onClick={handleCloseDetailModal}
+                className="absolute top-4 right-4 bg-white bg-opacity-80 rounded-full p-2 hover:bg-opacity-100 transition-all"
+              >
+                <FiX size={20} />
+              </button>
+            </div>
+
+            {/* Content */}
+            <div className="p-6">
+              <div className="flex items-center gap-2 mb-2">
+                <h2 className="text-2xl font-bold text-gray-900">{detailItem.name}</h2>
+                {detailItem.jain && (
+                  <span className="bg-green-500 text-white text-sm font-bold rounded-full w-6 h-6 flex items-center justify-center">
+                    J
+                  </span>
+                )}
+              </div>
+              
+              {/* Price */}
+              <div className="mb-4">
+                {detailItem.sizes && detailItem.sizes.length > 0 ? (
+                  <div>
+                    <p className="text-lg font-semibold text-amber-600 mb-2">Available Sizes:</p>
+                    <div className="space-y-2">
+                      {detailItem.sizes.map((size, index) => (
+                        <div key={index} className="flex justify-between items-center bg-gray-50 p-3 rounded-lg">
+                          <span className="font-medium">{size.label}</span>
+                          <span className="text-amber-600 font-bold">₹{size.price}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ) : (
+                  <p className="text-2xl font-bold text-amber-600">₹{detailItem.price}</p>
+                )}
+              </div>
+
+              {/* Description */}
+              {detailItem.description && (
+                <div className="mb-4">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">Description</h3>
+                  <p className="text-gray-700 leading-relaxed">{detailItem.description}</p>
+                </div>
+              )}
+
+              {/* Ingredients */}
+              {detailItem.ingredients && detailItem.ingredients.length > 0 && (
+                <div className="mb-6">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">Ingredients</h3>
+                  <div className="flex flex-wrap gap-2">
+                    {detailItem.ingredients.map((ingredient, index) => (
+                      <span
+                        key={index}
+                        className="bg-amber-100 text-amber-800 px-3 py-1 rounded-full text-sm"
+                      >
+                        {ingredient}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Add to Cart Button */}
+              <button
+                onClick={() => {
+                  handleAddToCart(detailItem);
+                  handleCloseDetailModal();
+                }}
+                className="w-full bg-gradient-to-r from-amber-500 to-amber-600 text-white font-bold py-3 rounded-xl hover:from-amber-600 hover:to-amber-700 transition-all duration-200 shadow-lg"
+              >
+                Add to Cart
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Bottom Navigation */}
       <CustomerFooter />

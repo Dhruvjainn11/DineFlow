@@ -9,77 +9,125 @@ export default function PaymentPage() {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  // Fetch all orders for this table (unpaid or partially paid)
   const fetchOrders = async () => {
     try {
-      const res = await api.get(`/orders/${tableId}/orders`);
+      const res = await api.get(`/orders/table/${tableId}`);
       setOrders(res.data);
       setLoading(false);
     } catch (err) {
       console.error("Failed to fetch orders", err);
+      setLoading(false);
     }
   };
 
-  const requestPayment = async (orderId) => {
+  // Request payment for ALL unpaid orders at once
+  const requestPaymentAll = async () => {
     try {
-      await api.put(`/orders/${orderId}/request-payment`);
-      fetchOrders(); // refresh
+      await api.put(`/orders/table/${tableId}/request-payment`);
+      fetchOrders(); // Refresh orders after requesting payment
     } catch (err) {
-      console.error("Failed to request payment", err);
+      console.error("Failed to request payment for all orders", err);
     }
   };
+
+  // Check if ALL orders are either requested or completed
+  const allPaidOrRequested =
+    orders.length > 0 &&
+    orders.every(
+      (order) =>
+        order.paymentStatus === "Requested" || order.paymentStatus === "Completed"
+    );
 
   useEffect(() => {
     fetchOrders();
 
+    // Real-time payment status updates
     socket.on("paymentCompleted", (updatedOrder) => {
-        console.log("Payment completed for order:", updatedOrder);
-        
-  // Optionally show "Paid" for a few seconds before removal
-  setOrders((prev) =>
-    prev.map((order) =>
-      order._id === updatedOrder._id
-        ? { ...order, paymentStatus: "Completed" }
-        : order
-    )
-  );
+      setOrders((prev) =>
+        prev.map((order) =>
+          order._id === updatedOrder._id
+            ? { ...order, paymentStatus: "Completed" }
+            : order
+        )
+      );
 
-  setTimeout(() => {
-    setOrders((prev) =>
-      prev.filter((order) => order._id !== updatedOrder._id)
-    );
-  }, 7000);// 7 seconds delay before auto-remove
+      setTimeout(() => {
+        setOrders((prev) =>
+          prev.filter((order) => order._id !== updatedOrder._id)
+        );
+      }, 7000);
+    });
 
+    // Bulk payment requested
+    socket.on("paymentRequestedBulk", ({ tableId: updatedTableId, orders: updatedOrders }) => {
+      if (updatedTableId.toString() === tableId) {
+        setOrders(updatedOrders);
+      }
+    });
 
-   
+    // Bulk payment completed
+    socket.on("paymentCompletedBulk", ({ tableId: updatedTableId }) => {
+      if (updatedTableId.toString() === tableId) {
+        // Mark all orders completed and remove after delay
+        setOrders((prev) =>
+          prev.map((order) => ({ ...order, paymentStatus: "Completed" }))
+        );
 
-});
+        setTimeout(() => setOrders([]), 7000);
+      }
+    });
 
+    // New orders should appear on payment page
+    socket.on("newOrder", (newOrder) => {
+      if (newOrder?.tableNumber?.toString?.() === tableId || newOrder?.tableNumber === Number(tableId)) {
+        setOrders((prev) => [newOrder, ...prev]);
+      }
+    });
 
     return () => {
       socket.off("paymentCompleted");
+      socket.off("paymentRequestedBulk");
+      socket.off("paymentCompletedBulk");
+      socket.off("newOrder");
     };
-  }, []);
-  
-  if (loading) return (
+  }, [tableId]);
+
+  if (loading)
+    return (
       <div className="flex flex-col min-h-screen bg-gradient-to-b from-amber-50 to-white">
         <div className="flex-grow flex items-center justify-center">
           <div className="text-center p-8 bg-white rounded-2xl shadow-xl max-w-md w-full border border-amber-100">
             <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-amber-500 mx-auto mb-6"></div>
-            <h2 className="text-2xl font-bold text-amber-800 mb-2">Loading Your Orders</h2>
+            <h2 className="text-2xl font-bold text-amber-800 mb-2">
+              Loading Your Orders
+            </h2>
             <p className="text-amber-600">Preparing your dining experience...</p>
           </div>
         </div>
         <CustomerFooter />
       </div>
     );
-  
-    if (!orders || orders.length === 0) return (
+
+  if (!orders || orders.length === 0)
+    return (
       <div className="flex flex-col min-h-screen bg-gradient-to-b from-amber-50 to-white">
         <div className="flex-grow flex items-center justify-center">
           <div className="text-center p-8 bg-white rounded-2xl shadow-xl max-w-md w-full border border-amber-100">
             <div className="w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-8 w-8 text-amber-600"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
               </svg>
             </div>
             <h2 className="text-2xl font-bold text-amber-800 mb-2">No Orders Yet</h2>
@@ -90,56 +138,109 @@ export default function PaymentPage() {
       </div>
     );
 
- 
-
+  // Calculate total amount for all unpaid orders
   const totalAmount = orders.reduce((acc, order) => acc + (order.totalPrice || 0), 0);
 
   return (
     <div className="min-h-screen bg-amber-50 p-4">
-      <h2 className="text-2xl font-bold text-center text-amber-900 mb-4">Payment Summary</h2>
+      <h2 className="text-2xl font-bold text-center text-amber-900 mb-4">
+        Payment Summary
+      </h2>
 
       {orders.map((order) => (
-        <div key={order._id} className="bg-white shadow p-4 mb-4 rounded-lg">
-          <div className="flex justify-between items-center">
+        <div key={order._id} className="bg-white shadow-lg p-6 mb-6 rounded-xl border border-gray-100">
+          <div className="flex justify-between items-start mb-4">
             <div>
-              <p className="text-lg font-semibold text-gray-700">Order ID: {order._id.slice(-6)}</p>
-              <p className="text-sm text-gray-500">Total: ₹{order.totalPrice}</p>
-              <p className="text-sm">
-                Status:{" "}
-                <span className={`font-medium ${order.paymentStatus === "Requested"
-                  ? "text-blue-600"
-                  : order.paymentStatus === "Completed"
-                    ? "text-green-600"
-                    : "text-gray-600"
-                  }`}>
-                  {order.paymentStatus || "Not Requested"}
-                </span>
+              <p className="text-lg font-semibold text-gray-700">
+                Order #{order.orderNumber || order._id.slice(-6).toUpperCase()}
+              </p>
+              <p className="text-sm text-gray-500">
+                {new Date(order.createdAt).toLocaleString([], {
+                  weekday: 'short',
+                  month: 'short',
+                  day: 'numeric',
+                  hour: '2-digit',
+                  minute: '2-digit'
+                })}
               </p>
             </div>
+            <div className="text-right">
+              <p className="text-lg font-bold text-amber-600">₹{order.totalPrice?.toFixed(2)}</p>
+              <p className={`text-sm font-medium ${
+                order.paymentStatus === "Requested"
+                  ? "text-blue-600"
+                  : order.paymentStatus === "Completed"
+                  ? "text-green-600"
+                  : "text-gray-600"
+              }`}>
+                {order.paymentStatus || "Not Requested"}
+              </p>
+            </div>
+          </div>
 
-            <button
-              disabled={order.paymentStatus === "Requested" || order.paymentStatus === "Completed"}
-              onClick={() => requestPayment(order._id)}
-              className={`px-4 py-2 rounded font-semibold text-white
-                ${order.paymentStatus === "Requested" || order.paymentStatus === "Completed"
-                  ? "bg-gray-400 cursor-not-allowed"
-                  : "bg-amber-500 hover:bg-amber-600"
-                }`}
-            >
-              {order.paymentStatus === "Requested"
-                ? "Payment Requested"
-                : order.paymentStatus === "Completed"
-                  ? "Paid"
-                  : "Request Payment"}
-            </button>
+          {/* Order Items */}
+          <div className="mb-4">
+            <h4 className="text-sm font-semibold text-gray-700 mb-3">Order Items:</h4>
+            <div className="space-y-3">
+              {order.items.map((item, index) => (
+                <div key={index} className="flex justify-between items-start p-3 bg-gray-50 rounded-lg">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium text-gray-800">
+                        {item.menuItem?.name}
+                      </span>
+                      {item.size?.label && (
+                        <span className="text-xs bg-amber-100 text-amber-700 px-2 py-1 rounded-full">
+                          {item.size.label}
+                        </span>
+                      )}
+                    </div>
+                    {item.remark && item.remark.trim() !== "" && (
+                      <p className="text-xs text-gray-600 italic mt-1">
+                        Note: {item.remark}
+                      </p>
+                    )}
+                  </div>
+                  <div className="text-right">
+                    <span className="font-medium text-gray-800">
+                      ₹{(((item.size?.price ?? item.itemPrice ?? item.menuItem?.price) || 0) * item.quantity).toFixed(2)}
+                    </span>
+                    <span className="block text-xs text-gray-500">
+                      × {item.quantity}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       ))}
 
-      <div className="mt-6 p-4 bg-white rounded-lg shadow flex justify-between text-lg font-bold">
-        <span>Total Amount:</span>
-        <span>₹{totalAmount}</span>
+      <div className="mt-6 p-6 bg-white rounded-xl shadow-lg border border-gray-100 flex flex-col items-center">
+        <div className="mb-4 text-center">
+          <h3 className="text-lg font-bold text-gray-800 mb-1">Total Amount</h3>
+          <p className="text-3xl font-bold text-amber-600">₹{totalAmount.toFixed(2)}</p>
+        </div>
+        
+        {allPaidOrRequested ? (
+          <div className="flex items-center bg-green-50 px-4 py-3 rounded-lg border border-green-200">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 text-green-600" viewBox="0 0 20 20" fill="currentColor">
+              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+            </svg>
+            <span className="text-sm font-medium text-green-700">
+              Payment {orders.some(o => o.paymentStatus === "Completed") ? "Completed" : "Requested"}
+            </span>
+          </div>
+        ) : (
+          <button
+            onClick={requestPaymentAll}
+            className="px-8 py-3 bg-gradient-to-r from-amber-500 to-amber-600 text-white font-bold rounded-lg hover:from-amber-600 hover:to-amber-700 transition-all duration-200 shadow-lg hover:shadow-xl"
+          >
+            Request Payment
+          </button>
+        )}
       </div>
+
       <CustomerFooter />
     </div>
   );

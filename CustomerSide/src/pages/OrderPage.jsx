@@ -11,27 +11,53 @@ export default function CustomerOrderPage() {
 
   const fetchCurrentOrder = async () => {
     try {
-      const res = await api.get(`/orders/${tableId}/orders`);
+      const res = await api.get(`/orders/table/${tableId}`);
       setOrders(res.data);
       setLoading(false);
     } catch (err) {
       console.error("Failed to fetch order:", err);
+      setLoading(false);
     }
   };
 
   useEffect(() => {
     fetchCurrentOrder();
 
+    // Real-time order status updates
     socket.on("orderStatusUpdated", (updatedOrder) => {
-      if (updatedOrder._id === orders?._id) {
-        setOrders(updatedOrder);
+      setOrders((prevOrders) => {
+        if (!prevOrders) return [updatedOrder];
+        
+        return prevOrders.map((order) => 
+          order._id === updatedOrder._id ? updatedOrder : order
+        );
+      });
+    });
+
+    // New order received
+    socket.on("newOrder", (newOrder) => {
+      if (newOrder?.tableNumber?.toString?.() === tableId || newOrder?.tableNumber === Number(tableId)) {
+        setOrders((prevOrders) => {
+          if (!prevOrders) return [newOrder];
+          return [newOrder, ...prevOrders];
+        });
       }
+    });
+
+    // Order completed
+    socket.on("orderCompleted", (completedOrder) => {
+      setOrders((prevOrders) => {
+        if (!prevOrders) return [];
+        return prevOrders.filter((order) => order._id !== completedOrder._id);
+      });
     });
 
     return () => {
       socket.off("orderStatusUpdated");
+      socket.off("newOrder");
+      socket.off("orderCompleted");
     };
-  }, [orders?._id]);
+  }, [tableId]);
 
   if (loading) return (
     <div className="flex flex-col min-h-screen bg-gradient-to-b from-amber-50 to-white">
@@ -66,9 +92,9 @@ export default function CustomerOrderPage() {
   // Enhanced status colors with better visual hierarchy
   const statusColorMap = {
     Pending: 'bg-amber-100 text-amber-800 border-amber-200',
-    Preparing: 'bg-indigo-100 text-indigo-800 border-indigo-200',
+    'In Progress': 'bg-blue-100 text-blue-800 border-blue-200',
     Ready: 'bg-emerald-100 text-emerald-800 border-emerald-200',
-    Served: 'bg-violet-100 text-violet-800 border-violet-200',
+    Completed: 'bg-green-100 text-green-800 border-green-200',
     Cancelled: 'bg-rose-100 text-rose-800 border-rose-200'
   };
 
@@ -132,9 +158,9 @@ export default function CustomerOrderPage() {
                         <div className="w-2 h-2 rounded-full mr-2" style={{
                           backgroundColor: {
                             Pending: '#f59e0b',
-                            Preparing: '#6366f1',
+                            'In Progress': '#3b82f6',
                             Ready: '#10b981',
-                            Served: '#8b5cf6',
+                            Completed: '#22c55e',
                             Cancelled: '#f43f5e'
                           }[order.status]
                         }}></div>
@@ -180,13 +206,25 @@ export default function CustomerOrderPage() {
                               <span className="font-medium text-gray-900 group-hover:text-amber-700 transition-colors duration-200">
                                 {item.menuItem?.name}
                               </span>
+                              {item.size?.label && (
+                                <span className="block text-xs text-amber-600 bg-amber-50 px-2 py-1 rounded-full mt-1">
+                                  Size: {item.size.label}
+                                </span>
+                              )}
                               <span className="block text-xs text-gray-500 mt-1">
                                 {item.menuItem?.description || 'Delicious item'}
                               </span>
+                              {item.remark && item.remark.trim() !== "" && (
+                                <span className="block text-xs text-gray-600 italic mt-1">
+                                  Note: {item.remark}
+                                </span>
+                              )}
                             </div>
                           </div>
                           <div className="text-right">
-                            <span className="font-medium text-gray-900">₹{(item.menuItem?.price * item.quantity).toFixed(2)}</span>
+                            <span className="font-medium text-gray-900">
+                              ₹{(((item.size?.price ?? item.itemPrice ?? item.menuItem?.price) || 0) * item.quantity).toFixed(2)}
+                            </span>
                             <span className="block text-xs text-amber-600 bg-amber-50 px-2 py-1 rounded-full mt-1">
                               × {item.quantity}
                             </span>

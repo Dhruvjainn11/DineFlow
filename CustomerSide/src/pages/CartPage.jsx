@@ -1,59 +1,75 @@
 import React, { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { removeFromCart, updateQty, clearCart } from "../redux/slices/cartSlice";
+import { removeFromCart, updateQty, clearCart, updateRemark } from "../redux/slices/cartSlice"; // <-- Add updateRemark to imports
 import { FiChevronLeft, FiTrash2, FiPlus, FiMinus, FiShoppingCart } from "react-icons/fi";
 import api from "../utils/api";
-import { toast } from 'react-toastify';
 import CustomerFooter from "../components/CustomerFooter";
 
 export default function CartPage() {
   const { tableId } = useParams();
   const navigate = useNavigate();
   const dispatch = useDispatch();
-const cartItems = useSelector((state) => state.cart?.items || []);
+  const cartItems = useSelector((state) => state.cart?.items || []);
   const [isPlacingOrder, setIsPlacingOrder] = useState(false);
 
-  const totalPrice = (cartItems || []).reduce(
+  const normalizeObjectId = (possibleId) => {
+    if (typeof possibleId !== "string") return possibleId;
+    const match = possibleId.match(/^[a-f\d]{24}/i);
+    return match ? match[0] : possibleId;
+  };
+
+  const totalPrice = cartItems.reduce(
     (sum, item) => sum + item.price * item.quantity,
     0
   );
 
   const handleQuantityChange = (item, newQuantity) => {
     if (newQuantity < 1) {
-      dispatch(removeFromCart(item._id));
+      // Use cartItemId for removal
+      dispatch(removeFromCart(item.cartItemId));
     } else {
-      dispatch(updateQty({ id: item._id, quantity: newQuantity }));
+      // Use cartItemId for quantity updates
+      dispatch(updateQty({ id: item.cartItemId, quantity: newQuantity }));
     }
   };
 
-const handlePlaceOrder = async () => {
-  if (cartItems.length === 0) return;
-  
-  setIsPlacingOrder(true);
-  try {
-    // Ensure tableId is a number
-    const tableNum = Number(tableId);
-    
-    const orderData = {
-      tableNumber: tableNum, // Send as number
-      items: cartItems.map(item => ({
-        menuItem: item._id,
-        quantity: item.quantity
-      }))
-    };
+  const handleRemarkChange = (cartItemId, remark) => {
+    // Use cartItemId for remark updates
+    dispatch(updateRemark({ id: cartItemId, remark }));
+  };
 
-    const response = await api.post("/orders", orderData);
-    toast.success("Order placed successfully!",response);
-    dispatch(clearCart());
-    
-  } catch (err) {
-    console.error("Order error:", err.response?.data || err.message);
-    toast.error(err.response?.data?.error || "Failed to place order");
-  } finally {
-    setIsPlacingOrder(false);
-  }
-};  
+  const handlePlaceOrder = async () => {
+    if (cartItems.length === 0) return;
+  
+    setIsPlacingOrder(true);
+    try {
+      const tableNum = Number(tableId);
+  
+      // This mapping is now guaranteed to work correctly
+      const orderData = {
+        tableNumber: tableNum,
+        items: cartItems.map((item) => ({
+          menuItem: normalizeObjectId(item._id),
+          quantity: item.quantity,
+          remark: item.remark || "",
+          sizeLabel: item.selectedSize?.label || null,
+        })),
+      };
+  
+      const response = await api.post("/orders", orderData);
+      console.log(response)
+     
+      dispatch(clearCart());
+      navigate(`/table/${tableId}`);
+    } catch (err) {
+      console.error("Order error:", err.response?.data || err.message);
+      
+    } finally {
+      setIsPlacingOrder(false);
+    }
+  };
+
   return (
     <div className="max-w-[480px] mx-auto bg-white min-h-screen pb-24">
       {/* Header */}
@@ -94,50 +110,75 @@ const handlePlaceOrder = async () => {
             <div className="space-y-4 mb-6">
               {cartItems.map((item) => (
                 <div
-                  key={item._id}
-                  className="flex items-start gap-3 p-3 border border-gray-100 rounded-lg hover:bg-gray-50"
+                  key={item.cartItemId} // Use the unique cartItemId here
+                  className="flex flex-col gap-2 p-3 border border-gray-100 rounded-lg hover:bg-gray-50"
                 >
-                  <div className="w-20 h-20 rounded-lg overflow-hidden bg-gray-100">
-                    <img
-                      src={item.imageUrl}
-                      alt={item.name}
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                  <div className="flex-1">
-                    <h3 className="font-medium text-gray-800">{item.name}</h3>
-                    <p className="text-sm text-gray-500 mb-2">
-                      ₹{item.price} × {item.quantity}
-                    </p>
-                    <div className="flex items-center justify-between">
-                      <p className="font-bold text-amber-500">
-                        ₹{item.price * item.quantity}
+                  <div className="flex items-start gap-3">
+                    <div className="w-20 h-20 rounded-lg overflow-hidden bg-gray-100">
+                      <img
+                        src={item.imageUrl}
+                        alt={item.name}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="font-medium text-gray-800">{item.name}</h3>
+                      {item.selectedSize && (
+                        <p className="text-sm text-gray-500">Size: {item.selectedSize.label}</p>
+                      )}
+                      <p className="text-sm text-gray-500 mb-2">
+                        ₹{item.price} × {item.quantity}
                       </p>
-                      <div className="flex items-center space-x-2 bg-indigo-50 rounded-full px-2">
-                        <button
-                          onClick={() => handleQuantityChange(item, item.quantity - 1)}
-                          className="p-1 text-amber-500 hover:text-amber-700"
-                        >
-                          <FiMinus size={14} />
-                        </button>
-                        <span className="text-sm font-medium text-amber-500">
-                          {item.quantity}
-                        </span>
-                        <button
-                          onClick={() => handleQuantityChange(item, item.quantity + 1)}
-                          className="p-1 text-amber-500 hover:text-amber-700"
-                        >
-                          <FiPlus size={14} />
-                        </button>
+                      <div className="flex items-center justify-between">
+                        <p className="font-bold text-amber-500">
+                          ₹{(item.price * item.quantity).toFixed(2)}
+                        </p>
+                        <div className="flex items-center space-x-2 bg-indigo-50 rounded-full px-2">
+                          <button
+                            onClick={() => handleQuantityChange(item, item.quantity - 1)}
+                            className="p-1 text-amber-500 hover:text-amber-700"
+                          >
+                            <FiMinus size={14} />
+                          </button>
+                          <span className="text-sm font-medium text-amber-500">
+                            {item.quantity}
+                          </span>
+                          <button
+                            onClick={() => handleQuantityChange(item, item.quantity + 1)}
+                            className="p-1 text-amber-500 hover:text-amber-700"
+                          >
+                            <FiPlus size={14} />
+                          </button>
+                        </div>
                       </div>
                     </div>
+                    <button
+                      onClick={() => dispatch(removeFromCart(item.cartItemId))} // Use cartItemId for removal
+                      className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-full"
+                    >
+                      <FiTrash2 size={16} />
+                    </button>
                   </div>
-                  <button
-                    onClick={() => dispatch(removeFromCart(item._id))}
-                    className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-full"
-                  >
-                    <FiTrash2 size={16} />
-                  </button>
+
+                  {/* Remark input */}
+                  <div>
+                    <label
+                      htmlFor={`remark-${item.cartItemId}`}
+                      className="text-sm font-medium text-gray-700"
+                    >
+                      Remark (e.g., spicy, no onions)
+                    </label>
+                    <textarea
+                      id={`remark-${item.cartItemId}`}
+                      value={item.remark || ""}
+                      onChange={(e) =>
+                        handleRemarkChange(item.cartItemId, e.target.value)
+                      }
+                      placeholder="Add a note for the kitchen"
+                      className="w-full mt-1 p-2 border rounded-md text-sm resize-none"
+                      rows={2}
+                    />
+                  </div>
                 </div>
               ))}
             </div>
@@ -148,13 +189,13 @@ const handlePlaceOrder = async () => {
               <div className="space-y-2">
                 <div className="flex justify-between">
                   <span className="text-gray-600">Subtotal</span>
-                  <span className="font-medium">₹{totalPrice}</span>
+                  <span className="font-medium">₹{totalPrice.toFixed(2)}</span>
                 </div>
-               
+
                 <div className="flex justify-between pt-2 border-t border-gray-200 mt-2">
                   <span className="font-bold text-gray-800">Total</span>
                   <span className="font-bold text-amber-500">
-                    ₹{(totalPrice).toFixed(2)}
+                    ₹{totalPrice.toFixed(2)}
                   </span>
                 </div>
               </div>
