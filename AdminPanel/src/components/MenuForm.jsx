@@ -1,91 +1,131 @@
-import { useEffect,useState } from "react";
-import { getMenus , getCategories , createMenu} from "../services/menuService";
+// MenuItemForm.jsx
+
+import { useEffect, useState } from "react";
 import React from "react";
+import { getCategories, createMenu } from "../services/menuService";
 import { useForm } from "react-hook-form";
-import { X } from "lucide-react"; // uses lucide-react for better icons
-import ImageDropzone from "./ImageDropzone"; // Assuming you have a component for image upload
+import { X } from "lucide-react";
+import ImageDropzone from "./ImageDropzone";
 
-export default function MenuItemForm({ onSubmit, onClose }) {
-
-  const [categories, setCategories] = useState([]); // State to hold categories
-  const [menuItems, setMenuItems] = useState([]); // State to hold menu items
+export default function MenuItemForm({ onClose }) {
+  const [categories, setCategories] = useState([]);
   const [imageUrl, setImageUrl] = useState("");
   const [isUploading, setIsUploading] = useState(false);
+  const [sizes, setSizes] = useState([]);
 
-  
-  const handleUpload = (url) => {
-    console.log("Image uploaded URL:", url);
-   
-    setImageUrl(url);
-  };
   const {
     register,
     handleSubmit,
     formState: { errors },
     reset,
-  
-  } = useForm();
+    watch,
+  } = useForm({
+    // Set a default value for the category to an empty string.
+    // This correctly reflects that no category has been selected yet.
+    defaultValues: {
+      category: "",
+    },
+  });
 
-  
+  const price = watch("price");
 
- const submitHandler = async (data) => {
-  const formData = new FormData();
-  formData.append('name', data.name);
-  formData.append('description', data.description);
-  formData.append('price', data.price);
-  formData.append('category', data.category);
-  formData.append('available', true); // if using availability
+  const handleUpload = (url) => {
+    setImageUrl(url);
+  };
 
-  formData.append('imageUrl', imageUrl); // ✅ input field named `image`
+  // ----------------------- SIZES Logic -----------------------
+  const handleAddSize = () => {
+    setSizes([...sizes, { label: "", price: "" }]);
+  };
 
+  const handleRemoveSize = (index) => {
+    const newSizes = sizes.filter((_, i) => i !== index);
+    setSizes(newSizes);
+  };
+
+  const handleSizeChange = (index, field, value) => {
+    const newSizes = [...sizes];
+    if (field === 'price') {
+      newSizes[index][field] = Number(value);
+    } else {
+      newSizes[index][field] = value;
+    }
+    setSizes(newSizes);
+  };
+
+  // ------------------- SUBMISSION Logic --------------------
+  const submitHandler = async (data) => {
     if (isUploading) {
-    alert("Image is still uploading. Please wait.");
-    return;
-  }
+      alert("Image is still uploading. Please wait.");
+      return;
+    }
+    if (!imageUrl) {
+      alert("Please upload an image.");
+      return;
+    }
+    if (!data.price && sizes.length === 0) {
+      alert("Please provide a base price or at least one size option.");
+      return;
+    }
+    
+    // Add toast notifications for better UX
+    // Assuming you have a custom Toast component (e.g., Dhruv's Toast)
+    // Toast.loading("Creating menu item...");
 
-  if (!imageUrl) {
-    alert("Please upload an image.");
-    return;
-  }
+    const formData = new FormData();
+    formData.append('name', data.name);
+    formData.append('description', data.description);
+    if (data.price) {
+      formData.append('price', data.price);
+    }
+    formData.append('category', data.category);
+    formData.append('available', data.available); 
+    formData.append('jain', data.jain); // Add jain field
+    formData.append('imageUrl', imageUrl);
+    formData.append('ingredients', data.ingredients);
+    formData.append('sizes', JSON.stringify(sizes.filter(s => s.label && s.price !== '')));
 
-  try {
-    await createMenu(formData); // function that calls POST /menu
-    onClose(); // Close the modal after submission
-    reset();
-  } catch (err) {
-    console.error("Error submitting menu:", err);
-  }
-};
+    try {
+      await createMenu(formData);
+      // Toast.success('Menu item created successfully!');
+      onClose();
+      reset();
+      setSizes([]);
+      setImageUrl('');
+    } catch (err) {
+      console.error("Error submitting menu:", err);
+      // Toast.error(err.message || 'Failed to create menu item.');
+      alert(err.message || "Failed to create menu item.");
+    }
+  };
 
-
-   const handleBackdropClick = (e) => {
+  const handleBackdropClick = (e) => {
     if (e.target.id === "modal-backdrop") {
       onClose();
-    }}
+    }
+  };
 
-  const fetchMenu = async () => {
-  const res = await getMenus()
-  const resCategories = await getCategories();
-setCategories(resCategories);
-  setMenuItems(res);
-};
+  const fetchCategories = async () => {
+    try {
+      const resCategories = await getCategories();
+      setCategories(resCategories);
+    } catch (err) {
+      console.error("Failed to fetch categories:", err);
+    }
+  };
 
+  useEffect(() => {
+    fetchCategories();
+  }, []);
 
-
-
-useEffect(() => {
-  fetchMenu();
-}, []);
-
- return (
+  return (
     <div
       id="modal-backdrop"
       onClick={handleBackdropClick}
-      className="fixed inset-0  flex items-center justify-center z-50 w-full"
-      style={{ backgroundColor: "rgba(0, 0, 0, 0.5)" }} // Semi-transparent backdrop
+      className="fixed inset-0 flex items-center justify-center z-50 w-full"
+      style={{ backgroundColor: "rgba(0, 0, 0, 0.5)" }}
     >
-      <div className="relative bg-white w-1/2 p-6 rounded-2xl shadow-lg overflow-auto">
-        {/* Close Icon */}
+      <div className="relative bg-white w-1/2 p-6 rounded-2xl shadow-lg overflow-auto max-h-[90vh]">
         <button
           onClick={onClose}
           className="absolute top-4 right-4 text-gray-500 hover:text-red-600 transition"
@@ -94,100 +134,150 @@ useEffect(() => {
         </button>
 
         <h2 className="text-2xl font-semibold mb-6 text-center">Add Menu Item</h2>
-       <form onSubmit={handleSubmit(submitHandler)} className="space-y-5">
-  {/* Two-column layout */}
-  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-    {/* Left Column */}
-    <div className="space-y-5">
-      {/* Item Name */}
-      <div>
-        <label className="block mb-1 font-medium">Item Name</label>
-        <input
-          {...register("name", { required: "Item name is required" })}
-          className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring focus:ring-blue-300"
-          placeholder="e.g., Margherita Pizza"
-        />
-        {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name.message}</p>}
-      </div>
+        <form onSubmit={handleSubmit(submitHandler)} className="space-y-5">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Left Column */}
+            <div className="space-y-5">
+              <div>
+                <label className="block mb-1 font-medium">Item Name</label>
+                <input
+                  {...register("name", { required: "Item name is required" })}
+                  className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring focus:ring-blue-300"
+                  placeholder="e.g., Margherita Pizza"
+                />
+                {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name.message}</p>}
+              </div>
 
-      {/* Price */}
-      <div>
-        <label className="block mb-1 font-medium">Price (₹)</label>
-        <input
-          type="number"
-          step="0.01"
-          {...register("price", {
-            required: "Price is required",
-            min: { value: 0.01, message: "Price must be greater than 0" },
-          })}
-          className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring focus:ring-blue-300"
-          placeholder="e.g., 199"
-        />
-        {errors.price && <p className="text-red-500 text-sm mt-1">{errors.price.message}</p>}
-      </div>
+              <div>
+                <label className="block mb-1 font-medium">Category</label>
+                <select
+                  {...register("category", { required: "Category is required" })}
+                  className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring focus:ring-blue-300"
+                >
+                  <option value="" disabled>Select a category</option>
+                  {categories.map((category) => (
+                    <option key={category._id} value={category._id}>
+                      {category.name}
+                    </option>
+                  ))}
+                </select>
+                {errors.category && <p className="text-red-500 text-sm mt-1">{errors.category.message}</p>}
+              </div>
 
-      {/* Category */}
-      <div>
-        <label className="block mb-1 font-medium">Category</label>
-        <select
-          {...register("category", { required: "Category is required" })}
-          className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring focus:ring-blue-300"
-        >
-          {categories.map((category) => (
-            <option key={category._id} value={category._id}>
-              {category.name}
-            </option>
-          ))}
-        </select>
-        {errors.category && <p className="text-red-500 text-sm mt-1">{errors.category.message}</p>}
-      </div>
-      {/* Availability Checkbox */}
-      <div className="flex items-center space-x-2">
-        <label className="block mb-1 font-medium">Available</label>
-        <input
-          type="checkbox"
-          defaultChecked={true} // Default to checked
-          {...register("available")}
-          className="h-5 w-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500" 
-        />
-      </div>
-    </div>
+              {sizes.length === 0 && (
+                <div>
+                  <label className="block mb-1 font-medium">Price (₹)</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    {...register("price", {
+                      required: "Price is required if no sizes are provided",
+                      min: { value: 0.01, message: "Price must be greater than 0" },
+                    })}
+                    className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring focus:ring-blue-300"
+                    placeholder="e.g., 199"
+                  />
+                  {errors.price && <p className="text-red-500 text-sm mt-1">{errors.price.message}</p>}
+                </div>
+              )}
 
-    {/* Right Column */}
-    <div className="space-y-5">
-      {/* Description */}
-      <div>
-        <label className="block mb-1 font-medium">Description</label>
-        <input
-          {...register("description", { required: "Description is required" })}
-          className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring focus:ring-blue-300"
-          placeholder="Short description of the item"
-        />
-        {errors.description && <p className="text-red-500 text-sm mt-1">{errors.description.message}</p>}
-      </div>
+              <div className="space-y-4">
+                <label className="block mb-1 font-medium">Sizes (Optional)</label>
+                {sizes.map((size, index) => (
+                  <div key={index} className="flex items-center gap-2">
+                    <input
+                      type="text"
+                      placeholder="e.g., Small, Medium"
+                      value={size.label}
+                      onChange={(e) => handleSizeChange(index, 'label', e.target.value)}
+                      className="w-1/2 px-4 py-2 border rounded-lg"
+                    />
+                    <input
+                      type="number"
+                      step="0.01"
+                      placeholder="Price (₹)"
+                      value={size.price}
+                      onChange={(e) => handleSizeChange(index, 'price', e.target.value)}
+                      className="w-1/2 px-4 py-2 border rounded-lg"
+                    />
+                    {sizes.length > 0 && (
+                      <button type="button" onClick={() => handleRemoveSize(index)} className="text-red-500">
+                        <X size={20} />
+                      </button>
+                    )}
+                  </div>
+                ))}
+                <button
+                  type="button"
+                  onClick={handleAddSize}
+                  className="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg"
+                >
+                  + Add Size
+                </button>
+              </div>
+            </div>
 
-      {/* Image Upload */}
-      <div>
-        <label className="block mb-1 font-medium">Upload Image</label>
-        <ImageDropzone onUpload={handleUpload} 
-         onUploadStatus={(status) => setIsUploading(status)}
-         />
-      
-      </div>
-    </div>
-  </div>
+            {/* Right Column */}
+            <div className="space-y-5">
+              <div>
+                <label className="block mb-1 font-medium">Description</label>
+                <textarea
+                  {...register("description")}
+                  className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring focus:ring-blue-300"
+                  placeholder="Short description of the item"
+                  rows="3"
+                />
+              </div>
 
-  {/* Submit Button - Full Width Row */}
-  <div className="text-center mt-6">
-    <button
-      type="submit"
-      className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg shadow-md hover:cursor-pointer"
-    >
-      Add Item
-    </button>
-  </div>
-</form>
+              <div>
+                <label className="block mb-1 font-medium">Ingredients (comma-separated)</label>
+                <textarea
+                  {...register("ingredients")}
+                  className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring focus:ring-blue-300"
+                  placeholder="e.g., Milk, Sugar, Cocoa"
+                  rows="3"
+                />
+              </div>
+              
+              <div>
+                <label className="block mb-1 font-medium">Upload Image</label>
+                <ImageDropzone 
+                  onUpload={handleUpload}
+                  onUploadStatus={(status) => setIsUploading(status)}
+                />
+              </div>
+              
+              <div className="flex items-center space-x-2">
+                <label className="block mb-1 font-medium">Available</label>
+                <input
+                  type="checkbox"
+                  defaultChecked={true}
+                  {...register("available")}
+                  className="h-5 w-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500" 
+                />
+              </div>
+              
+              <div className="flex items-center space-x-2">
+                <label className="block mb-1 font-medium">Jain Available</label>
+                <input
+                  type="checkbox"
+                  defaultChecked={false}
+                  {...register("jain")}
+                  className="h-5 w-5 text-green-600 border-gray-300 rounded focus:ring-green-500" 
+                />
+              </div>
+            </div>
+          </div>
 
+          <div className="text-center mt-6">
+            <button
+              type="submit"
+              className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg shadow-md hover:cursor-pointer"
+            >
+              Add Item
+            </button>
+          </div>
+        </form>
       </div>
     </div>
   );

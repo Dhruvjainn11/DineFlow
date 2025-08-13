@@ -1,18 +1,54 @@
 import React, { useEffect, useState } from "react";
 import AdminLayout from "../layouts/AdminLayout";
 import api from "../utils/api";
-
 import { socket } from "../utils/socket";
+import Receipt from "../components/Receipt"; // Import your Receipt component
 
 export default function AdminPaymentManager() {
   const [orders, setOrders] = useState([]);
+  const [paidTables, setPaidTables] = useState([]);
+  const [selectedOrder, setSelectedOrder] = useState(null);
+
+  // Group orders by table and calculate total + payment status
+  const groupOrdersByTable = (ordersList) => {
+    const grouped = {};
+
+    ordersList.forEach((order) => {
+      const tableNum = order.tableNumber ?? "N/A";
+
+      if (!grouped[tableNum]) {
+        grouped[tableNum] = {
+          tableNumber: order.tableNumber,
+          orders: [],
+          totalPrice: 0,
+          paymentStatus: "Pending",
+          paymentRequestedAt: null,
+        };
+      }
+
+      grouped[tableNum].orders.push(order);
+      grouped[tableNum].totalPrice += order.totalPrice;
+
+      if (order.paymentStatus === "Requested") {
+        grouped[tableNum].paymentStatus = "Requested";
+        grouped[tableNum].paymentRequestedAt = order.paymentRequestedAt;
+      }
+      if (
+        grouped[tableNum].orders.every(
+          (o) => o.paymentStatus === "Completed"
+        )
+      ) {
+        grouped[tableNum].paymentStatus = "Completed";
+      }
+    });
+
+    return Object.values(grouped);
+  };
 
   const fetchAllRelevantOrders = async () => {
     try {
-      const res = await api.get("/orders/payment");
-      console.log(res.data);
-
-      setOrders(res.data);
+      const res = await api.get("/orders", { params: { view: "payment" } });
+      setOrders(groupOrdersByTable(res.data));
     } catch (err) {
       console.error("Failed to load orders", err);
     }
@@ -20,57 +56,97 @@ export default function AdminPaymentManager() {
 
   useEffect(() => {
     fetchAllRelevantOrders();
+
     socket.on("connect", () => {
       console.log("✅ Connected to Socket:", socket.id);
     });
 
     const handlePaymentRequested = (updatedOrder) => {
-      console.log(updatedOrder);
+      fetchAllRelevantOrders();
+    };
 
-      setOrders((prev) => {
-        const exists = prev.find((o) => o._id === updatedOrder._id);
-        if (exists) {
-          return prev.map((o) =>
-            o._id === updatedOrder._id ? updatedOrder : o
-          );
-        } else {
-          return [...prev, updatedOrder];
-        }
-      });
+    const handlePaymentRequestedBulk = ({ tableId, orders }) => {
+      fetchAllRelevantOrders();
     };
 
     const handlePaymentCompleted = (updatedOrder) => {
-      console.log(updatedOrder);
+      fetchAllRelevantOrders();
+    };
 
-      setOrders((prev) =>
-        prev.map((o) =>
-          o._id === updatedOrder._id ? { ...o, paymentStatus: "Completed" } : o
-        )
-      );
-
-      setTimeout(() => {
-        setOrders((prev) => prev.filter((o) => o._id !== updatedOrder._id));
-      }, 7000);
+    const handleNewOrder = (newOrder) => {
+      // New orders should be visible on payment page until paid
+      fetchAllRelevantOrders();
     };
 
     socket.on("paymentRequested", handlePaymentRequested);
+    socket.on("paymentRequestedBulk", handlePaymentRequestedBulk);
     socket.on("paymentCompleted", handlePaymentCompleted);
-    socket.on("newOrder", (newOrder) =>
-      setOrders((prev) => [...prev, newOrder])
-    );
+    socket.on("newOrder", handleNewOrder);
 
     return () => {
       socket.off("paymentRequested", handlePaymentRequested);
+      socket.off("paymentRequestedBulk", handlePaymentRequestedBulk);
       socket.off("paymentCompleted", handlePaymentCompleted);
-      socket.off("newOrder")
+      socket.off("newOrder", handleNewOrder);
     };
   }, []);
 
-  const handleMarkComplete = async (id) => {
+  // Mark ALL orders for the table as paid
+  const handleMarkComplete = async (tableNumber) => {
     try {
-      await api.put(`/orders/${id}/payment-complete`);
+      await api.put(`/orders/table/${tableNumber}/payment-complete-all`);
+
+      setOrders((prev) =>
+        prev.map((tableOrder) =>
+          (tableOrder.tableNumber) === tableNumber
+            ? { ...tableOrder, paymentStatus: "Completed" }
+            : tableOrder
+        )
+      );
+
+      setPaidTables((prev) => [...prev, tableNumber]);
+
+      setTimeout(() => {
+        setOrders((prev) =>
+          prev.filter(
+            (tableOrder) =>
+               (tableOrder.tableNumber) !== tableNumber
+          )
+        );
+        setPaidTables((prev) => prev.filter((t) => t !== tableNumber));
+      }, 7000);
     } catch (err) {
       console.error("Failed to mark complete", err);
+    }
+  };
+
+  // Handle View/Print Bill button click
+  const handleViewPrintBill = (tableNumber) => {
+    // Find grouped table order by tableNumber
+    const tableOrder = orders.find(
+      (t) => (t.tableNumber?.tableNumber || t.tableNumber) === tableNumber
+    );
+
+    if (tableOrder) {
+      // Build a single "combined" order object for the Receipt component
+      // Combine all items from all orders in that table
+      const combinedItems = tableOrder.orders.flatMap(order => 
+        order.items.map(item => ({
+          menuItem: item.menuItem,
+          quantity: item.quantity,
+        }))
+      );
+
+      // Sum totalPrice from grouped data (already computed)
+      const combinedOrder = {
+        _id: `Table-${tableNumber}-Receipt`,
+        tableNumber: tableOrder.tableNumber,
+        items: combinedItems,
+        totalPrice: tableOrder.totalPrice,
+        createdAt: tableOrder.paymentRequestedAt || new Date().toISOString(),
+      };
+
+      setSelectedOrder(combinedOrder);
     }
   };
 
@@ -115,7 +191,7 @@ export default function AdminPaymentManager() {
                       Table
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Amount
+                      Total Amount
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Status
@@ -129,11 +205,11 @@ export default function AdminPaymentManager() {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {orders.map((order) => (
+                  {orders.map((tableOrder) => (
                     <tr
-                      key={order._id}
+                      key={tableOrder.tableNumber?._id || tableOrder.tableNumber}
                       className={
-                        order.paymentStatus === "Requested"
+                        tableOrder.paymentStatus === "Requested"
                           ? "bg-amber-50 hover:bg-amber-100"
                           : "hover:bg-gray-50"
                       }
@@ -142,40 +218,40 @@ export default function AdminPaymentManager() {
                         <div className="flex items-center">
                           <div className="flex-shrink-0 h-10 w-10 bg-blue-100 rounded-full flex items-center justify-center">
                             <span className="text-blue-800 font-medium">
-                              {order.tableNumber?.tableNumber || "N/A"}
+                              {tableOrder.tableNumber || "N/A"}
                             </span>
                           </div>
                           <div className="ml-4">
                             <div className="text-sm font-medium text-gray-900">
-                              Table {order.tableNumber?.tableNumber || "N/A"}
+                              Table {tableOrder.tableNumber || "N/A"}
                             </div>
                             <div className="text-sm text-gray-500">
-                              {order.items.length} items
+                              {tableOrder.orders.length} orders
                             </div>
                           </div>
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-lg font-semibold text-gray-900">
-                          ₹{order.totalPrice.toFixed(2)}
+                          ₹{tableOrder.totalPrice.toFixed(2)}
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span
                           className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                            order.paymentStatus === "Requested"
+                            tableOrder.paymentStatus === "Requested"
                               ? "bg-amber-100 text-amber-800"
-                              : order.paymentStatus === "Completed"
+                              : tableOrder.paymentStatus === "Completed"
                               ? "bg-green-100 text-green-800"
                               : "bg-gray-100 text-gray-800"
                           }`}
                         >
-                          {order.paymentStatus || "Pending"}
+                          {tableOrder.paymentStatus}
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {order.paymentRequestedAt ? (
-                          new Date(order.paymentRequestedAt).toLocaleTimeString(
+                        {tableOrder.paymentRequestedAt ? (
+                          new Date(tableOrder.paymentRequestedAt).toLocaleTimeString(
                             [],
                             {
                               hour: "2-digit",
@@ -185,20 +261,26 @@ export default function AdminPaymentManager() {
                             }
                           )
                         ) : (
-                          <span className="text-gray-400 italic">
-                            Not requested
-                          </span>
+                          <span className="text-gray-400 italic">Not requested</span>
                         )}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                        {order.paymentStatus === "Requested" ? (
-                          <button
-                            onClick={() => handleMarkComplete(order._id)}
-                            className="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-4 py-2 rounded-lg shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer"
-                          >
-                            Mark Paid
-                          </button>
-                        ) : order.paymentStatus === "Completed" ? (
+                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
+                        {tableOrder.paymentStatus === "Requested" ? (
+                          <>
+                            <button
+                              onClick={() => handleMarkComplete(tableOrder.tableNumber)}
+                              className="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-4 py-2 rounded-lg shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer"
+                            >
+                              Mark Paid
+                            </button>
+                            <button
+                              onClick={() => handleViewPrintBill(tableOrder.tableNumber)}
+                              className="bg-gray-600 text-white px-4 py-2 rounded-lg shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer"
+                            >
+                              View/Print Bill
+                            </button>
+                          </>
+                        ) : tableOrder.paymentStatus === "Completed" ? (
                           <button className="bg-gradient-to-r from-green-500 to-green-600 text-white px-4 py-2 rounded-lg cursor-default">
                             <div className="flex items-center">
                               <svg
@@ -217,9 +299,7 @@ export default function AdminPaymentManager() {
                             </div>
                           </button>
                         ) : (
-                          <span className="text-gray-400 italic">
-                            Awaiting request
-                          </span>
+                          <span className="text-gray-400 italic">Awaiting request</span>
                         )}
                       </td>
                     </tr>
@@ -230,6 +310,11 @@ export default function AdminPaymentManager() {
           </div>
         )}
       </div>
+
+      {/* Receipt Modal */}
+      {selectedOrder && (
+        <Receipt order={selectedOrder} onClose={() => setSelectedOrder(null)} />
+      )}
     </AdminLayout>
   );
 }

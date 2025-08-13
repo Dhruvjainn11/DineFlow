@@ -1,21 +1,21 @@
-import axios from "axios";
+import api from "../utils/api";
 
-export const getOrders = async () => {
-  const res = await axios.get(`/api/orders`);
-  return res.data ;
+export const getOrders = async (params = {}) => {
+  const res = await api.get(`/orders`, { params });
+  return res.data;
 };
 
 export const createTable = async (data) => {
-  const res = await axios.post("/api/order", data);
+  const res = await api.post("/order", data);
   return res.data;
 };
 
 export const updateTable = async (id, data) => {
-  const res = await axios.put(`/api/order/${id}`, data);
+  const res = await api.put(`/order/${id}`, data);
   return res.data;
 };
 
 export const deleteTable = async (id) => {
-  const res = await axios.delete(`/api/order/${id}`);
+  const res = await api.delete(`/order/${id}`);
   return res.data;
 };

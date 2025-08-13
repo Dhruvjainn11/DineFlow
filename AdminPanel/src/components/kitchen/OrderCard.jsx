@@ -19,7 +19,7 @@ export default function OrderCard({ order }) {
     <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200 hover:shadow-md transition-all duration-200">
       <div className="flex justify-between items-start mb-4">
         <h2 className="font-bold text-xl text-slate-800">
-          Table #{order.tableNumber?.tableNumber || "N/A"}
+          Table #{order.tableNumber ?? "N/A"}
         </h2>
         <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor()}`}>
           {order.status}
@@ -29,16 +29,20 @@ export default function OrderCard({ order }) {
       <div className="mb-6">
         <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">Order Items</h3>
         <ul className="space-y-3">
-          {order.items.map((item, idx) => (
-            <li key={idx} className="flex justify-between items-baseline">
-              <span className="font-medium text-slate-700">
-                {item.quantity} × {item.menuItem?.name}
-              </span>
-              {item.specialRequest && (
-                <span className="text-xs text-slate-400 ml-2 text-right">"{item.specialRequest}"</span>
-              )}
-            </li>
-          ))}
+        {order.items.map((item, idx) => (
+  <li key={idx} className="flex flex-col">
+    <div className="flex justify-between items-baseline">
+      <span className="font-medium text-slate-700">
+        {item.quantity} × {item.menuItem?.name}
+        {item.size?.label ? ` (${item.size.label})` : ""}
+      </span>
+    </div>
+    {item.remark && item.remark.trim() !== "" && (
+      <span className="text-xs text-slate-400 ml-4 italic mt-0.5">Remark: "{item.remark}"</span>
+    )}
+  </li>
+))}
+
         </ul>
       </div>
       

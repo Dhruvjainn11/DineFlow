@@ -19,7 +19,7 @@ export default function KitchenDashboard() {
 
     fetchOrders();
 
-    socket.on("orderUpdated", (updated) => {
+    socket.on("orderStatusUpdated", (updated) => {
       setOrders((prev) => {
         if (updated.status === "Completed") {
           return prev.filter((o) => o._id !== updated._id);
@@ -35,7 +35,7 @@ export default function KitchenDashboard() {
     return () => {
       socket.off("newOrder");
       socket.off("orderCompleted");
-      socket.off("orderUpdated");
+      socket.off("orderStatusUpdated");
     };
   }, []);
 

@@ -13,10 +13,25 @@ import {
   YAxis,
   CartesianGrid,
   Legend,
+  LineChart,
+  Line,
+  Area,
+  AreaChart,
 } from "recharts";
-import { Table, Clock, CheckCircle, Loader2, Circle, CreditCard } from "lucide-react";
+import { 
+  Table, 
+  Clock, 
+  CheckCircle, 
+  Loader2, 
+  Circle, 
+  CreditCard, 
+  TrendingUp, 
+  Calendar,
+  DollarSign,
+  ShoppingCart
+} from "lucide-react";
 
-const COLORS = ["#6366f1", "#f59e0b", "#10b981"]; // Indigo, Amber, Emerald
+const COLORS = ["#6366f1", "#f59e0b", "#10b981", "#ef4444", "#8b5cf6", "#06b6d4", "#84cc16"];
 
 export default function Analytics() {
   const [data, setData] = useState(null);
@@ -39,22 +54,33 @@ export default function Analytics() {
 
   if (loading) return (
     <AdminLayout>
-      <div className="flex justify-center items-center h-64">
-        <Loader2 className="animate-spin h-8 w-8 text-indigo-500" />
+      <div className="flex justify-center items-center h-[calc(100vh-200px)]">
+        <div className="text-center space-y-4">
+          <Loader2 className="animate-spin h-10 w-10 text-indigo-500 mx-auto" />
+          <p className="text-gray-600">Loading analytics data...</p>
+        </div>
       </div>
     </AdminLayout>
   );
 
   if (!data) return (
     <AdminLayout>
-      <div className="p-6 text-red-500 flex items-center gap-2">
-        <Circle className="h-4 w-4 fill-current" />
-        Failed to load analytics data
+      <div className="flex justify-center items-center h-[calc(100vh-200px)]">
+        <div className="text-center space-y-4">
+          <Circle className="h-10 w-10 text-red-500 mx-auto" />
+          <p className="text-red-500 font-medium">Failed to load analytics data</p>
+          <button 
+            onClick={() => window.location.reload()}
+            className="px-4 py-2 bg-indigo-50 text-indigo-600 rounded-md hover:bg-indigo-100 transition-colors"
+          >
+            Retry
+          </button>
+        </div>
       </div>
     </AdminLayout>
   );
 
-  const { totalOrders, payments, tables } = data;
+  const { totalOrders, payments, tables, dailyStats, todayStats } = data;
 
   const paymentData = [
     { name: "Pending", value: payments.pending },
@@ -67,7 +93,19 @@ export default function Analytics() {
     { name: "Available", value: tables.Available },
   ];
 
+  // Format daily stats for charts
+  const dailyChartData = dailyStats?.map(day => ({
+    date: new Date(day.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+    orders: day.orders,
+    revenue: day.revenue,
+    revenueFormatted: `₹${day.revenue.toLocaleString()}`
+  })) || [];
 
+  // Calculate 7-day totals
+  const sevenDayStats = dailyStats?.reduce((acc, day) => ({
+    orders: acc.orders + day.orders,
+    revenue: acc.revenue + day.revenue
+  }), { orders: 0, revenue: 0 }) || { orders: 0, revenue: 0 };
 
   return (
     <AdminLayout>
@@ -75,49 +113,127 @@ export default function Analytics() {
         {/* Header */}
         <div className="space-y-2">
           <h1 className="text-3xl font-bold text-gray-900">Restaurant Analytics</h1>
-          <p className="text-gray-500">Real-time overview of your restaurant operations</p>
+          <p className="text-gray-500 flex items-center gap-2">
+            <Calendar className="h-4 w-4" />
+            Comprehensive overview of your restaurant performance
+          </p>
         </div>
 
-        {/* Stats Cards */}
+        {/* Today's Stats Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {/* Today's Orders */}
+          <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-all duration-300">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-500 uppercase tracking-wider">Today's Orders</p>
+                <p className="mt-2 text-3xl font-semibold text-indigo-600">{todayStats?.orders || 0}</p>
+                <p className="mt-1 text-xs text-gray-400">Orders placed today</p>
+              </div>
+              <div className="p-3 bg-indigo-50 rounded-lg shadow-inner">
+                <ShoppingCart className="h-6 w-6 text-indigo-600" strokeWidth={2} />
+              </div>
+            </div>
+          </div>
+
+          {/* Today's Revenue */}
+          <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-all duration-300">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-500 uppercase tracking-wider">Today's Revenue</p>
+                <p className="mt-2 text-3xl font-semibold text-emerald-600">₹{(todayStats?.revenue || 0).toLocaleString()}</p>
+                <p className="mt-1 text-xs text-gray-400">Revenue generated today</p>
+              </div>
+              <div className="p-3 bg-emerald-50 rounded-lg shadow-inner">
+                <DollarSign className="h-6 w-6 text-emerald-600" strokeWidth={2} />
+              </div>
+            </div>
+          </div>
+
+          {/* 7-Day Orders */}
+          <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-all duration-300">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-500 uppercase tracking-wider">7-Day Orders</p>
+                <p className="mt-2 text-3xl font-semibold text-purple-600">{sevenDayStats.orders}</p>
+                <p className="mt-1 text-xs text-gray-400">Last 7 days total</p>
+              </div>
+              <div className="p-3 bg-purple-50 rounded-lg shadow-inner">
+                <TrendingUp className="h-6 w-6 text-purple-600" strokeWidth={2} />
+              </div>
+            </div>
+          </div>
+
+          {/* 7-Day Revenue */}
+          <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-all duration-300">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-500 uppercase tracking-wider">7-Day Revenue</p>
+                <p className="mt-2 text-3xl font-semibold text-amber-600">₹{sevenDayStats.revenue.toLocaleString()}</p>
+                <p className="mt-1 text-xs text-gray-400">Last 7 days total</p>
+              </div>
+              <div className="p-3 bg-amber-50 rounded-lg shadow-inner">
+                <CreditCard className="h-6 w-6 text-amber-600" strokeWidth={2} />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* All Time Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
+          {/* Total Orders Card */}
+          <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-all duration-300">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-500">Total Orders</p>
-                <p className="mt-1 text-3xl font-semibold text-indigo-600">{totalOrders}</p>
+                <p className="text-sm font-medium text-gray-500 uppercase tracking-wider">Total Orders</p>
+                <p className="mt-2 text-3xl font-semibold text-indigo-600">{totalOrders.toLocaleString()}</p>
+                <p className="mt-1 text-xs text-gray-400">All time orders</p>
               </div>
-              <div className="p-3 bg-indigo-50 rounded-lg">
-                <Table className="h-6 w-6 text-indigo-600" />
+              <div className="p-3 bg-indigo-50 rounded-lg shadow-inner">
+                <Table className="h-6 w-6 text-indigo-600" strokeWidth={2} />
               </div>
             </div>
           </div>
 
-          <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
+          {/* Total Revenue Card */}
+          <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-all duration-300">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-500">Total Revenue</p>
-                <p className="mt-1 text-3xl font-semibold text-emerald-600">₹{payments.totalRevenue}</p>
+                <p className="text-sm font-medium text-gray-500 uppercase tracking-wider">Total Revenue</p>
+                <p className="mt-2 text-3xl font-semibold text-emerald-600">₹{payments.totalRevenue.toLocaleString()}</p>
+                <p className="mt-1 text-xs text-gray-400">Total earnings</p>
               </div>
-              <div className="p-3 bg-emerald-50 rounded-lg">
-                <CreditCard className="h-6 w-6 text-emerald-600" />
+              <div className="p-3 bg-emerald-50 rounded-lg shadow-inner">
+                <CreditCard className="h-6 w-6 text-emerald-600" strokeWidth={2} />
               </div>
             </div>
           </div>
 
-          <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
+          {/* Payment Status Card */}
+          <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-all duration-300">
             <div className="space-y-3">
-              <p className="text-sm font-medium text-gray-500">Payment Status</p>
-              <div className="flex items-center justify-between">
-                <span className="text-gray-600">Pending</span>
-                <span className="font-medium">{payments.pending}</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-gray-600">Requested</span>
-                <span className="font-medium">{payments.requested}</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-gray-600">Completed</span>
-                <span className="font-medium">{payments.completed}</span>
+              <p className="text-sm font-medium text-gray-500 uppercase tracking-wider">Payment Status</p>
+              <div className="space-y-2">
+                <div className="flex items-center justify-between p-2 bg-amber-50 rounded-md">
+                  <span className="text-gray-600 flex items-center gap-2">
+                    <Circle className="h-2 w-2 text-amber-500 fill-current" />
+                    Pending
+                  </span>
+                  <span className="font-medium text-gray-900">{payments.pending}</span>
+                </div>
+                <div className="flex items-center justify-between p-2 bg-blue-50 rounded-md">
+                  <span className="text-gray-600 flex items-center gap-2">
+                    <Circle className="h-2 w-2 text-blue-500 fill-current" />
+                    Requested
+                  </span>
+                  <span className="font-medium text-gray-900">{payments.requested}</span>
+                </div>
+                <div className="flex items-center justify-between p-2 bg-emerald-50 rounded-md">
+                  <span className="text-gray-600 flex items-center gap-2">
+                    <CheckCircle className="h-3 w-3 text-emerald-500 fill-current" />
+                    Completed
+                  </span>
+                  <span className="font-medium text-gray-900">{payments.completed}</span>
+                </div>
               </div>
             </div>
           </div>
@@ -125,11 +241,103 @@ export default function Analytics() {
 
         {/* Charts Section */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Payment Status Chart */}
-          <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm">
+          {/* 7-Day Revenue Chart */}
+          <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm transition-all duration-300">
             <div className="mb-4">
-              <h2 className="text-lg font-semibold text-gray-900">Payment Status Distribution</h2>
-              <p className="text-sm text-gray-500">Breakdown of payment statuses</p>
+              <h2 className="text-lg font-semibold text-gray-900">7-Day Revenue Trend</h2>
+              <p className="text-sm text-gray-500">Daily revenue over the last 7 days</p>
+            </div>
+            <div className="h-[300px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={dailyChartData}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
+                  <XAxis 
+                    dataKey="date" 
+                    axisLine={false}
+                    tickLine={false}
+                    tick={{ fill: '#6b7280' }}
+                  />
+                  <YAxis 
+                    axisLine={false}
+                    tickLine={false}
+                    tick={{ fill: '#6b7280' }}
+                    tickFormatter={(value) => `₹${value.toLocaleString()}`}
+                  />
+                  <Tooltip 
+                    cursor={{ fill: '#f3f4f6' }}
+                    formatter={(value, name) => [
+                      <span className="font-semibold">₹{value.toLocaleString()}</span>,
+                      <span className="text-gray-600">Revenue</span>
+                    ]}
+                    contentStyle={{
+                      borderRadius: '8px',
+                      boxShadow: '0 2px 10px rgba(0,0,0,0.1)',
+                      border: 'none'
+                    }}
+                  />
+                  <Area 
+                    type="monotone" 
+                    dataKey="revenue" 
+                    stroke="#10b981" 
+                    fill="#10b981" 
+                    fillOpacity={0.3}
+                    strokeWidth={3}
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+
+          {/* 7-Day Orders Chart */}
+          <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm transition-all duration-300">
+            <div className="mb-4">
+              <h2 className="text-lg font-semibold text-gray-900">7-Day Orders Trend</h2>
+              <p className="text-sm text-gray-500">Daily orders over the last 7 days</p>
+            </div>
+            <div className="h-[300px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={dailyChartData}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
+                  <XAxis 
+                    dataKey="date" 
+                    axisLine={false}
+                    tickLine={false}
+                    tick={{ fill: '#6b7280' }}
+                  />
+                  <YAxis 
+                    allowDecimals={false} 
+                    axisLine={false}
+                    tickLine={false}
+                    tick={{ fill: '#6b7280' }}
+                  />
+                  <Tooltip 
+                    cursor={{ fill: '#f3f4f6' }}
+                    formatter={(value, name) => [`${value} orders`, '']}
+                    contentStyle={{
+                      borderRadius: '8px',
+                      boxShadow: '0 2px 10px rgba(0,0,0,0.1)',
+                      border: 'none'
+                    }}
+                  />
+                  <Bar 
+                    dataKey="orders" 
+                    radius={[4, 4, 0, 0]}
+                    barSize={40}
+                    fill="#6366f1"
+                  />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+        </div>
+
+        {/* Additional Charts */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Payment Status Chart */}
+          <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm transition-all duration-300">
+            <div className="mb-4">
+              <h2 className="text-lg font-semibold text-gray-900">Payment Status</h2>
+              <p className="text-sm text-gray-500">Distribution of payment statuses</p>
             </div>
             <div className="h-[300px]">
               <ResponsiveContainer width="100%" height="100%">
@@ -140,26 +348,55 @@ export default function Analytics() {
                     cy="50%"
                     innerRadius={60}
                     outerRadius={90}
-                    paddingAngle={5}
+                    paddingAngle={5} 
                     dataKey="value"
-                    label
                   >
                     {paymentData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                      <Cell 
+                        key={`cell-${index}`} 
+                        fill={COLORS[index % COLORS.length]} 
+                        stroke="#fff"
+                        strokeWidth={2} 
+                      />
                     ))}
                   </Pie>
                   <Tooltip 
-                    formatter={(value) => [`${value} payments`, '']}
-                    labelFormatter={(name) => <span className="font-semibold">{name}</span>}
+                    formatter={(value, name) => [
+                      <span className="font-semibold">{value} payments</span>,
+                      <span className="text-gray-600">{name}</span>
+                    ]}
+                    contentStyle={{
+                      borderRadius: '8px',
+                      boxShadow: '0 2px 10px rgba(0,0,0,0.1)',
+                      border: 'none',
+                      padding: '12px'
+                    }}
+                    itemStyle={{
+                      padding: '4px 0'
+                    }}
                   />
-                  <Legend />
+                  <Legend 
+                    layout="horizontal" 
+                    verticalAlign="bottom" 
+                    align="center"
+                    wrapperStyle={{ paddingTop: '20px' }}
+                    formatter={(value, entry, index) => (
+                      <span className="flex items-center text-sm">
+                        <span 
+                          className="inline-block w-3 h-3 rounded-full mr-2" 
+                          style={{ backgroundColor: COLORS[index] }}
+                        />
+                        {value}
+                      </span>
+                    )}
+                  />
                 </PieChart>
               </ResponsiveContainer>
             </div>
           </div>
 
           {/* Table Occupancy Chart */}
-          <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm">
+          <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm transition-all duration-300">
             <div className="mb-4">
               <h2 className="text-lg font-semibold text-gray-900">Table Occupancy</h2>
               <p className="text-sm text-gray-500">Current table availability status</p>
@@ -167,21 +404,27 @@ export default function Analytics() {
             <div className="h-[300px]">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={tableData}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
                   <XAxis 
                     dataKey="name" 
                     axisLine={false}
                     tickLine={false}
+                    tick={{ fill: '#6b7280' }}
                   />
                   <YAxis 
                     allowDecimals={false} 
                     axisLine={false}
                     tickLine={false}
+                    tick={{ fill: '#6b7280' }}
                   />
                   <Tooltip 
                     cursor={{ fill: '#f3f4f6' }}
                     formatter={(value) => [`${value} tables`, '']}
-                    labelFormatter={(name) => ''}
+                    contentStyle={{
+                      borderRadius: '8px',
+                      boxShadow: '0 2px 10px rgba(0,0,0,0.1)',
+                      border: 'none'
+                    }}
                   />
                   <Bar 
                     dataKey="value" 
@@ -189,7 +432,11 @@ export default function Analytics() {
                     barSize={40}
                   >
                     {tableData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={index === 0 ? "#6366f1" : "#10b981"} />
+                      <Cell 
+                        key={`cell-${index}`} 
+                        fill={index === 0 ? "#6366f1" : "#10b981"} 
+                        strokeWidth={index === 0 ? 2 : 0}
+                      />
                     ))}
                   </Bar>
                 </BarChart>
@@ -197,8 +444,6 @@ export default function Analytics() {
             </div>
           </div>
         </div>
-
-       
       </div>
     </AdminLayout>
   );
