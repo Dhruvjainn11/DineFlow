@@ -1,0 +1,32 @@
+{
+  "name": "dineflow-e2e-tests",
+  "version": "1.0.0",
+  "description": "End-to-end test suite for DineFlow cafe management system",
+  "main": "testCafeFlow.js",
+  "scripts": {
+    "test": "node testCafeFlow.js",
+    "test:with-server": "node runTestsWithServer.js",
+    "test:verbose": "node testCafeFlow.js --verbose",
+    "install-deps": "npm install"
+  },
+  "dependencies": {
+    "axios": "^1.6.0"
+  },
+  "devDependencies": {},
+  "keywords": [
+    "e2e",
+    "testing",
+    "dineflow",
+    "cafe",
+    "automation"
+  ],
+  "author": "QA Automation Engineer",
+  "license": "MIT",
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-username/dineflow-e2e-tests.git"
+  }
+}
