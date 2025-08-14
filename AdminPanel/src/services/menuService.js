@@ -7,9 +7,9 @@ export const getMenus = async () => {
 };
 
 export const createMenu = async (menuData) => {
-  const res = await api.post("/menu", menuData ,{
-     headers: {
-      'Content-Type': 'application/json',
+  const res = await api.post("/menu", menuData, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
     },
   });
   return res.data;

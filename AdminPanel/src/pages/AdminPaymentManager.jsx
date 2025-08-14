@@ -3,6 +3,7 @@ import AdminLayout from "../layouts/AdminLayout";
 import api from "../utils/api";
 import { socket } from "../utils/socket";
 import Receipt from "../components/Receipt"; // Import your Receipt component
+import { useAuth } from "../context/AuthContext";
 
 export default function AdminPaymentManager() {
   const [orders, setOrders] = useState([]);

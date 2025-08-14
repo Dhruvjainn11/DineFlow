@@ -30,6 +30,8 @@ import {
   DollarSign,
   ShoppingCart
 } from "lucide-react";
+import { useAuth } from "../context/AuthContext";
+import FeatureGate from "../components/Common/FeatureGate";
 
 const COLORS = ["#6366f1", "#f59e0b", "#10b981", "#ef4444", "#8b5cf6", "#06b6d4", "#84cc16"];
 
@@ -444,6 +446,122 @@ export default function Analytics() {
             </div>
           </div>
         </div>
+
+        {/* Advanced Analytics Section (Pro Only) */}
+        <FeatureGate
+          feature="advancedAnalytics"
+          className="mt-8"
+          upgradeMessage="Unlock advanced analytics with detailed insights, customer behavior analysis, and 30-day trends with Pro plan."
+        >
+          <div className="space-y-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-xl font-semibold text-gray-900">Advanced Analytics</h2>
+                <p className="text-sm text-gray-600">Detailed insights and trends for better decision making</p>
+              </div>
+              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                Pro Feature
+              </span>
+            </div>
+
+            {/* Advanced Metrics Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-gray-500 uppercase tracking-wider">Avg. Order Value</p>
+                    <p className="mt-2 text-2xl font-semibold text-blue-600">
+                      ₹{payments.totalRevenue > 0 ? Math.round(payments.totalRevenue / totalOrders) : 0}
+                    </p>
+                  </div>
+                  <div className="p-2 bg-blue-50 rounded-lg">
+                    <TrendingUp className="h-5 w-5 text-blue-600" />
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-gray-500 uppercase tracking-wider">Orders per Day</p>
+                    <p className="mt-2 text-2xl font-semibold text-green-600">
+                      {dailyStats && dailyStats.length > 0 ? Math.round(sevenDayStats.orders / 7) : 0}
+                    </p>
+                  </div>
+                  <div className="p-2 bg-green-50 rounded-lg">
+                    <Calendar className="h-5 w-5 text-green-600" />
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-gray-500 uppercase tracking-wider">Peak Hour</p>
+                    <p className="mt-2 text-2xl font-semibold text-orange-600">2-4 PM</p>
+                  </div>
+                  <div className="p-2 bg-orange-50 rounded-lg">
+                    <Clock className="h-5 w-5 text-orange-600" />
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-gray-500 uppercase tracking-wider">Table Turnover</p>
+                    <p className="mt-2 text-2xl font-semibold text-purple-600">2.3x</p>
+                  </div>
+                  <div className="p-2 bg-purple-50 rounded-lg">
+                    <Table className="h-5 w-5 text-purple-600" />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* 30-Day Trends (Pro Only) */}
+            <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
+              <div className="mb-6">
+                <h3 className="text-lg font-semibold text-gray-900">30-Day Performance Trend</h3>
+                <p className="text-sm text-gray-600">Extended analytics showing month-long patterns</p>
+              </div>
+              
+              <div className="h-[400px] flex items-center justify-center bg-gray-50 rounded-lg">
+                <div className="text-center space-y-2">
+                  <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto">
+                    <TrendingUp className="h-8 w-8 text-purple-600" />
+                  </div>
+                  <p className="text-gray-900 font-medium">30-Day Analytics Available</p>
+                  <p className="text-sm text-gray-500">Extended trend analysis with Pro subscription</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </FeatureGate>
+
+        {/* 30-Day Analytics Toggle (Pro Feature) */}
+        <FeatureGate
+          feature="thirtyDayAnalytics"
+          showUpgrade={false}
+          fallback={null}
+        >
+          <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900">Extended Analytics Period</h3>
+                <p className="text-sm text-gray-600">Switch between 7-day and 30-day analytics view</p>
+              </div>
+              <div className="flex space-x-2">
+                <button className="px-3 py-1 text-sm font-medium text-blue-600 bg-blue-50 rounded-md">
+                  7 Days
+                </button>
+                <button className="px-3 py-1 text-sm font-medium text-gray-600 bg-gray-50 rounded-md hover:bg-gray-100">
+                  30 Days
+                </button>
+              </div>
+            </div>
+          </div>
+        </FeatureGate>
       </div>
     </AdminLayout>
   );

@@ -11,18 +11,26 @@ import OrderManagment from "./pages/OrderManagment";
 import Analytics from "./pages/Analytics";
 import AdminPaymentManager from "./pages/AdminPaymentManager";
 import KitchenDashboard from "./pages/kitchen/KitchenDashboard";
+import SuperAdminCafeManagement from "./pages/SuperAdminCafeManagement";
+import SuperAdminAnalyticsDashboard from "./pages/SuperAdminAnalyticsDashboard";
+import PaymentSettings from "./pages/PaymentSettings";
+import { AuthProvider } from "./context/AuthContext";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 function App() {
   useEffect(() => {
- socket.connect();
+    socket.connect();
     return () => socket.disconnect();
-  })
+  }, []);
+  
   return (
-    <Routes>
-      <Route path="/" element={<Login />} />
-      <Route path="/login" element={<Login />} />
+    <AuthProvider>
+      <Routes>
+        <Route path="/" element={<Login />} />
+        <Route path="/login" element={<Login />} />
 
-     <Route element={<PrivateRoute />}>
+        <Route element={<PrivateRoute />}>
           <Route path="/admin" element={<Dashboard />} />
           <Route path="/admin/menu" element={<MenuManagement />} />
           <Route path="/admin/categories" element={<CategoryManagement />} />
@@ -30,9 +38,29 @@ function App() {
           <Route path="/admin/orders" element={<OrderManagment />} />
           <Route path="/admin/analytics" element={<Analytics />} />
           <Route path="/admin/payment" element={<AdminPaymentManager />} />
+          <Route path="/admin/payment-settings" element={<PaymentSettings />} />
           <Route path="/kitchen/dashboard" element={<KitchenDashboard />} />
+          
+          {/* Super Admin Dashboard with Sidebar */}
+          <Route path="/super-admin/*" element={<Dashboard />}>
+            <Route path="cafes" element={<SuperAdminCafeManagement />} />
+            <Route path="analytics" element={<SuperAdminAnalyticsDashboard />} />
+          </Route>
         </Route>
-    </Routes>
+      </Routes>
+      
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+      />
+    </AuthProvider>
   );
 }
 

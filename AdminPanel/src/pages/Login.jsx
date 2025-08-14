@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FiUser, FiLock, FiEye, FiEyeOff, FiArrowRight } from 'react-icons/fi';
-import api from '../utils/api'; // Adjust the import based on your API setup
+import { FiUser, FiLock, FiEye, FiEyeOff, FiArrowRight, FiShield, FiHome } from 'react-icons/fi';
+import api from '../utils/api';
+import { useAuth } from '../context/AuthContext';
 
 const Login = () => {
   const [username, setUsername] = useState('');
@@ -10,28 +11,63 @@ const Login = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const navigate = useNavigate();
+  const { login } = useAuth();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
     setError('');
-    
 
     try {
-      const { data } = await api.post("/auth/login", { username, password });
-
-      // ✅ Save token in localStorage
-      localStorage.setItem("token",`Bearer ${data.token}`);
-
-      // ✅ Navigate to admin dashboard
-      console.log("Login successful, navigating to admin...");
-      navigate("/admin/analytics");
+      console.log("USERNAME:", username);
+      console.log("PASSWORD:", password);
+      
+      // Try general login endpoint first
+      let response;
+      try {
+        response = await api.post("/auth/login", { username, password });
+      } catch (firstError) {
+        // If that fails, try super-admin specific endpoint for backward compatibility
+        console.log('General login failed, trying super-admin endpoint:', firstError.response?.data?.message);
+        response = await api.post("/auth/login/super-admin", { username, password });
+      }
+      
+      console.log("RESPONSE:", response);
+      
+      // Backend returns: { success: true, message: 'Login successful', data: { token, user, cafe? } }
+      if (response.data.success) {
+        const { token, user, cafe } = response.data.data;
+        
+        // Use AuthContext login method
+        await login(`Bearer ${token}`, user);
+        
+        // Set cafe if present
+        if (cafe) {
+          // The AuthContext will handle cafe data
+        }
+        
+        console.log('✅ Login successful, redirecting...');
+        
+        // Route based on user role
+        if (user.role === 'super-admin') {
+          navigate('/super-admin/');
+        } else if (user.role === 'admin' && user.cafeId) {
+          // Cafe admin - route to regular admin dashboard
+          navigate('/admin/');
+        } else {
+          // Default fallback
+          navigate('/admin/');
+        }
+      } else {
+        setError(response.data.message || 'Login failed');
+      }
       
     } catch (err) {
-      setError(err.response?.data?.message || "Login failed");
+      console.error('Login error:', err);
+      setError(err.response?.data?.message || 'Login failed. Please try again.');
+    } finally {
+      setIsLoading(false);
     }
-  
-
   };
 
   return (
@@ -105,7 +141,7 @@ const Login = () => {
                     className="text-gray-400 hover:text-gray-500 focus:outline-none"
                     onClick={() => setShowPassword(!showPassword)}
                   >
-                   
+                    {showPassword ? <FiEyeOff className="h-5 w-5" /> : <FiEye className="h-5 w-5" />}
                   </button>
                 </div>
               </div>
@@ -115,7 +151,6 @@ const Login = () => {
 
             <div>
               <button
-              onClick={handleSubmit}
                 type="submit"
                 disabled={isLoading}
                 className={`w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 ${isLoading ? 'opacity-70 cursor-not-allowed' : ''}`}
