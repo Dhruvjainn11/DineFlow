@@ -10,6 +10,7 @@ mongoose.connect(process.env.MONGO_URI).then(async () => {
   
   const cafes = await Cafe.find({}).select('name email adminUser status subscription.planType');
   console.log('\n=== CAFES ===');
+  console.log('\n=== CAFES ===');
   cafes.forEach((cafe, index) => {
     console.log(`${index + 1}. ${cafe.name} (${cafe.email}) - Admin: ${cafe.adminUser} - Status: ${cafe.status} - Plan: ${cafe.subscription?.planType}`);
   });
