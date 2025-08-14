@@ -32,6 +32,12 @@ const orderItemSchema = new mongoose.Schema({
 
 const orderSchema = new mongoose.Schema(
   {
+    cafeId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Cafe',
+      required: true,
+      index: true
+    },
     // Use the primitive table number for simplicity
     tableNumber: {
       type: Number,
@@ -70,11 +76,119 @@ const orderSchema = new mongoose.Schema(
       type: Date,
       default: null,
     },
+    
+    // Additional order details
+    customerName: {
+      type: String,
+      trim: true
+    },
+    customerPhone: {
+      type: String,
+      trim: true
+    },
+    specialInstructions: {
+      type: String,
+      trim: true
+    },
+    
+    // Pricing details
+    subtotal: {
+      type: Number,
+      required: true,
+      min: 0
+    },
+    taxAmount: {
+      type: Number,
+      default: 0,
+      min: 0
+    },
+    serviceCharge: {
+      type: Number,
+      default: 0,
+      min: 0
+    },
+    discount: {
+      type: Number,
+      default: 0,
+      min: 0
+    },
+    
+    // Order type and delivery info
+    orderType: {
+      type: String,
+      enum: ['dine-in', 'takeaway', 'delivery'],
+      default: 'dine-in'
+    },
+    
+    // Staff assignment
+    assignedTo: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User'
+    },
+    
+    // Time tracking
+    estimatedTime: {
+      type: Number // in minutes
+    },
+    preparationStartedAt: {
+      type: Date
+    },
+    readyAt: {
+      type: Date
+    },
+    completedAt: {
+      type: Date
+    },
+    
+    // Payment details for online payments
+    paymentDetails: {
+      method: {
+        type: String,
+        enum: ['cash', 'card', 'online', 'upi'],
+        default: 'cash'
+      },
+      transactionId: String,
+      gateway: String, // razorpay, stripe, etc.
+      gatewayResponse: mongoose.Schema.Types.Mixed
+    }
   },
   {
     timestamps: true,
   }
 );
+
+// Indexes for better performance
+orderSchema.index({ cafeId: 1, createdAt: -1 });
+orderSchema.index({ cafeId: 1, status: 1 });
+orderSchema.index({ cafeId: 1, tableNumber: 1 });
+orderSchema.index({ cafeId: 1, paymentStatus: 1 });
+orderSchema.index({ cafeId: 1, orderType: 1 });
+orderSchema.index({ assignedTo: 1, status: 1 });
+
+// Method to calculate total with tax and service charge
+orderSchema.methods.calculateTotal = function() {
+  this.totalPrice = this.subtotal + this.taxAmount + this.serviceCharge - this.discount;
+  return this.totalPrice;
+};
+
+// Virtual for order duration
+orderSchema.virtual('duration').get(function() {
+  if (this.completedAt && this.createdAt) {
+    return Math.round((this.completedAt - this.createdAt) / (1000 * 60)); // in minutes
+  }
+  return null;
+});
+
+// Static method to get orders by cafe and date range
+orderSchema.statics.getOrdersByDateRange = function(cafeId, startDate, endDate) {
+  return this.find({
+    cafeId: cafeId,
+    createdAt: {
+      $gte: startDate,
+      $lte: endDate
+    }
+  }).sort({ createdAt: -1 });
+};
 
 const Order = mongoose.model("Order", orderSchema);
 export default Order;

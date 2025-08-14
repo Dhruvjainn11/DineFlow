@@ -11,6 +11,9 @@ import orderRoutes from './routes/orderRoutes.js';
 import tableRoutes from './routes/tableRoutes.js';
 import authRoutes from './routes/authRoutes.js';
 import analyticsRoutes from './routes/analyticsRoutes.js';
+import cafeRoutes from './routes/cafeRoutes.js';
+import paymentRoutes from './routes/paymentRoutes.js';
+import superAdminRoutes from './routes/superAdminRoutes.js';
 dotenv.config();
 
 const app = express();
@@ -42,7 +45,10 @@ app.use('/api/categories', categoryRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/tables', tableRoutes);
 app.use('/api/auth', authRoutes);
-app.use('/api/analytics',analyticsRoutes); 
+app.use('/api/analytics',analyticsRoutes);
+app.use('/api/cafes', cafeRoutes);
+app.use('/api/payments', paymentRoutes);
+app.use('/api/super-admin', superAdminRoutes);
 
 // Socket.IO logic
 io.on('connection', (socket) => {
