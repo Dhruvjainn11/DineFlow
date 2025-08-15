@@ -62,7 +62,7 @@ router.get('/', protect, checkSubscription, async (req, res) => {
 router.post('/', 
   protect, 
   checkSubscription, 
-  checkPlanLimits,
+  checkPlanLimits('createTable'),
   checkPermission('canManageTables'), 
   validateTableCreation, 
   async (req, res) => {
@@ -114,19 +114,33 @@ router.post('/',
     
     const newTable = new Table(tableData);
     
-    // Generate QR code
+    // Generate QR code asynchronously with timeout and fallback
     const qrData = newTable.getQRCodeData(cafe);
-    const qrCodeDataUrl = await QRCode.toDataURL(qrData.url, {
-      errorCorrectionLevel: qrData.styling.errorCorrectionLevel,
-      color: {
-        dark: qrData.styling.primaryColor,
-        light: qrData.styling.backgroundColor
-      },
-      width: qrData.styling.size,
-      margin: qrData.styling.margin
-    });
     
-    newTable.qrCode = qrCodeDataUrl;
+    try {
+      // Wrap QR code generation with timeout
+      const qrCodeDataUrl = await Promise.race([
+        QRCode.toDataURL(qrData.url, {
+          errorCorrectionLevel: qrData.styling.errorCorrectionLevel,
+          color: {
+            dark: qrData.styling.primaryColor,
+            light: qrData.styling.backgroundColor
+          },
+          width: qrData.styling.size,
+          margin: qrData.styling.margin
+        }),
+        new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('QR generation timeout')), 5000)
+        )
+      ]);
+      
+      newTable.qrCode = qrCodeDataUrl;
+    } catch (qrError) {
+      console.warn('QR code generation failed or timed out:', qrError.message);
+      // Create a simple fallback QR code or placeholder
+      newTable.qrCode = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KICA8cmVjdCB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0iI2Y5ZjlmOSIgc3Ryb2tlPSIjZGRkIiBzdHJva2Utd2lkdGg9IjIiLz4KICA8dGV4dCB4PSIxMDAiIHk9IjkwIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LWZhbWlseT0iQXJpYWwsIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTQiIGZpbGw9IiM2NjYiPlFSIENvZGU8L3RleHQ+CiAgPHRleHQgeD0iMTAwIiB5PSIxMTAiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZvbnQtZmFtaWx5PSJBcmlhbCwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIxMiIgZmlsbD0iIzk5OSI+UGxhY2Vob2xkZXI8L3RleHQ+CiAgPHRleHQgeD0iMTAwIiB5PSIxMzAiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZvbnQtZmFtaWx5PSJBcmlhbCwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIxMCIgZmlsbD0iIzk5OSI+VGFibGUgJyArIHRhYmxlTnVtYmVyICsgJzwvdGV4dD4KPC9zdmc+';
+    }
+    
     newTable.qrCodeUrl = qrData.url;
     newTable.qrCodeType = qrData.isPremium ? 'premium' : 'basic';
     
@@ -161,9 +175,9 @@ router.post('/',
 router.put('/:id', 
   protect, 
   checkSubscription, 
-  checkPlanLimits,
+  checkPlanLimits('manageTable'),
   checkPermission('canManageTables'), 
-  validateTableUpdate, 
+  validateTableUpdate,
   async (req, res) => {
   try {
     const { status, currentOrder, tableName, capacity, location, sortOrder } = req.body;
@@ -227,7 +241,7 @@ router.put('/:id',
 router.delete('/:id', 
   protect, 
   checkSubscription, 
-  checkPlanLimits,
+  checkPlanLimits('manageTable'),
   checkPermission('canManageTables'), 
   validateObjectId('id'),
   handleValidationErrors,
@@ -344,6 +358,98 @@ router.get('/:id/current-order',
     res.status(500).json({ 
       success: false,
       message: 'Failed to fetch current order',
+      error: error.message 
+    });
+  }
+});
+
+// @desc    Generate QR code for a table (background task)
+// @route   PUT /api/tables/:id/generate-qr
+// @access  Private (Admin, Cafe Admin with table management permission)
+router.put('/:id/generate-qr', 
+  protect, 
+  checkSubscription, 
+  checkPermission('canManageTables'), 
+  validateObjectId('id'),
+  handleValidationErrors,
+  async (req, res) => {
+  try {
+    // Find existing table and verify ownership
+    const existingTable = await Table.findById(req.params.id);
+    if (!existingTable) {
+      return res.status(404).json({
+        success: false,
+        message: 'Table not found'
+      });
+    }
+    
+    // Check cafe ownership
+    const userCafeId = req.user.isSuperAdmin() ? existingTable.cafeId : req.user.cafeId._id;
+    if (existingTable.cafeId.toString() !== userCafeId.toString()) {
+      return res.status(403).json({
+        success: false,
+        message: 'Access denied to this table'
+      });
+    }
+    
+    // Get cafe details for QR generation
+    const cafe = await Cafe.findById(userCafeId);
+    if (!cafe) {
+      return res.status(404).json({
+        success: false,
+        message: 'Cafe not found'
+      });
+    }
+    
+    // Generate QR code with extended timeout for background process
+    const qrData = existingTable.getQRCodeData(cafe);
+    
+    try {
+      const qrCodeDataUrl = await Promise.race([
+        QRCode.toDataURL(qrData.url, {
+          errorCorrectionLevel: qrData.styling.errorCorrectionLevel,
+          color: {
+            dark: qrData.styling.primaryColor,
+            light: qrData.styling.backgroundColor
+          },
+          width: qrData.styling.size,
+          margin: qrData.styling.margin
+        }),
+        new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('QR generation timeout')), 10000) // 10s timeout for background
+        )
+      ]);
+      
+      // Update table with new QR code
+      existingTable.qrCode = qrCodeDataUrl;
+      existingTable.qrCodeUrl = qrData.url;
+      existingTable.qrCodeType = qrData.isPremium ? 'premium' : 'basic';
+      await existingTable.save();
+      
+      res.json({
+        success: true,
+        message: 'QR code generated successfully',
+        data: {
+          qrCode: qrCodeDataUrl,
+          qrCodeUrl: qrData.url,
+          qrCodeType: existingTable.qrCodeType
+        }
+      });
+      
+    } catch (qrError) {
+      console.error('Background QR generation failed:', qrError.message);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to generate QR code',
+        error: qrError.message
+      });
+    }
+    
+  } catch (error) {
+    console.error('Error generating QR code:', error);
+    res.status(500).json({ 
+      success: false,
+      message: 'Failed to generate QR code',
       error: error.message 
     });
   }

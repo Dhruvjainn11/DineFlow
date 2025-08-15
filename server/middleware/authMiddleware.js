@@ -190,16 +190,25 @@ export const checkPlanLimits = (action) => {
 
         case 'createTable':
         case 'manageTable':
+          // Basic QR functionality is available in Basic plan
+          // Advanced QR features (premium design, custom branding) require Pro
           if (planType === 'basic') {
-            return res.status(403).json({
-              success: false,
-              message: 'Table management is not available in Basic plan. Upgrade to Pro to manage tables.',
-              planLimit: {
-                feature: 'tableManagement',
-                planType: 'basic',
-                upgradeRequired: true
-              }
-            });
+            // Check current table count for Basic plan (limit: 10 tables)
+            const Table = (await import('../models/Table.js')).default;
+            const currentCount = await Table.countDocuments({ cafeId: req.user.cafeId._id, isActive: true });
+            
+            if (currentCount >= 10) {
+              return res.status(403).json({
+                success: false,
+                message: 'Basic plan limit reached. Maximum 10 tables allowed. Upgrade to Pro for unlimited tables.',
+                planLimit: {
+                  current: currentCount,
+                  limit: 10,
+                  planType: 'basic',
+                  upgradeRequired: true
+                }
+              });
+            }
           }
           break;
 
