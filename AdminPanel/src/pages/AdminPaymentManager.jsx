@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import AdminLayout from "../layouts/AdminLayout";
+import RoleBasedLayout from "../layouts/RoleBasedLayout";
 import api from "../utils/api";
 import { socket } from "../utils/socket";
 import Receipt from "../components/Receipt"; // Import your Receipt component
@@ -152,7 +152,7 @@ export default function AdminPaymentManager() {
   };
 
   return (
-    <AdminLayout>
+    <RoleBasedLayout>
       <div className="p-6 space-y-6">
         <div className="flex justify-between items-center">
           <h2 className="text-2xl font-bold text-gray-800">Payment Requests</h2>
@@ -316,6 +316,6 @@ export default function AdminPaymentManager() {
       {selectedOrder && (
         <Receipt order={selectedOrder} onClose={() => setSelectedOrder(null)} />
       )}
-    </AdminLayout>
+    </RoleBasedLayout>
   );
 }

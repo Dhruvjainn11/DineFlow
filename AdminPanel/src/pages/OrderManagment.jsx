@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import AdminLayout from "../layouts/AdminLayout";
+import RoleBasedLayout from "../layouts/RoleBasedLayout";
 import { getOrders } from "../services/orderService";
 import { socket } from "../utils/socket";
 import { Circle, CheckCircle, Clock, XCircle, CreditCard, Utensils, Filter, Calendar, RefreshCw } from "lucide-react";
@@ -87,7 +87,7 @@ const OrderManagment = () => {
   };
 
   return (
-    <AdminLayout>
+    <RoleBasedLayout>
       <div className="p-6">
         <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4">
           <div>
@@ -292,7 +292,7 @@ const OrderManagment = () => {
           </div>
         )}
       </div>
-    </AdminLayout>
+    </RoleBasedLayout>
   );
 };
 

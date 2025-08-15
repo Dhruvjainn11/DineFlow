@@ -5,7 +5,7 @@ import MenuForm from "../components/MenuForm";
 import BulkMenuForm from "../components/BulkMenuForm";
 import MenuItem from "../components/MenuItem";
 import CategoryForm from "../components/CategoryForm";
-import AdminLayout from "../layouts/AdminLayout";
+import RoleBasedLayout from "../layouts/RoleBasedLayout";
 import { socket } from "../utils/socket";
 import { Plus, Upload } from "lucide-react";
 
@@ -45,7 +45,7 @@ const MenuManagement = () => {
   };
 
   return (
-    <AdminLayout>
+    <RoleBasedLayout>
       <div className="">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl font-bold">Menu Management</h2>
@@ -104,7 +104,7 @@ const MenuManagement = () => {
           />
         )}
       </div>
-    </AdminLayout>
+    </RoleBasedLayout>
   );
 };
 

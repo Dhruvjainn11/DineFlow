@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import AdminLayout from "../layouts/AdminLayout";
+import RoleBasedLayout from "../layouts/RoleBasedLayout";
 import api from "../utils/api";
 import {
   PieChart,
@@ -55,18 +55,18 @@ export default function Analytics() {
   }, []);
 
   if (loading) return (
-    <AdminLayout>
+    <RoleBasedLayout>
       <div className="flex justify-center items-center h-[calc(100vh-200px)]">
         <div className="text-center space-y-4">
           <Loader2 className="animate-spin h-10 w-10 text-indigo-500 mx-auto" />
           <p className="text-gray-600">Loading analytics data...</p>
         </div>
       </div>
-    </AdminLayout>
+    </RoleBasedLayout>
   );
 
   if (!data) return (
-    <AdminLayout>
+    <RoleBasedLayout>
       <div className="flex justify-center items-center h-[calc(100vh-200px)]">
         <div className="text-center space-y-4">
           <Circle className="h-10 w-10 text-red-500 mx-auto" />
@@ -79,7 +79,7 @@ export default function Analytics() {
           </button>
         </div>
       </div>
-    </AdminLayout>
+    </RoleBasedLayout>
   );
 
   const { totalOrders, payments, tables, dailyStats, todayStats } = data;
@@ -110,7 +110,7 @@ export default function Analytics() {
   }), { orders: 0, revenue: 0 }) || { orders: 0, revenue: 0 };
 
   return (
-    <AdminLayout>
+    <RoleBasedLayout>
       <div className="p-6 space-y-8">
         {/* Header */}
         <div className="space-y-2">
@@ -563,6 +563,6 @@ export default function Analytics() {
           </div>
         </FeatureGate>
       </div>
-    </AdminLayout>
+    </RoleBasedLayout>
   );
 }

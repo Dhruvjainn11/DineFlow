@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from "react";
 import { getCategories ,deleteCategory} from "../services/menuService";
 import CategoryForm from "../components/CategoryForm";
-import AdminLayout from "../layouts/AdminLayout";
+import RoleBasedLayout from "../layouts/RoleBasedLayout";
 import { Pencil, Trash2 } from 'lucide-react';
 import {socket} from "../utils/socket"; // Adjust the import path as necessary
 import UpdateCategoryForm from "../components/UpdateCategoryForm"; // Adjust the import path as necessary
@@ -69,7 +69,7 @@ const confirmDelete = async () => {
 
 
   return (
-    <AdminLayout>
+    <RoleBasedLayout>
     <div className="">
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-xl font-bold">Category Management</h2>
@@ -143,7 +143,7 @@ const confirmDelete = async () => {
   />
 )}
     </div>
-    </AdminLayout>
+    </RoleBasedLayout>
   );
 };
 

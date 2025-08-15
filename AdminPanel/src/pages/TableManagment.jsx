@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { getTables , deleteTable} from "../services/tableService";
-import AdminLayout from "../layouts/AdminLayout";
+import RoleBasedLayout from "../layouts/RoleBasedLayout";
 import TableForm from "../components/TableForm";
 import { socket } from "../utils/socket"; // Adjust the import path as necessary
 import { Pencil, Trash2, X } from "lucide-react";
@@ -67,7 +67,7 @@ export default function TableManagement({ onClose }) {
   };
 
   return (
-    <AdminLayout>
+    <RoleBasedLayout>
       <div className="p-6">
         <div className="w-full flex justify-end">
           <button
@@ -191,6 +191,6 @@ export default function TableManagement({ onClose }) {
           </div>
         )}
       </div>
-    </AdminLayout>
+    </RoleBasedLayout>
   );
 }

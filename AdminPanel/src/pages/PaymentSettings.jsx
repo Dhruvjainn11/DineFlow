@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import AdminLayout from '../layouts/AdminLayout';
+import RoleBasedLayout from "../layouts/RoleBasedLayout";
 import FeatureGate from '../components/Common/FeatureGate';
 import api from '../utils/api';
 
@@ -352,7 +352,7 @@ export default function PaymentSettings() {
 
   return (
     <FeatureGate requiredFeature="onlinePayments">
-      <AdminLayout>
+      <RoleBasedLayout>
         <div className="p-6 space-y-6">
           <div className="flex justify-between items-center">
             <div>
@@ -404,7 +404,7 @@ export default function PaymentSettings() {
             </div>
           </div>
         </div>
-      </AdminLayout>
+      </RoleBasedLayout>
     </FeatureGate>
   );
 }

@@ -50,9 +50,22 @@ export const AuthProvider = ({ children }) => {
       
       if (response.data.success) {
         setCafe(response.data.data);
+      } else {
+        console.error('Cafe data fetch failed:', response.data.message);
       }
     } catch (error) {
       console.error('Failed to fetch cafe data:', error);
+      // If it's a 403 error, it might be a permission issue
+      if (error.response?.status === 403) {
+        console.error('Access denied to cafe data. User might not have permission to access this cafe.');
+        // Don't logout, just continue without cafe data
+        setCafe(null);
+      } else if (error.response?.status === 401) {
+        // Token is invalid, logout
+        console.error('Invalid token, logging out...');
+        logout();
+        return;
+      }
     } finally {
       setLoading(false);
     }
