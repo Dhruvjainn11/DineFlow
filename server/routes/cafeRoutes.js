@@ -366,8 +366,11 @@ router.get('/:id', protect, validateObjectId('id'), async (req, res) => {
   try {
     const { id } = req.params;
     
+    // Get the actual cafe ID - handle both populated and non-populated cases
+    const userCafeId = req.user.cafeId?._id?.toString() || req.user.cafeId?.toString();
+    
     // Check if user is super admin or cafe admin of this cafe
-    if (!req.user.isSuperAdmin() && req.user.cafeId.toString() !== id) {
+    if (!req.user.isSuperAdmin() && userCafeId !== id) {
       return res.status(403).json({
         success: false,
         message: 'Access denied'
@@ -411,8 +414,11 @@ router.put('/:id', protect, validateCafeUpdate, async (req, res) => {
   try {
     const { id } = req.params;
     
+    // Get the actual cafe ID - handle both populated and non-populated cases
+    const userCafeId = req.user.cafeId?._id?.toString() || req.user.cafeId?.toString();
+    
     // Check if user is super admin or cafe admin of this cafe
-    if (!req.user.isSuperAdmin() && req.user.cafeId.toString() !== id) {
+    if (!req.user.isSuperAdmin() && userCafeId !== id) {
       return res.status(403).json({
         success: false,
         message: 'Access denied'

@@ -78,7 +78,8 @@ router.post('/login', validateLogin, async (req, res) => {
         id: user._id, 
         username: user.username, 
         role: user.role,
-        cafeId: user.cafeId?._id 
+        cafeId: user.cafeId?._id,
+        permissions: user.permissions
       },
       process.env.JWT_SECRET,
       { expiresIn: '30d' }
@@ -191,8 +192,10 @@ router.post("/login/super-admin", async (req, res) => {
     const token = jwt.sign(
       {
         id: user._id,
+        username: user.username,
         role: user.role,
         cafeId: user.cafeId || null,
+        permissions: user.permissions
       },
       process.env.JWT_SECRET,
       { expiresIn: "7d" }
