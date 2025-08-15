@@ -15,12 +15,24 @@ import {
 const CafeAdminSidebar = () => {
   const { pathname } = useLocation();
   const { user, cafe, hasPermission, hasFeature } = useAuth();
+  
+  // Debug logging
+  console.log('🔍 CafeAdminSidebar Debug:');
+  console.log('  - User:', user);
+  console.log('  - Cafe:', cafe);
+  console.log('  - User permissions:', user?.permissions);
+  console.log('  - Cafe features:', cafe?.features);
+  console.log('  - hasPermission function available:', typeof hasPermission);
+  console.log('  - hasFeature function available:', typeof hasFeature);
 
   // Cafe Admin specific navigation links based on permissions
   const getNavigationLinks = () => {
     const links = [];
+    
+    console.log('🔗 Building navigation links...');
 
     // Analytics - permission-based
+    console.log('  - Checking canViewAnalytics:', hasPermission('canViewAnalytics'));
     if (hasPermission('canViewAnalytics')) {
       links.push({ 
         name: "Analytics", 
@@ -29,6 +41,9 @@ const CafeAdminSidebar = () => {
         permission: 'canViewAnalytics',
         description: "View cafe analytics and insights"
       });
+      console.log('    ✅ Added Analytics link');
+    } else {
+      console.log('    ❌ Skipped Analytics link');
     }
 
     // Menu management - permission-based
@@ -104,10 +119,13 @@ const CafeAdminSidebar = () => {
       });
     }
 
+    console.log('🎯 Total navigation links built:', links.length);
+    console.log('📋 Links array:', links.map(l => l.name));
     return links;
   };
 
   const navigationLinks = getNavigationLinks();
+  console.log('🚀 Final navigationLinks for rendering:', navigationLinks.length);
 
   // Get cafe branding
   const getBrandingName = () => {
