@@ -89,14 +89,19 @@ tableSchema.methods.isAvailable = function() {
 };
 
 // Method to generate QR code URL based on cafe plan
-tableSchema.methods.generateQRCodeUrl = function(cafe, baseUrl = process.env.CLIENT_URL || 'http://localhost:3000') {
-  // Pro plan with custom subdomain
+tableSchema.methods.generateQRCodeUrl = function(cafe, baseUrl = process.env.FRONTEND_URL || 'http://localhost:5173') {
+  // Force local IP for development (when FRONTEND_URL contains IP address)
+  if (process.env.FRONTEND_URL && process.env.FRONTEND_URL.includes('192.168')) {
+    return `${baseUrl}/cafe/${this.cafeId}/table/${this._id}`;
+  }
+  
+  // Pro plan with custom subdomain (only in production)
   if (cafe && cafe.features?.customDomain && cafe.subdomain) {
-    return `https://${cafe.subdomain}.dineflow.com/order/table/${this.tableNumber}`;
+    return `https://${cafe.subdomain}.dineflow.com/cafe/${this.cafeId}/table/${this._id}`;
   }
   
   // Basic plan with path-based URL
-  return `${baseUrl}/order/${this.cafeId}/table/${this.tableNumber}`;
+  return `${baseUrl}/cafe/${this.cafeId}/table/${this._id}`;
 };
 
 // Method to get QR code data with plan-specific features
@@ -141,6 +146,25 @@ tableSchema.methods.getQRCodeData = function(cafe) {
     }
   };
 };
+
+
+// Inside methods
+tableSchema.methods.getQrCodeOptions = function(cafe, overrides = {}) {
+  const qrData = this.getQRCodeData(cafe);
+  return {
+    errorCorrectionLevel: qrData.styling.errorCorrectionLevel,
+    type: 'image/png',
+    quality: 0.92,
+    margin: qrData.styling.margin,
+    color: {
+      dark: qrData.styling.primaryColor,
+      light: qrData.styling.backgroundColor
+    },
+    width: qrData.styling.size,
+    ...overrides // allow route-specific overrides like ?size=300
+  };
+};
+
 
 // Method to update QR analytics (Pro feature)
 tableSchema.methods.updateQRAnalytics = async function(scanData = {}) {

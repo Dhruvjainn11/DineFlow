@@ -176,7 +176,7 @@ router.get('/:id',
 // @desc    Create a menu item (supports sizes and ingredients)
 // @route   POST /api/menu
 // @access  Private (Admin, Cafe Admin with menu management permission)
-router.post('/', protect, checkSubscription, checkPlanLimits('createMenuItem'), checkPermission('canManageMenu'), validateMenuCreation, textUpload.none(), async (req, res) => {
+router.post('/', protect, checkSubscription, checkPlanLimits('createMenuItem'), checkPermission('canManageMenu'), validateMenuCreation, express.json(), async (req, res) => {
   try {
     let { name, description, price, imageUrl, category, available, jain, sizes, ingredients, tags, preparationTime, spicyLevel, isPopular, isSpecial } = req.body;
     
@@ -203,16 +203,9 @@ router.post('/', protect, checkSubscription, checkPlanLimits('createMenuItem'), 
     
     // Parse sizes from JSON string to array
     let parsedSizes = [];
-    if (sizes && sizes.trim() !== '') {
-      try {
-        parsedSizes = JSON.parse(sizes);
-      } catch (parseError) {
-        return res.status(400).json({
-          success: false,
-          message: 'Invalid sizes format'
-        });
-      }
-    }
+if (sizes && Array.isArray(sizes)) {
+  parsedSizes = sizes; // Already an array
+}
     
     // Validate pricing - must have either base price or sizes
     if (!price && (!parsedSizes || parsedSizes.length === 0)) {
@@ -292,7 +285,7 @@ router.post('/', protect, checkSubscription, checkPlanLimits('createMenuItem'), 
 // @desc    Update a menu item
 // @route   PUT /api/menu/:id
 // @access  Private (Admin, Cafe Admin with menu management permission)
-router.put('/:id', protect, checkSubscription, checkPermission('canManageMenu'), validateMenuUpdate, textUpload.none(), async (req, res) => {
+router.put('/:id', protect, checkSubscription, checkPermission('canManageMenu'), validateMenuUpdate, express.json(), async (req, res) => {
   try {
     let { name, description, price, imageUrl, category, available, jain, sizes, ingredients, tags, preparationTime, spicyLevel, isPopular, isSpecial } = req.body;
 
@@ -328,11 +321,13 @@ router.put('/:id', protect, checkSubscription, checkPermission('canManageMenu'),
     }
 
     // Parse sizes from JSON string to array
-    let parsedSizes = [];
-    if (sizes && sizes.trim() !== '') {
+     let parsedSizes = [];
+    if (sizes && Array.isArray(sizes)) {
+      parsedSizes = sizes; // Already an array
+    } else if (sizes && typeof sizes === 'string') {
       try {
         parsedSizes = JSON.parse(sizes);
-      } catch (parseError) {
+      } catch (error) {
         return res.status(400).json({
           success: false,
           message: 'Invalid sizes format'

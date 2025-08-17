@@ -45,17 +45,11 @@ router.get('/table/:tableId',
       const qrData = table.getQRCodeData(cafe);
 
       // Generate QR code options based on plan
-      const qrOptions = {
-        errorCorrectionLevel: qrData.styling.errorCorrectionLevel,
-        type: 'image/png',
-        quality: 0.92,
-        margin: parseInt(margin) || qrData.styling.margin,
-        color: {
-          dark: qrData.styling.primaryColor,
-          light: qrData.styling.backgroundColor,
-        },
-        width: parseInt(size) || qrData.styling.size,
-      };
+   const qrOptions = table.getQrCodeOptions(cafe, {
+  width: parseInt(size) || undefined,
+  margin: parseInt(margin) || undefined
+});
+
 
       // Generate QR code
       const qrCodeUrl = await QRCode.toDataURL(qrData.url, qrOptions);

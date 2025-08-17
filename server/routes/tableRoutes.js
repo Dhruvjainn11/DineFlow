@@ -59,115 +59,115 @@ router.get('/', protect, checkSubscription, async (req, res) => {
 // @desc    Create a new table
 // @route   POST /api/tables
 // @access  Private (Admin, Cafe Admin with table management permission)
-router.post('/', 
+router.post(
+  '/', 
   protect, 
   checkSubscription, 
-  checkPlanLimits('createTable'),
+  checkPlanLimits('createTable'), 
   checkPermission('canManageTables'), 
   validateTableCreation, 
+  handleValidationErrors,
   async (req, res) => {
-  try {
-    const { tableNumber, tableName, capacity, location, cafeId } = req.body;
-    
-    // Determine cafe ID
-    const userCafeId = req.user.isSuperAdmin() ? cafeId : req.user.cafeId._id;
-    
-    if (!userCafeId) {
-      return res.status(400).json({
-        success: false,
-        message: 'Cafe ID is required'
-      });
-    }
-    
-    // Get cafe details for QR generation
-    const cafe = await Cafe.findById(userCafeId);
-    if (!cafe) {
-      return res.status(404).json({
-        success: false,
-        message: 'Cafe not found'
-      });
-    }
-    
-    // Check if table number already exists for this cafe
-    const existingTable = await Table.findOne({ 
-      cafeId: userCafeId, 
-      tableNumber 
-    });
-    
-    if (existingTable) {
-      return res.status(400).json({
-        success: false,
-        message: `Table ${tableNumber} already exists for this cafe`
-      });
-    }
-    
-    // Create table
-    const tableData = {
-      cafeId: userCafeId,
-      tableNumber,
-      tableName: tableName || '',
-      capacity: capacity || 4,
-      location: location || '',
-      status: 'Available',
-      isActive: true
-    };
-    
-    const newTable = new Table(tableData);
-    
-    // Generate QR code asynchronously with timeout and fallback
-    const qrData = newTable.getQRCodeData(cafe);
-    
     try {
-      // Wrap QR code generation with timeout
-      const qrCodeDataUrl = await Promise.race([
-        QRCode.toDataURL(qrData.url, {
-          errorCorrectionLevel: qrData.styling.errorCorrectionLevel,
-          color: {
-            dark: qrData.styling.primaryColor,
-            light: qrData.styling.backgroundColor
-          },
-          width: qrData.styling.size,
-          margin: qrData.styling.margin
-        }),
-        new Promise((_, reject) => 
-          setTimeout(() => reject(new Error('QR generation timeout')), 5000)
-        )
-      ]);
+      const { tableNumber, cafeId } = req.body;
+      const { user } = req;
+
+      console.log("Received table creation request:", req.body);
+      console.log("User making request:", user.username, user.role);
       
-      newTable.qrCode = qrCodeDataUrl;
-    } catch (qrError) {
-      console.warn('QR code generation failed or timed out:', qrError.message);
-      // Create a simple fallback QR code or placeholder
-      newTable.qrCode = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KICA8cmVjdCB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0iI2Y5ZjlmOSIgc3Ryb2tlPSIjZGRkIiBzdHJva2Utd2lkdGg9IjIiLz4KICA8dGV4dCB4PSIxMDAiIHk9IjkwIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LWZhbWlseT0iQXJpYWwsIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTQiIGZpbGw9IiM2NjYiPlFSIENvZGU8L3RleHQ+CiAgPHRleHQgeD0iMTAwIiB5PSIxMTAiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZvbnQtZmFtaWx5PSJBcmlhbCwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIxMiIgZmlsbD0iIzk5OSI+UGxhY2Vob2xkZXI8L3RleHQ+CiAgPHRleHQgeD0iMTAwIiB5PSIxMzAiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZvbnQtZmFtaWx5PSJBcmlhbCwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIxMCIgZmlsbD0iIzk5OSI+VGFibGUgJyArIHRhYmxlTnVtYmVyICsgJzwvdGV4dD4KPC9zdmc+';
+      // Resolve correct cafe
+      let resolvedCafeId = cafeId;
+      if (!user.isSuperAdmin()) {
+        if (!user.cafeId) {
+          return res.status(400).json({ 
+            success: false,
+            message: 'Cafe association required' 
+          });
+        }
+        resolvedCafeId = user.cafeId._id || user.cafeId;
+      }
+
+      const cafe = await Cafe.findById(resolvedCafeId);
+      if (!cafe) {
+        return res.status(404).json({ message: 'Cafe not found' });
+      }
+
+      // Prevent duplicate tables
+      const existingTable = await Table.findOne({ 
+        cafeId: resolvedCafeId, 
+        tableNumber 
+      });
+      if (existingTable) {
+        return res.status(400).json({ message: 'Table already exists in this cafe' });
+      }
+
+      // Create new table
+      const newTable = new Table({
+        tableNumber,
+        cafeId: resolvedCafeId,
+        createdBy: user._id
+      });
+
+      // QR Code Data
+      const qrData = newTable.getQRCodeData(cafe);
+
+      // Default QR styling (safeguard if method not implemented)
+      const qrOptions = newTable.getQRCodeOptions?.(cafe) || {
+        color: { dark: '#000000', light: '#ffffff' },
+        width: 300,
+        margin: 1,
+        errorCorrectionLevel: 'M'
+      };
+
+      // Generate QR Code with timeout (5s)
+      try {
+        newTable.qrCode = await Promise.race([
+          QRCode.toDataURL(qrData.url, qrOptions),
+          new Promise((_, reject) => setTimeout(() => reject(new Error('QR code generation timeout')), 5000))
+        ]);
+      } catch (qrError) {
+        console.error('QR code generation failed:', qrError.message);
+
+        // Fallback placeholder with unique table info
+        newTable.qrCode = `data:image/svg+xml;base64,${Buffer.from(
+          `<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200">
+             <rect width="200" height="200" fill="white"/>
+             <text x="100" y="100" font-size="20" text-anchor="middle" fill="black">
+               Table ${tableNumber}
+             </text>
+           </svg>`
+        ).toString('base64')}`;
+      }
+
+      // Attach QR metadata
+      newTable.qrCodeUrl = qrData.url;
+      newTable.qrCodeType = qrData.isPremium ? 'premium' : 'basic';
+      newTable.qrCodeStyling = qrData.styling;
+
+      // Save
+      await newTable.save();
+
+      // Emit socket update
+      const io = req.app.get('io');
+      if (io) {
+        io.to(`cafe-${resolvedCafeId.toString()}`).emit('tableCreated', newTable);
+      }
+
+      res.status(201).json({
+        success: true,
+        message: 'Table created successfully',
+        data: await Table.findById(newTable._id).populate('cafeId', 'name location')
+      });
+    } catch (error) {
+      console.error('Error creating table:', error.stack || error);
+      res.status(500).json({ 
+        success: false,
+        message: 'Server error', 
+        error: error.message 
+      });
     }
-    
-    newTable.qrCodeUrl = qrData.url;
-    newTable.qrCodeType = qrData.isPremium ? 'premium' : 'basic';
-    
-    const savedTable = await newTable.save();
-    
-    // Populate for response
-    await savedTable.populate('cafeId', 'name features');
-    
-    // Emit Socket.IO event for real-time updates
-    const io = req.app.get('io');
-    io.to(`cafe-${userCafeId}`).emit('tableCreated', savedTable);
-    
-    res.status(201).json({
-      success: true,
-      message: 'Table created successfully',
-      data: savedTable
-    });
-    
-  } catch (error) {
-    console.error('Error creating table:', error);
-    res.status(500).json({ 
-      success: false,
-      message: 'Failed to create table',
-      error: error.message 
-    });
   }
-});
+);
 
 // @desc    Update a table
 // @route   PUT /api/tables/:id
@@ -273,10 +273,8 @@ router.delete('/:id',
       });
     }
     
-    // Soft delete - mark as inactive instead of hard delete
-    existingTable.isActive = false;
-    existingTable.status = 'Maintenance';
-    await existingTable.save();
+    // Perform hard delete
+    await Table.findByIdAndDelete(req.params.id);
     
     // Emit Socket.IO event for real-time updates
     const io = req.app.get('io');
@@ -284,7 +282,10 @@ router.delete('/:id',
     
     res.json({
       success: true,
-      message: 'Table deactivated successfully'
+      message: 'Table deleted successfully',
+      data: {
+        _id: req.params.id
+      }
     });
     
   } catch (error) {
@@ -292,10 +293,12 @@ router.delete('/:id',
     res.status(500).json({ 
       success: false,
       message: 'Failed to delete table',
-      error: error.message 
+      error: error.message
     });
   }
 });
+
+
 
 // @desc    Get current order for a table (Public for customers)
 // @route   GET /api/tables/:id/current-order

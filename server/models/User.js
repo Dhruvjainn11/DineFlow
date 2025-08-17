@@ -79,7 +79,15 @@ userSchema.methods.isSuperAdmin = function() {
 
 // Method to check if user is cafe admin
 userSchema.methods.isCafeAdmin = function() {
-  return this.role === 'cafe_admin';
+  return this.role === 'admin' || this.role === 'cafe_admin';
+};
+
+// Method to check if user can access cafe data
+userSchema.methods.canAccessCafe = function(cafeId) {
+  if (this.isSuperAdmin()) return true;
+  if (!this.cafeId) return false;
+  const userCafeId = this.cafeId._id || this.cafeId;
+  return userCafeId.toString() === cafeId.toString();
 };
 
 // Method to check if user has specific permission

@@ -67,9 +67,43 @@ export const validateCafeUpdate = [
 export const validateMenuCreation = [
   body('name').trim().notEmpty().withMessage('Menu item name is required'),
   body('category').isMongoId().withMessage('Valid category ID is required'),
-  body('price').optional().isFloat({ min: 0 }).withMessage('Price must be a positive number'),
-  body('preparationTime').optional().isInt({ min: 1, max: 300 }).withMessage('Preparation time must be 1-300 minutes'),
-  body('spicyLevel').optional().isInt({ min: 0, max: 5 }).withMessage('Spicy level must be 0-5'),
+  
+  // Custom validation for price/sizes
+  body().custom((value, { req }) => {
+    const { price, sizes } = req.body;
+    
+    // If no sizes, price is required
+    if (!sizes || sizes.length === 0) {
+      if (!price && price !== 0) {
+        throw new Error('Base price is required when no sizes are provided');
+      }
+      if (isNaN(Number(price))) {
+        throw new Error('Price must be a valid number');
+      }
+      if (Number(price) < 0) {
+        throw new Error('Price must be positive');
+      }
+    }
+    
+    // If sizes exist, validate each
+    if (sizes && sizes.length > 0) {
+      if (!Array.isArray(sizes)) {
+        throw new Error('Sizes must be an array');
+      }
+      sizes.forEach(size => {
+        if (!size.label || !size.price) {
+          throw new Error('Each size must have both label and price');
+        }
+        if (isNaN(Number(size.price))) {
+          throw new Error('Size prices must be numbers');
+        }
+      });
+    }
+    
+    return true;
+  }),
+  
+  // Other validations...
   handleValidationErrors
 ];
 
@@ -115,8 +149,10 @@ export const validateOrderStatusUpdate = [
 // Table validation
 export const validateTableCreation = [
   body('tableNumber').isInt({ min: 1 }).withMessage('Valid table number is required'),
-  body('cafeId').isMongoId().withMessage('Valid cafe ID is required'),
+  body('cafeId').optional().isMongoId().withMessage('Valid cafe ID required'),
   body('capacity').optional().isInt({ min: 1, max: 20 }).withMessage('Capacity must be 1-20'),
+  body('tableName').optional().trim().isLength({ max: 50 }).withMessage('Table name cannot exceed 50 characters'),
+  body('location').optional().trim().isLength({ max: 100 }).withMessage('Location cannot exceed 100 characters'),
   handleValidationErrors
 ];
 
