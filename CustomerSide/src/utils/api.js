@@ -1,11 +1,10 @@
 import axios from "axios";
 
-// Replace with your actual IP
-const baseURL = "http://192.168.236.119:5000/api";
+const baseURL = import.meta.env.VITE_API_URL;
 
 const api = axios.create({
   baseURL,
-  withCredentials: false, // Set true if you use cookies/auth
+  withCredentials: false, // set to true if backend uses cookies
 });
 
 export default api;
