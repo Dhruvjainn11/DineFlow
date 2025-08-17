@@ -6,8 +6,12 @@ const Topbar = () => {
   const handleLogout = () => {
     console.log("Logout clicked");
     let token = localStorage.getItem("token");
+    let cafeId = localStorage.getItem("cafeId");
     if (token) {
       localStorage.removeItem("token"); // Remove token from local storage
+      if (cafeId) {
+        localStorage.removeItem("cafeId"); // Remove cafeId from local storage
+      }
       window.location.href = "/login"; // Redirect to login page
     } else {
       console.error("No token found in local storage");

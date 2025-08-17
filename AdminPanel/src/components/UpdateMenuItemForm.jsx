@@ -38,36 +38,27 @@ export default function UpdateMenuItemForm({ onClose, item, onRefresh }) {
     console.log("Form available value:", formAvailable);
   }, [formCategory, formAvailable]);
 
-  useEffect(() => {
-    // This effect ensures the form resets with new item data
-    // if the 'item' prop changes.
-    if (item) {
-      console.log("Item data for update:", item); // Debug log
-      console.log("Category data:", item.category); // Debug log
-      
-      const categoryId = item.category && typeof item.category === 'object' 
-        ? item.category._id 
-        : item.category;
-      
-      reset({
-        name: item.name || "",
-        description: item.description || "",
-        price: item.price || "",
-        category: categoryId || "",
-        available: item.available === true || item.available === 'true',
-        jain: item.jain === true || item.jain === 'true',
-        imageUrl: item.imageUrl || "",
-        ingredients: (item.ingredients || []).join(", "),
-      });
-      setSizes(item.sizes || []);
-    }
-  }, [item, reset]);
+useEffect(() => {
+  if (item) {
+    reset({
+      name: item.name || "",
+      description: item.description || "",
+      price: item.price || "",
+      category: item.category?._id || item.category || "",
+      available: item.available,
+      jain: item.jain,
+      imageUrl: item.imageUrl || "",
+      ingredients: (item.ingredients || []).join(", "),
+    });
+    setSizes(item.sizes || []);
+  }
+}, [item, reset]);
 
   useEffect(() => {
     const fetchCategories = async () => {
       try {
         const resCategories = await getCategories();
-        setCategories(resCategories);
+        setCategories(resCategories.data);
         console.log("Categories loaded:", resCategories); // Debug log
       } catch (err) {
         console.error("Failed to fetch categories:", err);
@@ -100,41 +91,26 @@ export default function UpdateMenuItemForm({ onClose, item, onRefresh }) {
     }));
   };
 
-  const submitHandler = async (data) => {
-    if (isUploading) {
-      alert("Image is still uploading. Please wait.");
-      return;
-    }
-    if (!data.imageUrl) {
-      alert("Please upload an image.");
-      return;
-    }
-    if (!data.price && sizes.length === 0) {
-      alert("Please provide a base price or at least one size option.");
-      return;
-    }
-    
-    // Prepare data for submission, including the sizes and ingredients
+const submitHandler = async (data) => {
+  try {
     const updateData = {
-        ...data,
-        sizes: sizes.filter(s => s.label && s.price !== ''),
-        ingredients: data.ingredients // Keep as comma-separated string for backend
+      ...data,
+      sizes: sizes.filter(s => s.label && s.price !== ''),
+      ingredients: data.ingredients,
+      // Ensure boolean values
+      available: Boolean(data.available),
+      jain: Boolean(data.jain)
     };
 
-    console.log("Sending update data:", updateData); // Debug log
-
-    try {
-      await updateMenu(item._id, updateData);
-      console.log("Menu item updated successfully!");
-      // Optionally, run a callback to refresh the parent list
-      onRefresh(); 
-      onClose();
-    } catch (error) {
-      console.error("Error updating menu item:", error);
-      console.error("Error response:", error.response?.data); // Debug log
-      alert(error.response?.data?.message || error.message || "Failed to update item.");
-    }
-  };
+    console.log("Update payload:", updateData);
+    await updateMenu(item._id, updateData);
+    onRefresh();
+    onClose();
+  } catch (error) {
+    console.error("Update error:", error.response?.data || error.message);
+    alert(error.response?.data?.message || "Update failed");
+  }
+};
 
   const handleBackdropClick = (e) => {
     if (e.target.id === "modal-backdrop") {

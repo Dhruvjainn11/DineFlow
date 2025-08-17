@@ -1,47 +1,79 @@
 import React, { useEffect, useState } from "react";
-import { getTables , deleteTable} from "../services/tableService";
+import { getTables, deleteTable } from "../services/tableService";
 import RoleBasedLayout from "../layouts/RoleBasedLayout";
 import TableForm from "../components/TableForm";
-import { socket } from "../utils/socket"; // Adjust the import path as necessary
+import TableUpdateForm from "../components/TableUpdateForm";
+import { socket } from "../utils/socket";
 import { Pencil, Trash2, X } from "lucide-react";
-import ConfirmDialog from "../components/ConfirmDialog"; // Adjust the import path as necessary
+import ConfirmDialog from "../components/ConfirmDialog";
 
 export default function TableManagement({ onClose }) {
   const [tables, setTables] = useState([]);
   const [showForm, setShowForm] = useState(false);
-  const [showtableData, setShowTableData] = useState(false);
-    const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
+  const [showTableData, setShowTableData] = useState(false);
+  const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
   const [tableToDelete, setTableToDelete] = useState(null);
   const [selectedTable, setSelectedTable] = useState(null);
-
+  const [showUpdateForm, setShowUpdateForm] = useState(false);
+  const [tableToUpdate, setTableToUpdate] = useState(null);
+  const cafeId = localStorage.getItem("cafeId");
 
   const tableStatuses = {
-    EMPTY: "bg-gray-200",
-    ORDERED: "bg-yellow-400",
+    Available: "bg-gray-200",
+    Occupied: "bg-yellow-400",
+    Reserved: "bg-purple-200 border-2 border-purple-500",
+    Maintenance: "bg-red-200 border-2 border-red-500",
     DONE: "border-4 border-green-500 animate-pulse bg-red-500",
     PAID: "bg-green-500",
   };
 
-  useEffect(() => {
-    fetchTables();
+useEffect(() => {
+  fetchTables();
 
-    // Real-time updates
-    socket.on("tableCreated", (newTable) => {
-      setTables((prev) => [...prev, newTable]);
-    });
-   socket.on("tableDeleted", (deleted) => {
-     setTables((prev) => prev.filter((table) => table._id !== deleted._id));
-   })
+  // Join cafe room for real-time updates
+  if (cafeId) {
+    socket.emit('joinCafeRoom', cafeId);
+  }
 
-    return () => {
-      socket.off("tableCreated");
-      socket.off("tableDeleted");
-    };
-  }, []);
+  // Set up socket listeners
+  const handleTableCreated = (newTable) => {
+    setTables(prev => [...prev, newTable]);
+  };
+
+  const handleTableUpdated = (updatedTable) => {
+    setTables(prev => prev.map(table => 
+      table._id === updatedTable._id ? updatedTable : table
+    ));
+  };
+
+  const handleTableDeleted = (deletedId) => {
+    setTables(prev => prev.filter(table => table._id !== deletedId));
+    if (selectedTable?._id === deletedId) {
+      setShowTableData(false);
+    }
+  };
+
+  socket.on('tableCreated', handleTableCreated);
+  socket.on('tableUpdated', handleTableUpdated);
+  socket.on('tableDeleted', handleTableDeleted);
+
+  return () => {
+    if (cafeId) {
+      socket.emit('leaveCafeRoom', cafeId);
+    }
+    socket.off('tableCreated', handleTableCreated);
+    socket.off('tableUpdated', handleTableUpdated);
+    socket.off('tableDeleted', handleTableDeleted);
+  };
+}, [cafeId, selectedTable]);
 
   const fetchTables = async () => {
-    const data = await getTables();
-    setTables(data);
+    try {
+      const data = await getTables();
+      setTables(data.data);
+    } catch (error) {
+      console.error("Error fetching tables:", error);
+    }
   };
 
   const handleBackdropClick = (e) => {
@@ -66,58 +98,85 @@ export default function TableManagement({ onClose }) {
     }
   };
 
+  const handleUpdate = (updatedTable) => {
+    setTables(prev => prev.map(t => 
+      t._id === updatedTable._id ? updatedTable : t
+    ));
+    setShowUpdateForm(false);
+  };
+
   return (
     <RoleBasedLayout>
       <div className="p-6">
-        <div className="w-full flex justify-end">
+        <div className="w-full flex justify-between items-center mb-6">
+          <h2 className="text-2xl font-bold">Table Management</h2>
           <button
             onClick={() => setShowForm(true)}
-            className="bg-blue-600 text-white px-4 py-2 rounded hover:cursor-pointer"
+            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition"
           >
             + Add Table
           </button>
         </div>
 
-        <h2 className="text-2xl font-bold mb-4">Table Management</h2>
-     
-
-        <div className="grid grid-cols-2 gap-8 p-6 rounded-lg shadow-lg w-full max-w-5xl">
-          {tables.map((table, index) => (
-            <div key={index} className="relative flex flex-col items-center ">
-              <span className=" relative right-24 text-xl font-semibold text-gray-700">
-                Table {table.tableNumber}
-              </span>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {tables.map((table) => (
+            <div 
+              key={table._id} 
+              className="relative bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition"
+            >
               <div
-                className={`relative w-60 h-60  bg-gray-200 flex items-center justify-center rounded-full shadow-md transition-all duration-500 cursor-pointer ${
-                  tableStatuses[table.status]
+                className={`h-40 flex items-center justify-center cursor-pointer ${
+                  tableStatuses[table.status] || tableStatuses.Available
                 }`}
-               onClick={() => {
-  setSelectedTable(table); // 👈 set clicked table
-  setShowTableData(true);
-}}
-
+                onClick={() => {
+                  setSelectedTable(table);
+                  setShowTableData(true);
+                }}
               >
-                {/* Seats around the table */}
-                {[...Array(5)].map((_, i) => (
-                  <div
-                    key={i}
-                    className={`absolute w-10 h-10  rounded-full shadow-lg ${
-                      (table.Order?.length || 0) > i
-                        ? "bg-yellow-600"
-                        : "bg-gray-300"
-                    }`}
-                    style={{
-                      top: `${50 - 35 * Math.sin((i * (2 * Math.PI)) / 5)}%`,
-                      left: `${50 + 35 * Math.cos((i * (2 * Math.PI)) / 5)}%`,
-                      transform: "translate(-50%, -50%)",
-                    }}
-                  ></div>
-                ))}
+                <div className="text-center">
+                  <span className="text-2xl font-bold">
+                    Table {table.tableNumber}
+                  </span>
+                  <p className="text-sm mt-1">{table.status}</p>
+                </div>
+              </div>
+              
+              <div className="p-4">
+                <div className="flex justify-between items-center">
+                  <div>
+                    <p className="font-medium">Capacity: {table.capacity}</p>
+                    {table.location && (
+                      <p className="text-sm text-gray-600">{table.location}</p>
+                    )}
+                  </div>
+                  <div className="flex space-x-2">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setTableToUpdate(table);
+                        setShowUpdateForm(true);
+                      }}
+                      className="text-blue-600 hover:text-blue-800"
+                    >
+                      <Pencil size={20} />
+                    </button>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        promptDelete(table._id);
+                      }}
+                      className="text-red-600 hover:text-red-800"
+                    >
+                      <Trash2 size={20} />
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
           ))}
         </div>
 
+        {/* Table Creation Modal */}
         {showForm && (
           <TableForm
             onClose={() => setShowForm(false)}
@@ -125,15 +184,14 @@ export default function TableManagement({ onClose }) {
           />
         )}
 
-        {showtableData && (
+        {/* Table Detail Modal */}
+        {showTableData && selectedTable && (
           <div
             id="modal-backdrop"
             onClick={handleBackdropClick}
-            className="fixed inset-0  flex items-center justify-center z-50"
-            style={{ backgroundColor: "rgba(0, 0, 0, 0.5)" }} // Semi-transparent backdrop
+            className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50"
           >
-            <div className="relative bg-white w-full max-w-xl p-6 rounded-2xl shadow-lg">
-              {/* Close Icon */}
+            <div className="relative bg-white rounded-lg shadow-xl w-full max-w-md mx-4">
               <button
                 onClick={() => setShowTableData(false)}
                 className="absolute top-4 right-4 text-gray-500 hover:text-red-600 transition"
@@ -141,54 +199,87 @@ export default function TableManagement({ onClose }) {
                 <X size={24} />
               </button>
               
-              <h2 className="text-2xl font-semibold mb-6 text-center">
-                Table Data
-              </h2>
-              <div>
+              <div className="p-6">
+                <h2 className="text-2xl font-semibold mb-4 text-center">
+                  Table {selectedTable.tableNumber}
+                </h2>
+                
                 <div className="space-y-4">
-                 
-                   {selectedTable && (
-  <div className="p-4 border rounded-lg shadow-sm">
-    <h4 className="font-semibold text-2xl">
-      Table {selectedTable.tableNumber}
-    </h4>
-    <p className={`font-medium`}>
-      Status: {selectedTable.status}
-    </p>
-    <p className="font-medium">
-      Orders: {selectedTable.currentOrder?.length || 0}
-    </p>
-
-    <button
-      onClick={() => promptDelete(selectedTable._id)}
-      className="absolute bottom-8 right-8 text-gray-500 hover:text-red-600 transition cursor-pointer"
-    >
-      <Trash2 size={24} className="text-red-600" />
-    </button>
-  </div>
-)}
-
-
-                    
-              
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <p className="text-sm text-gray-500">Status</p>
+                      <p className="font-medium">{selectedTable.status}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-500">Capacity</p>
+                      <p className="font-medium">{selectedTable.capacity}</p>
+                    </div>
+                  </div>
                   
+                  {selectedTable.location && (
+                    <div>
+                      <p className="text-sm text-gray-500">Location</p>
+                      <p className="font-medium">{selectedTable.location}</p>
+                    </div>
+                  )}
+                  
+                  <div>
+                    <p className="text-sm text-gray-500">Current Orders</p>
+                    <p className="font-medium">
+                      {selectedTable.currentOrder?.length || 0}
+                    </p>
+                  </div>
+                  
+                  {selectedTable.status === "Reserved" && selectedTable.reservedBy && (
+                    <div className="mt-4 p-4 bg-gray-50 rounded-lg">
+                      <h3 className="font-medium mb-2">Reservation Details</h3>
+                      <p>Name: {selectedTable.reservedBy.name}</p>
+                      <p>Phone: {selectedTable.reservedBy.phone}</p>
+                      <p>
+                        Until: {new Date(selectedTable.reservedBy.reservedUntil).toLocaleString()}
+                      </p>
+                    </div>
+                  )}
                 </div>
-                 
-               
+                
+                <div className="mt-6 flex justify-end space-x-3">
+                  <button
+                    onClick={() => {
+                      setTableToUpdate(selectedTable);
+                      setShowUpdateForm(true);
+                    }}
+                    className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                  >
+                    Edit
+                  </button>
+                  <button
+                    onClick={() => promptDelete(selectedTable._id)}
+                    className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+                  >
+                    Delete
+                  </button>
+                </div>
               </div>
-
-               {confirmDialogOpen && (
-               <ConfirmDialog
-                 message="Are you sure you want to delete this Table?"
-                 onConfirm={confirmDelete}
-                 onCancel={() => setConfirmDialogOpen(false)}
-               />
-             )}
-
             </div>
-
-
           </div>
+        )}
+
+        {/* Confirmation Dialog */}
+        {confirmDialogOpen && (
+          <ConfirmDialog
+            message="Are you sure you want to delete this table?"
+            onConfirm={confirmDelete}
+            onCancel={() => setConfirmDialogOpen(false)}
+          />
+        )}
+
+        {/* Table Update Form */}
+        {showUpdateForm && tableToUpdate && (
+          <TableUpdateForm
+            table={tableToUpdate}
+            onClose={() => setShowUpdateForm(false)}
+            onUpdate={handleUpdate}
+          />
         )}
       </div>
     </RoleBasedLayout>

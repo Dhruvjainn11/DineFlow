@@ -20,7 +20,19 @@ const [categoryToDelete, setCategoryToDelete] = useState(null);
   
      useEffect(() => {
       // Initial fetch
-      getCategories().then(setCategories);
+      getCategories()
+    .then((res) => {
+      if (res.success) {
+        console.log(res.data);
+        
+        setCategories(res.data);
+      } else {
+        console.error("Failed to fetch categories:", res.message);
+      }
+    })
+    .catch((err) => {
+      console.error("Error fetching categories:", err);
+    });
   
       // Real-time update
       socket.on("category:created", (newCategory) => {

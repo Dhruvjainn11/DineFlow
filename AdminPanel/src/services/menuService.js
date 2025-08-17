@@ -7,44 +7,15 @@ export const getMenus = async () => {
 };
 
 export const createMenu = async (menuData) => {
-  const res = await api.post("/menu", menuData, {
-    headers: {
-      'Content-Type': 'multipart/form-data',
-    },
-  });
+  const res = await api.post("/menu", menuData);
   return res.data;
 };
 
 export const updateMenu = async (id, menuData) => {
-  // Convert the data to FormData format to match backend expectations
-  const formData = new FormData();
-  
-  // Add all fields with proper type handling
-  formData.append('name', menuData.name || '');
-  formData.append('description', menuData.description || '');
-  if (menuData.price !== undefined && menuData.price !== null) {
-    formData.append('price', menuData.price.toString());
-  }
-  formData.append('category', menuData.category || '');
-  formData.append('available', menuData.available ? 'true' : 'false');
-  formData.append('jain', menuData.jain ? 'true' : 'false'); // Add jain field
-  formData.append('imageUrl', menuData.imageUrl || '');
-  formData.append('ingredients', menuData.ingredients || '');
-  formData.append('sizes', JSON.stringify(menuData.sizes || []));
-
-  console.log("FormData contents:"); // Debug log
-  for (let [key, value] of formData.entries()) {
-    console.log(key, value);
-  }
-
-  const res = await api.put(`/menu/${id}`, formData, {
-    headers: {
-      'Content-Type': 'multipart/form-data',
-    },
-  });
+  // Send as JSON instead of FormData
+  const res = await api.put(`/menu/${id}`, menuData);
   return res.data;
 };
-
 export const deleteMenu = async (id) => {
   const res = await api.delete(`/menu/${id}`);
   return res.data;

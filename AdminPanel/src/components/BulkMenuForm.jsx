@@ -27,7 +27,7 @@ export default function BulkMenuForm({ onClose, onRefresh }) {
   const fetchCategories = async () => {
     try {
       const res = await api.get("/categories");
-      setCategories(res.data);
+      setCategories(res.data.data);
     } catch (err) {
       console.error("Failed to fetch categories:", err);
     }

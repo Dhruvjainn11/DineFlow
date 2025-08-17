@@ -42,7 +42,7 @@ const OrderManagment = () => {
       if (statusFilter.length > 0) params.status = statusFilter.join(",");
       if (dateFilter) params.lastDays = dateFilter;
       const data = await getOrders(params);
-      setOrders(data);
+      setOrders(data.data);
     } catch (err) {
       console.error("Failed to fetch orders", err);
     } finally {

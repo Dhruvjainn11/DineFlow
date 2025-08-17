@@ -30,7 +30,6 @@ import {
   DollarSign,
   ShoppingCart
 } from "lucide-react";
-import { useAuth } from "../context/AuthContext";
 import FeatureGate from "../components/Common/FeatureGate";
 
 const COLORS = ["#6366f1", "#f59e0b", "#10b981", "#ef4444", "#8b5cf6", "#06b6d4", "#84cc16"];
@@ -43,7 +42,8 @@ export default function Analytics() {
     const fetchAnalytics = async () => {
       try {
         const res = await api.get("/analytics/summary");
-        setData(res.data);
+        console.log(res.data.data);
+        setData(res.data.data);
       } catch (err) {
         console.error("Failed to fetch analytics:", err.message);
       } finally {
@@ -267,7 +267,7 @@ export default function Analytics() {
                   />
                   <Tooltip 
                     cursor={{ fill: '#f3f4f6' }}
-                    formatter={(value, name) => [
+                    formatter={(value) => [
                       <span className="font-semibold">₹{value.toLocaleString()}</span>,
                       <span className="text-gray-600">Revenue</span>
                     ]}
@@ -314,7 +314,7 @@ export default function Analytics() {
                   />
                   <Tooltip 
                     cursor={{ fill: '#f3f4f6' }}
-                    formatter={(value, name) => [`${value} orders`, '']}
+                    formatter={(value) => [`${value} orders`, '']}
                     contentStyle={{
                       borderRadius: '8px',
                       boxShadow: '0 2px 10px rgba(0,0,0,0.1)',

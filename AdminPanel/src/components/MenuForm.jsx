@@ -54,51 +54,33 @@ export default function MenuItemForm({ onClose }) {
   };
 
   // ------------------- SUBMISSION Logic --------------------
-  const submitHandler = async (data) => {
-    if (isUploading) {
-      alert("Image is still uploading. Please wait.");
-      return;
-    }
-    if (!imageUrl) {
-      alert("Please upload an image.");
-      return;
-    }
-    if (!data.price && sizes.length === 0) {
-      alert("Please provide a base price or at least one size option.");
-      return;
-    }
+const submitHandler = async (data) => {
+  try {
+    // Only include price if there are no sizes
+    const shouldIncludePrice = sizes.length === 0;
     
-    // Add toast notifications for better UX
-    // Assuming you have a custom Toast component (e.g., Dhruv's Toast)
-    // Toast.loading("Creating menu item...");
+    const payload = {
+      name: data.name,
+      description: data.description,
+      // Conditionally include price
+      ...(shouldIncludePrice && { price: Number(data.price) }),
+      category: data.category,
+      available: data.available,
+      jain: data.jain,
+      ingredients: data.ingredients,
+      sizes: sizes.filter(s => s.label && s.price !== ''),
+      imageUrl: imageUrl
+    };
 
-    const formData = new FormData();
-    formData.append('name', data.name);
-    formData.append('description', data.description);
-    if (data.price) {
-      formData.append('price', data.price);
-    }
-    formData.append('category', data.category);
-    formData.append('available', data.available); 
-    formData.append('jain', data.jain); // Add jain field
-    formData.append('imageUrl', imageUrl);
-    formData.append('ingredients', data.ingredients);
-    formData.append('sizes', JSON.stringify(sizes.filter(s => s.label && s.price !== '')));
-
-    try {
-      await createMenu(formData);
-      // Toast.success('Menu item created successfully!');
-      onClose();
-      reset();
-      setSizes([]);
-      setImageUrl('');
-    } catch (err) {
-      console.error("Error submitting menu:", err);
-      // Toast.error(err.message || 'Failed to create menu item.');
-      alert(err.message || "Failed to create menu item.");
-    }
-  };
-
+    console.log("Final payload:", payload);
+    await createMenu(payload);
+    onClose();
+    reset();
+  } catch (err) {
+    console.error("Error:", err);
+    alert(err.response?.data?.message || "Failed to create menu item");
+  }
+};
   const handleBackdropClick = (e) => {
     if (e.target.id === "modal-backdrop") {
       onClose();
@@ -108,7 +90,7 @@ export default function MenuItemForm({ onClose }) {
   const fetchCategories = async () => {
     try {
       const resCategories = await getCategories();
-      setCategories(resCategories);
+      setCategories(resCategories.data);
     } catch (err) {
       console.error("Failed to fetch categories:", err);
     }

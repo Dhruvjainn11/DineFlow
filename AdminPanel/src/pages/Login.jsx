@@ -17,51 +17,39 @@ const Login = () => {
     e.preventDefault();
     setIsLoading(true);
     setError('');
-
+  
     try {
-      console.log("USERNAME:", username);
-      console.log("PASSWORD:", password);
-      
-      // Try general login endpoint first
       let response;
       try {
         response = await api.post("/auth/login", { username, password });
       } catch (firstError) {
-        // If that fails, try super-admin specific endpoint for backward compatibility
         console.log('General login failed, trying super-admin endpoint:', firstError.response?.data?.message);
         response = await api.post("/auth/login/super-admin", { username, password });
       }
       
-      console.log("RESPONSE:", response);
-      
-      // Backend returns: { success: true, message: 'Login successful', data: { token, user, cafe? } }
       if (response.data.success) {
         const { token, user, cafe } = response.data.data;
-        
-        // Use AuthContext login method
-        await login(`Bearer ${token}`, user);
-        
-        // Set cafe if present
-        if (cafe) {
-          // The AuthContext will handle cafe data
+        const cafeId = cafe?._id || cafe?.id || null;
+        console.log("CAFE ID:", cafeId);
+        await login(`Bearer ${token}`, user, cafeId);
+  
+        if (cafeId) {
+          localStorage.setItem("cafeId", cafeId);
+        } else {
+          localStorage.removeItem("cafeId"); // avoid sending invalid cafeId
         }
-        
-        console.log('✅ Login successful, redirecting...');
-        
-        // Route based on user role
+  
         if (user.role === 'super-admin') {
           navigate('/super-admin/');
-        } else if (user.role === 'admin' && user.cafeId) {
-          // Cafe admin - route to regular admin dashboard
+        } else if (user.role === 'admin' && cafeId) {
           navigate('/admin/');
         } else {
-          // Default fallback
           navigate('/admin/');
         }
       } else {
         setError(response.data.message || 'Login failed');
       }
-      
+  
     } catch (err) {
       console.error('Login error:', err);
       setError(err.response?.data?.message || 'Login failed. Please try again.');
@@ -69,6 +57,7 @@ const Login = () => {
       setIsLoading(false);
     }
   };
+  
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">

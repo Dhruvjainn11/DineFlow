@@ -41,7 +41,8 @@ const MenuManagement = () => {
 
   const fetchMenus = async () => {
     const data = await getMenus();
-    setMenus(data);
+    console.log(data.data);
+    setMenus(data.data);
   };
 
   return (

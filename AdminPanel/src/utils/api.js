@@ -7,6 +7,7 @@ const api = axios.create({
 // Request interceptor to add auth token
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem("token");
+  const cafeId = localStorage.getItem("cafeId");
 
   if (token) {
     // Check if token already includes Bearer prefix
@@ -15,6 +16,10 @@ api.interceptors.request.use((config) => {
     } else {
       config.headers.Authorization = `Bearer ${token}`;
     }
+  }
+  if (cafeId) {
+    config.params = config.params || {};
+    config.params.cafeId = cafeId; // append to query string
   }
 
   return config;
