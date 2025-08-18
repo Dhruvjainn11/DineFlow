@@ -11,7 +11,6 @@ export const protect = async (req, res, next) => {
       // Split to get the token
       token = req.headers.authorization.split(' ')[1];
 
-      console.log('JWT_SECRET:', process.env.JWT_SECRET);
 
 
       // Verify the token
