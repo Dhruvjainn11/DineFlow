@@ -14,6 +14,7 @@ import KitchenDashboard from "./pages/kitchen/KitchenDashboard";
 import SuperAdminCafeManagement from "./pages/SuperAdminCafeManagement";
 import SuperAdminAnalyticsDashboard from "./pages/SuperAdminAnalyticsDashboard";
 import SuperAdminSystemSettings from "./pages/SuperAdminSystemSettings";
+import ProtectedRoute from "./components/ProtectedRoute";
 import PaymentSettings from "./pages/PaymentSettings";
 import { AuthProvider } from "./context/AuthContext";
 import { ToastContainer } from "react-toastify";
