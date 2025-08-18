@@ -1,4 +1,5 @@
 import { Navigate, Outlet, useLocation } from "react-router-dom";
+import React from "react";
 import {useAuth} from "../context/AuthContext";
 
 function ProtectedRoute({ allowedRole }) {
