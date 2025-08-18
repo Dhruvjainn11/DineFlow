@@ -19,6 +19,7 @@ import {
 } from '@heroicons/react/24/outline';
 import CreateCafeModal from '../components/CreateCafeModal';
 import EditCafeModal from '../components/EditCafeModal';
+import SuperAdminLayout from '../layouts/SuperAdminLayout';
 
 const SuperAdminCafeManagement = () => {
   const { isSuperAdmin } = useAuth();
@@ -163,6 +164,7 @@ const SuperAdminCafeManagement = () => {
   }
 
   return (
+    <SuperAdminLayout>
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <div className="bg-white shadow-sm">
@@ -569,6 +571,7 @@ const SuperAdminCafeManagement = () => {
         />
       )}
     </div>
+    </SuperAdminLayout>
   );
 };
 

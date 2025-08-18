@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import api from '../utils/api';
 import { toast } from 'react-toastify';
+import SuperAdminLayout from '../layouts/SuperAdminLayout';
 
 const SuperAdminSystemSettings = () => {
   const { isSuperAdmin } = useAuth();
@@ -69,6 +70,7 @@ const SuperAdminSystemSettings = () => {
   }
 
   return (
+    <SuperAdminLayout>
     <div className="space-y-6">
       {/* Header */}
       <div className="bg-white rounded-lg shadow p-6">
@@ -273,6 +275,7 @@ const SuperAdminSystemSettings = () => {
         </div>
       )}
     </div>
+    </SuperAdminLayout>
   );
 };
 

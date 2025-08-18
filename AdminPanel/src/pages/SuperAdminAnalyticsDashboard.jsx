@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import api from "../utils/api";
+import SuperAdminLayout from "../layouts/SuperAdminLayout";
 
 const SuperAdminAnalyticsDashboard = () => {
   const [loading, setLoading] = useState(true);
@@ -43,6 +44,7 @@ const SuperAdminAnalyticsDashboard = () => {
   if (!analytics) return null;
 
   return (
+    <SuperAdminLayout>
     <div className="space-y-6">
       {/* Header */}
       <div className="bg-white rounded-lg shadow p-6">
@@ -132,6 +134,7 @@ const SuperAdminAnalyticsDashboard = () => {
         </div>
       </div>
     </div>
+    </SuperAdminLayout>
   );
 };
 
