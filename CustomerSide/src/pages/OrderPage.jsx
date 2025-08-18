@@ -5,7 +5,7 @@ import { socket } from "../utils/socket";
 import CustomerFooter from "../components/CustomerFooter";
 
 export default function CustomerOrderPage() {
-  const { tableId } = useParams();
+  const { tableId} = useParams();
   const [orders, setOrders] = useState(null);
   const [loading, setLoading] = useState(true);
 

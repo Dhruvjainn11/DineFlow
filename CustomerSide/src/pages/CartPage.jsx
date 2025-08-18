@@ -7,7 +7,7 @@ import api from "../utils/api";
 import CustomerFooter from "../components/CustomerFooter";
 
 export default function CartPage() {
-  const { tableId } = useParams();
+  const { tableId, cafeId } = useParams();
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const cartItems = useSelector((state) => state.cart?.items || []);
@@ -45,7 +45,8 @@ const handlePlaceOrder = async () => {
   setIsPlacingOrder(true);
   try {
     const orderData = {
-      tableId, // 👈 only send tableId
+      tableId,
+      cafeId, // 👈 only send tableId
       items: cartItems.map((item) => ({
         menuItem: normalizeObjectId(item._id),
         quantity: item.quantity,
