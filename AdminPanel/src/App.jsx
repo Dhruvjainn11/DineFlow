@@ -33,28 +33,29 @@ function App() {
         <Route path="/login" element={<Login />} />
 
         <Route element={<PrivateRoute />}>
-          {/* Cafe Admin Routes */}
-          <Route path="/admin" element={<ProtectedRoute allowedRole="admin" />}>
-          
-          <Route path="/admin" element={<Dashboard />} />
-          <Route path="/admin/menu" element={<MenuManagement />} />
-          <Route path="/admin/categories" element={<CategoryManagement />} />
-          <Route path="/admin/tables" element={<TableManagment />} />
-          <Route path="/admin/orders" element={<OrderManagment />} />
-          <Route path="/admin/analytics" element={<Analytics />} />
-          <Route path="/admin/payment" element={<AdminPaymentManager />} />
-          <Route path="/admin/payment-settings" element={<PaymentSettings />} />
-          <Route path="/kitchen/dashboard" element={<KitchenDashboard />} />
-          </Route>
-          {/* Super Admin Routes - All using separate Dashboard */}
-           <Route path="/super-admin" element={<ProtectedRoute allowedRole="super-admin" />}>
-          
-          <Route path="/super-admin" element={<Dashboard />} />
-          <Route path="/super-admin/cafes" element={<SuperAdminCafeManagement />} />
-          <Route path="/super-admin/analytics" element={<SuperAdminAnalyticsDashboard />} />
-          <Route path="/super-admin/settings" element={<SuperAdminSystemSettings />} />
-           </Route>
-        </Route>
+  {/* Cafe Admin Routes */}
+  <Route path="/admin" element={<ProtectedRoute allowedRole="admin" />}>
+    <Route index element={<Dashboard />} /> 
+    <Route path="menu" element={<MenuManagement />} />
+    <Route path="categories" element={<CategoryManagement />} />
+    <Route path="tables" element={<TableManagment />} />
+    <Route path="orders" element={<OrderManagment />} />
+    <Route path="analytics" element={<Analytics />} />
+    <Route path="payment" element={<AdminPaymentManager />} />
+    <Route path="payment-settings" element={<PaymentSettings />} />
+    <Route path="kitchen/dashboard" element={<KitchenDashboard />} /> 
+  </Route>
+
+  {/* Super Admin Routes */}
+  <Route path="/super-admin" element={<ProtectedRoute allowedRole="super-admin" />}>
+    <Route index element={<Dashboard />} /> 
+    <Route path="cafes" element={<SuperAdminCafeManagement />} />
+    <Route path="analytics" element={<SuperAdminAnalyticsDashboard />} />
+    <Route path="settings" element={<SuperAdminSystemSettings />} />
+  </Route>
+  
+</Route>
+
       </Routes>
       
       <ToastContainer
