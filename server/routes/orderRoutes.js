@@ -18,129 +18,162 @@ const router = express.Router();
  * @route   POST /api/orders
  * @access  Public (customer facing)
  */
-router.post("/", validateOrderCreation, async (req, res) => {
+router.post("/", validateOrderCreation ,async (req, res) => {
   try {
-    const { tableNumber, items, cafeId } = req.body;
-    
-    // Find table by its primitive number and get its ObjectId, ensure it belongs to the cafe
-    const table = await Table.findOne({ 
-      tableNumber: Number(tableNumber),
-      cafeId: cafeId 
-    });
-    if (!table) {
-      return res.status(404).json({ 
-        success: false,
-        message: `Table ${tableNumber} not found in this cafe` 
-      });
+    const { tableId, items } = req.body;
+
+    if (!tableId) {
+      return res.status(400).json({ success: false, message: "tableId is required" });
     }
+    if (!items || items.length === 0) {
+      return res.status(400).json({ success: false, message: "Order items are required" });
+    }
+
+    // ✅ Get table + cafe from DB
+    const table = await Table.findById(tableId).populate("cafeId");
+    if (!table) {
+      return res.status(404).json({ success: false, message: "Table not found" });
+    }
+
+    const cafeId = table.cafeId._id;
+    const tableNumber = table.tableNumber;
 
     let calculatedTotalPrice = 0;
     const finalOrderItems = [];
 
-    // Use a Promise.all to fetch all menu items in one go for efficiency
-    // This is the correct approach to get all menu items at once.
+    // Grab all menu items in one query
     const menuItemIds = items.map(item => item.menuItem);
-    const menuItems = await MenuItem.find({ 
+    const menuItems = await MenuItem.find({
       _id: { $in: menuItemIds },
-      cafeId: cafeId // Ensure menu items belong to the same cafe
+      cafeId: cafeId
     });
 
-    // Validate and calculate prices for each item
+    // Validate + calculate prices
     for (const orderItem of items) {
       const menuItem = menuItems.find(mi => mi._id.toString() === orderItem.menuItem);
       if (!menuItem) {
-        return res.status(404).json({ 
+        return res.status(404).json({
           success: false,
-          message: `Menu item with ID ${orderItem.menuItem} not found in this cafe.` 
+          message: `Menu item with ID ${orderItem.menuItem} not found in this cafe.`
         });
       }
 
       let itemPrice = menuItem.price;
-      // If the item has sizes, find the correct price
-      if (menuItem.sizes && menuItem.sizes.length > 0 && orderItem.sizeLabel) {
+
+      if (menuItem.sizes?.length > 0 && orderItem.sizeLabel) {
         const selectedSize = menuItem.sizes.find(s => s.label === orderItem.sizeLabel);
         if (!selectedSize) {
-          return res.status(400).json({ 
+          return res.status(400).json({
             success: false,
-            message: `Invalid size '${orderItem.sizeLabel}' for item '${menuItem.name}'.` 
+            message: `Invalid size '${orderItem.sizeLabel}' for item '${menuItem.name}'.`
           });
         }
         itemPrice = selectedSize.price;
-      } else {
-        // Use the base price if no size is specified
-        itemPrice = menuItem.price;
       }
 
-      // Add item to the final order array with the validated price
       finalOrderItems.push({
-        ...orderItem, // Keep other properties like quantity, remark
-        itemPrice, // Store the server-side validated price
-        // Ensure size is handled correctly
-        size: orderItem.sizeLabel ? { label: orderItem.sizeLabel, price: itemPrice } : undefined,
+        ...orderItem,
+        itemPrice,
+        size: orderItem.sizeLabel
+          ? { label: orderItem.sizeLabel, price: itemPrice }
+          : undefined,
       });
 
       calculatedTotalPrice += itemPrice * orderItem.quantity;
     }
 
+    // ✅ Create order
     const newOrder = new Order({
-      cafeId: cafeId,
-      tableNumber: table.tableNumber, // Store primitive table number per schema
+      cafeId,
+      tableNumber,
       items: finalOrderItems,
       subtotal: calculatedTotalPrice,
-      totalPrice: calculatedTotalPrice, // Will be recalculated with tax/service charge if needed
+      totalPrice: calculatedTotalPrice,
       status: "Pending",
       paymentStatus: "Pending",
     });
 
     await newOrder.save();
 
+    // Update table status
     await Table.findByIdAndUpdate(table._id, {
       status: "Occupied",
-      currentOrder: newOrder._id
+      currentOrder: newOrder._id,
     });
 
-    // Populate and emit the new order (only menu items; tableNumber is a Number)
     const populatedOrder = await newOrder.populate("items.menuItem");
-    
-    // Emit to cafe-specific room for better organization
+
+    // Emit to cafe-specific socket room
     const io = req.app.get("io");
     io.to(`cafe-${cafeId}`).emit("newOrder", populatedOrder);
-    
+
     res.status(201).json({
       success: true,
-      message: 'Order placed successfully',
-      data: populatedOrder
+      message: "Order placed successfully",
+      data: populatedOrder,
     });
-    
   } catch (error) {
     console.error("Error placing order:", error);
-    res.status(500).json({ 
+    res.status(500).json({
       success: false,
-      message: 'Failed to place order',
-      error: error.message 
+      message: "Failed to place order",
+      error: error.message,
     });
   }
 });
+
 
 /**
  * @desc    Get all orders (admin/kitchen view)
  * @route   GET /api/orders
  * @access  Private (protect, allowRoles('admin', 'kitchen'))
  */
-router.get("/", protect, allowRoles('admin', 'staff', 'cashier'), async (req, res) => {
+router.get("/", async (req, res) => {
   try {
-    const { status, view, lastDays, dateFrom, dateTo } = req.query;
-    
-    // Filter by user's cafe (unless super admin)
+    const { cafeId, status, view, lastDays, dateFrom, dateTo } = req.query;
     let filter = {};
-    if (!req.user.isSuperAdmin()) {
-      filter.cafeId = req.user.cafeId._id;
+
+    // Check if request is authenticated
+    const isAuthenticated = req.headers.authorization && req.headers.authorization.startsWith("Bearer");
+
+    if (isAuthenticated) {
+      // Authenticated request → must pass through protect + roles
+      try {
+        await new Promise((resolve, reject) => {
+          protect(req, res, (err) => {
+            if (err) reject(err);
+            else resolve();
+          });
+        });
+
+        // Only allow staff/admin/cashier roles
+        if (!['admin', 'staff', 'cashier'].includes(req.user.role)) {
+          return res.status(403).json({ success: false, message: "Access denied" });
+        }
+
+        // Filter by user's cafe (unless superadmin)
+        if (!req.user.isSuperAdmin()) {
+          filter.cafeId = req.user.cafeId._id;
+        } else if (cafeId) {
+          filter.cafeId = cafeId;
+        }
+
+      } catch (authError) {
+        return res.status(401).json({ success: false, message: "Authentication failed" });
+      }
+
+    } else {
+      // Public customer request
+      if (!cafeId) {
+        return res.status(400).json({ success: false, message: "cafeId is required for public access" });
+      }
+      filter.cafeId = cafeId;
     }
 
+    // Default filters
     if (view === "payment") {
       filter.paymentStatus = { $ne: "Completed" };
     } else {
-      // Default kitchen/admin view
       filter.status = { $ne: "Completed" };
     }
 
@@ -148,12 +181,11 @@ router.get("/", protect, allowRoles('admin', 'staff', 'cashier'), async (req, re
       filter.status = { $in: status.split(",") };
     }
 
-    // Date range filtering
+    // Date range filters
     const createdAtFilter = {};
     if (lastDays && !isNaN(Number(lastDays))) {
-      const days = Number(lastDays);
       const from = new Date();
-      from.setDate(from.getDate() - days);
+      from.setDate(from.getDate() - Number(lastDays));
       createdAtFilter.$gte = from;
     }
     if (dateFrom) {
@@ -179,7 +211,7 @@ router.get("/", protect, allowRoles('admin', 'staff', 'cashier'), async (req, re
       count: orders.length
     });
   } catch (error) {
-    console.error('Error fetching orders:', error);
+    console.error("Error fetching orders:", error);
     res.status(500).json({ 
       success: false,
       message: "Failed to fetch orders",
@@ -187,6 +219,7 @@ router.get("/", protect, allowRoles('admin', 'staff', 'cashier'), async (req, re
     });
   }
 });
+
 
 /**
  * @desc    Get all orders for a specific table
