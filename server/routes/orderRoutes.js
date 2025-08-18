@@ -223,13 +223,13 @@ router.get("/", async (req, res) => {
 
 /**
  * @desc    Get all orders for a specific table
- * @route   GET /api/orders/table/:tableNumber
+ * @route   GET /api/orders/table/:tableId
  * @access  Public (customer view)
  */
-router.get("/table/:tableNumber", validateObjectId('tableNumber'), handleValidationErrors, async (req, res) => {
+router.get("/table/:tableId",validateObjectId("tableId") ,async (req, res) => {
   try {
-    // Find table by table number
-    const table = await Table.findOne({ tableNumber: Number(req.params.tableNumber) });
+    // Find table by ID
+    const table = await Table.findById(req.params.tableId);
     if (!table) {
       return res.status(404).json({ 
         success: false,
@@ -238,7 +238,7 @@ router.get("/table/:tableNumber", validateObjectId('tableNumber'), handleValidat
     }
 
     const orders = await Order.find({
-      cafeId: table.cafeId, // Ensure orders belong to the same cafe
+      cafeId: table.cafeId,
       tableNumber: table.tableNumber,
       paymentStatus: { $ne: "Completed" }
     }).populate("items.menuItem")
@@ -251,7 +251,11 @@ router.get("/table/:tableNumber", validateObjectId('tableNumber'), handleValidat
       count: orders.length
     });
   } catch (error) {
-    console.error('Error fetching table orders:', error);
+    console.error('Error fetching table orders:', {
+      error: error.message,
+      stack: error.stack,
+      params: req.params
+    });
     res.status(500).json({ 
       success: false,
       message: "Failed to get orders",
