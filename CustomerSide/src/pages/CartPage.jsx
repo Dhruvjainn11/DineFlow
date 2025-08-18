@@ -59,7 +59,7 @@ const handlePlaceOrder = async () => {
     console.log(response);
 
     dispatch(clearCart());
-    navigate(`/table/${tableId}`);
+    navigate(`/cafe/${cafeId}/table/${tableId}`);
   } catch (err) {
     console.error("Order error:", err.response?.data || err.message);
   } finally {
@@ -73,7 +73,7 @@ const handlePlaceOrder = async () => {
       {/* Header */}
       <div className="sticky top-0 z-10 bg-white p-4 border-b border-gray-100 flex items-center">
         <button
-          onClick={() => navigate(`/table/${tableId}`)}
+          onClick={() => navigate(`/cafe/${cafeId}/table/${tableId}`)}
           className="bg-amber-500 p-2 rounded-full hover:bg-indigo-50"
         >
           <FiChevronLeft size={20} />
