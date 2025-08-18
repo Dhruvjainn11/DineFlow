@@ -13,7 +13,9 @@ export default function PaymentPage() {
   const fetchOrders = async () => {
     try {
       const res = await api.get(`/orders/table/${tableId}`);
-      setOrders(res.data);
+      console.log(res.data.data);
+      
+      setOrders(res.data.data);
       setLoading(false);
     } catch (err) {
       console.error("Failed to fetch orders", err);
@@ -24,7 +26,9 @@ export default function PaymentPage() {
   // Request payment for ALL unpaid orders at once
   const requestPaymentAll = async () => {
     try {
-      await api.put(`/orders/table/${tableId}/request-payment`);
+     const res = await api.put(`/orders/table/${tableId}/request-payment`);
+     console.log(res.data);
+     
       fetchOrders(); // Refresh orders after requesting payment
     } catch (err) {
       console.error("Failed to request payment for all orders", err);

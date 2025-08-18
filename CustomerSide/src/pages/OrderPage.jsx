@@ -12,7 +12,9 @@ export default function CustomerOrderPage() {
   const fetchCurrentOrder = async () => {
     try {
       const res = await api.get(`/orders/table/${tableId}`);
-      setOrders(res.data);
+      console.log(res.data.data);
+      
+      setOrders(res.data.data);
       setLoading(false);
     } catch (err) {
       console.error("Failed to fetch order:", err);
