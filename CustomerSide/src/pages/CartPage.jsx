@@ -39,36 +39,33 @@ export default function CartPage() {
     dispatch(updateRemark({ id: cartItemId, remark }));
   };
 
-  const handlePlaceOrder = async () => {
-    if (cartItems.length === 0) return;
-  
-    setIsPlacingOrder(true);
-    try {
-      const tableNum = Number(tableId);
-  
-      // This mapping is now guaranteed to work correctly
-      const orderData = {
-        tableNumber: tableNum,
-        items: cartItems.map((item) => ({
-          menuItem: normalizeObjectId(item._id),
-          quantity: item.quantity,
-          remark: item.remark || "",
-          sizeLabel: item.selectedSize?.label || null,
-        })),
-      };
-  
-      const response = await api.post("/orders", orderData);
-      console.log(response)
-     
-      dispatch(clearCart());
-      navigate(`/table/${tableId}`);
-    } catch (err) {
-      console.error("Order error:", err.response?.data || err.message);
-      
-    } finally {
-      setIsPlacingOrder(false);
-    }
-  };
+const handlePlaceOrder = async () => {
+  if (cartItems.length === 0) return;
+
+  setIsPlacingOrder(true);
+  try {
+    const orderData = {
+      tableId, // 👈 only send tableId
+      items: cartItems.map((item) => ({
+        menuItem: normalizeObjectId(item._id),
+        quantity: item.quantity,
+        remark: item.remark || "",
+        sizeLabel: item.selectedSize?.label || null,
+      })),
+    };
+
+    const response = await api.post("/orders", orderData);
+    console.log(response);
+
+    dispatch(clearCart());
+    navigate(`/table/${tableId}`);
+  } catch (err) {
+    console.error("Order error:", err.response?.data || err.message);
+  } finally {
+    setIsPlacingOrder(false);
+  }
+};
+
 
   return (
     <div className="max-w-[480px] mx-auto bg-white min-h-screen pb-24">
