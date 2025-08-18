@@ -324,9 +324,9 @@ router.put("/:id/status", protect, allowRoles('admin', 'staff', 'cashier'), vali
  * @route   PUT /api/orders/table/:tableNumber/request-payment
  * @access  Public (customer view)
  */
-router.put("/table/:tableNumber/request-payment", async (req, res) => {
+router.put("/table/:tableId/request-payment",validateObjectId("tableId")  ,async (req, res) => {
   try {
-    const table = await Table.findOne({ tableNumber: Number(req.params.tableNumber) });
+const table = await Table.findById(req.params.tableId);
     if (!table) {
       return res.status(404).json({ 
         success: false,
