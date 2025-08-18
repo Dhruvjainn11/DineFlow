@@ -11,8 +11,7 @@ import CustomerFooter from "../components/CustomerFooter";
 import MenuItemModal from "../components/MenuItemModal";
 
 export default function MenuPage() {
-  const { tableId } = useParams();
-  const dispatch = useDispatch();
+const { cafeId, tableId } = useParams();   const dispatch = useDispatch();
   const cartItems = useSelector((state) => state.cart.items);
 
   const [menus, setMenus] = useState([]);
@@ -29,12 +28,14 @@ export default function MenuPage() {
 
     const fetchData = async () => {
       try {
+        // fetch menus & categories by cafeId
         const [menuRes, categoriesRes] = await Promise.all([
-          api.get("/menu"),
-          api.get("/categories"),
+          api.get(`/menu?cafeId=${cafeId}`),
+          api.get(`/categories?cafeId=${cafeId}`),
         ]);
-        setMenus(menuRes.data);
-        setCategories(categoriesRes.data);
+
+        setMenus(menuRes.data.data);       // ✅ backend sends {data: [...]}
+        setCategories(categoriesRes.data.data);
       } catch (err) {
         console.error("Failed to fetch data", err);
       }
