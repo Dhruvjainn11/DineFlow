@@ -23,7 +23,7 @@ export default function CustomerFooter() {
 
       <button 
         className="flex flex-col items-center text-gray-500"
-        onClick={() => navigate(`/cafe/${cafeId}/table/${tableId}`)}
+        onClick={() => navigate(`/cafe/${cafeId}/table/${tableId}/cart`)}
       >
         <div className="relative">
           <FiShoppingCart size={20} />
@@ -38,7 +38,7 @@ export default function CustomerFooter() {
 
       <button 
         className="flex flex-col items-center text-gray-500"
-        onClick={() => navigate(`/cafe/${cafeId}/table/${tableId}`)}
+        onClick={() => navigate(`/cafe/${cafeId}/table/${tableId}/orders`)}
       >
         <FiClock size={20} />
         <span className="text-xs mt-1">Orders</span>
@@ -46,7 +46,7 @@ export default function CustomerFooter() {
 
       <button 
         className="flex flex-col items-center text-gray-500"
-        onClick={() => navigate(`/cafe/${cafeId}/table/${tableId}`)}
+        onClick={() => navigate(`/cafe/${cafeId}/table/${tableId}/payment`)}
       >
         <FiCreditCard size={20} />
         <span className="text-xs mt-1">Payment</span>
