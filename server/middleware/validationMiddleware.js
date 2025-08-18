@@ -132,7 +132,7 @@ export const validateCategoryUpdate = [
 
 // Order validation
 export const validateOrderCreation = [
-  body('tableNumber').isInt({ min: 1 }).withMessage('Valid table number is required'),
+  body('tableId').isMongoId().withMessage('Valid table ID is required'),
   body('cafeId').isMongoId().withMessage('Valid cafe ID is required'),
   body('items').isArray({ min: 1 }).withMessage('Order must contain at least one item'),
   body('items.*.menuItem').isMongoId().withMessage('Valid menu item ID required'),
