@@ -3,9 +3,13 @@ import { useAuth } from "../context/AuthContext";
 import React from "react";
 
 const PrivateRoute = () => {
-  const { token } = useAuth();
+  const { token, loading } = useAuth();
 
-  return token ? <Outlet /> : <Navigate to="/login" />;
+  if (loading) {
+    return <div>Loading...</div>; // Or show a spinner
+  }
+
+  return token ? <Outlet /> : <Navigate to="/login" replace />;
 };
 
 export default PrivateRoute;
