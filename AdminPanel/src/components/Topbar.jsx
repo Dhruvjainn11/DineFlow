@@ -12,7 +12,7 @@ const Topbar = () => {
       if (cafeId) {
         localStorage.removeItem("cafeId"); // Remove cafeId from local storage
       }
-      window.location.href = "/login"; // Redirect to login page
+      window.location.href = "/"; // Redirect to login page
     } else {
       console.error("No token found in local storage");
     }
