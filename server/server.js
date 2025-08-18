@@ -24,8 +24,7 @@ const allowedOrigins = [
   'http://localhost:5173',
   'http://127.0.0.1:5173',
   process.env.FRONTEND_URL,
-  'https://dineflow-customer.vercel.app',
-  'https://dineflow-admin.vercel.app'
+  process.env.ADMIN_URL
 ].filter(Boolean);
 
 const io = new Server(server, {
@@ -34,10 +33,10 @@ const io = new Server(server, {
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     credentials: true,
   },
-  // Additional performance options
   pingTimeout: 60000,
   pingInterval: 25000,
 });
+
 
 const PORT = process.env.PORT || 5000;
 
