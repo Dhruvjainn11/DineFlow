@@ -95,8 +95,13 @@ tableSchema.methods.generateQRCodeUrl = function(cafe, baseUrl = process.env.FRO
     return `${baseUrl}/cafe/${this.cafeId}/table/${this._id}`;
   }
   
-  // Pro plan with custom subdomain (only in production)
-  if (cafe && cafe.features?.customDomain && cafe.subdomain) {
+  // Production environment - always use Vercel URL
+  if (process.env.NODE_ENV === 'production' || baseUrl.includes('vercel.app')) {
+    return `${baseUrl}/cafe/${this.cafeId}/table/${this._id}`;
+  }
+  
+  // Pro plan with custom subdomain (only for actual custom domains)
+  if (cafe && cafe.features?.customDomain && cafe.subdomain && !baseUrl.includes('vercel.app')) {
     return `https://${cafe.subdomain}.dineflow.com/cafe/${this.cafeId}/table/${this._id}`;
   }
   

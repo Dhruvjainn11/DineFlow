@@ -23,7 +23,9 @@ const server = createServer(app);
 const allowedOrigins = [
   'http://localhost:5173',
   'http://127.0.0.1:5173',
-  process.env.FRONTEND_URL
+  process.env.FRONTEND_URL,
+  'https://dineflow-customer.vercel.app',
+  'https://dineflow-admin.vercel.app'
 ].filter(Boolean);
 
 const io = new Server(server, {
@@ -66,6 +68,7 @@ app.use('/api/cafes', cafeRoutes);
 app.use('/api/payments', paymentRoutes);
 app.use('/api/super-admin', superAdminRoutes);
 app.use('/api/public', (await import('./routes/publicRoutes.js')).default);
+app.use('/api/health', (await import('./routes/healthRoutes.js')).default);
 
 // Enhanced Socket.IO logic
 io.on('connection', (socket) => {
