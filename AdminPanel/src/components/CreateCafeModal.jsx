@@ -245,7 +245,7 @@ const CreateCafeModal = ({ isOpen, onClose, onCafeCreated }) => {
       }
 
       // Add admin user for Pro plan
-      if (formData.planType === 'pro' && formData.adminUser?.username?.trim() && formData.adminUser?.password?.trim()) {
+      if (formData.planType === 'pro'   && formData.adminUser?.username?.trim() && formData.adminUser?.password?.trim()) {
         payload.adminUser = {
           username: formData.adminUser.username.trim(),
           password: formData.adminUser.password.trim(),
@@ -621,7 +621,7 @@ const CreateCafeModal = ({ isOpen, onClose, onCafeCreated }) => {
                   </div>
 
                   {/* Admin User for Pro Plan */}
-                  {formData.planType === 'pro' && (
+                  {(
                     <>
                       <div className="border-t pt-4">
                         <h5 className="text-sm font-medium text-gray-900 mb-3">Admin User (Required for Pro Plan)</h5>
