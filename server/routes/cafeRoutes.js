@@ -108,9 +108,9 @@ router.post('/', protect, allowRoles('super-admin'), validateCafeCreation, async
     }
 
     // Add subdomain only for Pro plan
-    if (planType === 'pro' && subdomain && subdomain.trim()) {
-      cafeData.subdomain = subdomain.trim();
-    }
+    // if (planType === 'pro' && subdomain && subdomain.trim()) {
+    //   cafeData.subdomain = subdomain.trim();
+    // }
 
     // Add theme if provided
     if (theme) {
