@@ -310,7 +310,7 @@ cafeSchema.methods.updateFeaturesForPlan = function(planType) {
       ...this.features,
       customBranding: false,
       themeCustomization: false,
-      onlinePayments: false,
+      onlinePayments: true,
       premiumQRCodes: false,
       thirtyDayAnalytics: false,
       advancedAnalytics: false,
