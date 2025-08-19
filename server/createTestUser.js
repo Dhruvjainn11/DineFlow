@@ -13,8 +13,8 @@ const createTestUser = async () => {
     await mongoose.connect(process.env.MONGO_URI);
     console.log("✅ MongoDB connected");
 
-    const testUsername = "procafeadmin";
-    const testPassword = "password123";
+    const testUsername = "TestCafe1";
+    const testPassword = "test1234";
 
     // Check if the user already exists
     const existingUser = await User.findOne({ username: testUsername });
@@ -48,12 +48,12 @@ const createTestUser = async () => {
         
         // Create a test cafe
         const newCafe = await Cafe.create({
-          name: "E2E Test Cafe",
-          email: "e2etest@dineflow.com",
-          subdomain: "e2etest",
+          name: "Test Cafe 1",
+          email: "testcafe1@gmail.com",
+          subdomain: "testcafe1",
           status: "active",
           subscription: {
-            planType: "pro",
+            planType: "basic",
             status: "active",
             startDate: new Date(),
             endDate: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000), // 1 year from now

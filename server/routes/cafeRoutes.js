@@ -132,33 +132,25 @@ router.post('/', protect, allowRoles('super-admin'), validateCafeCreation, async
 
     let createdUser = null;
 
-    // Create cafe admin user if provided
-    if (adminUser) {
-      const { username, password, profile } = adminUser;
-      
-      if (!username || !username.trim()) {
-        await session.abortTransaction();
-        return res.status(400).json({
-          success: false,
-          message: 'Admin username is required for Pro plan'
-        });
-      }
+    // Admin user credentials are mandatory
+    if (!adminUser || !adminUser.username || !adminUser.password) {
+      await session.abortTransaction();
+      return res.status(400).json({
+        success: false,
+        message: 'Admin user credentials are required (username and password)'
+      });
+    }
 
-      if (!password || !password.trim()) {
-        await session.abortTransaction();
-        return res.status(400).json({
-          success: false,
-          message: 'Admin password is required for Pro plan'
-        });
-      }
+    // Create cafe admin user
+    const { username, password, profile } = adminUser;
 
-      if (password.length < 6) {
-        await session.abortTransaction();
-        return res.status(400).json({
-          success: false,
-          message: 'Admin password must be at least 6 characters long'
-        });
-      }
+    if (password.length < 6) {
+      await session.abortTransaction();
+      return res.status(400).json({
+        success: false,
+        message: 'Admin password must be at least 6 characters long'
+      });
+    }
 
       // Prepare user profile data
       const userProfile = {};

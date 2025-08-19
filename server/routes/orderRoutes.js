@@ -352,7 +352,7 @@ const table = await Table.findById(req.params.tableId);
     // Emit to cafe-specific room
     const io = req.app.get("io");
     io.to(`cafe-${table.cafeId}`).emit("paymentRequestedBulk", { 
-      tableId: table.tableNumber, 
+       tableId: table._id.toString(), 
       orders 
     });
 
@@ -414,7 +414,7 @@ router.put("/table/:tableNumber/payment-complete-all", protect, allowRoles('admi
     // Emit to cafe-specific room
     const io = req.app.get("io");
     io.to(`cafe-${table.cafeId}`).emit("paymentCompletedBulk", { 
-      tableId: table.tableNumber, 
+      tableId: table._id.toString(), 
       orderIds: updatedOrders.modifiedCount 
     });
 
