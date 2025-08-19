@@ -240,12 +240,12 @@ const CreateCafeModal = ({ isOpen, onClose, onCafeCreated }) => {
       }
 
       // Add subdomain for Pro plan
-      if (formData.planType === 'pro' && formData.subdomain?.trim()) {
-        payload.subdomain = formData.subdomain.trim();
-      }
+      // if (formData.planType === 'pro' && formData.subdomain?.trim()) {
+      //   payload.subdomain = formData.subdomain.trim();
+      // }
 
       // Add admin user for Pro plan
-      if (formData.planType === 'pro'   && formData.adminUser?.username?.trim() && formData.adminUser?.password?.trim()) {
+      if (formData) {
         payload.adminUser = {
           username: formData.adminUser.username.trim(),
           password: formData.adminUser.password.trim(),
