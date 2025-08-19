@@ -49,7 +49,9 @@ export default function AdminPaymentManager() {
   const fetchAllRelevantOrders = async () => {
     try {
       const res = await api.get("/orders", { params: { view: "payment" } });
-      setOrders(groupOrdersByTable(res.data));
+      console.log("Fetched orders:", res.data.data);
+      
+      setOrders(groupOrdersByTable(res.data.data));
     } catch (err) {
       console.error("Failed to load orders", err);
     }
