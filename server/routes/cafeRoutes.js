@@ -192,8 +192,8 @@ router.post('/', protect, allowRoles('super-admin'), validateCafeCreation, async
         profile: user.profile,
         createdAt: user.createdAt
       };
-    }
-
+    
+ 
     // Commit the transaction
     await session.commitTransaction();
 
