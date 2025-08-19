@@ -17,6 +17,9 @@ const router = express.Router();
 // @route   POST /api/cafes
 // @access  Private (Super Admin)
 router.post('/', protect, allowRoles('super-admin'), validateCafeCreation, async (req, res) => {
+
+   console.log('=== CAFE CREATION ROUTE DEBUG ===');
+    console.log('Received data:', req.body);
   const session = await mongoose.startSession();
   
   try {
@@ -34,8 +37,7 @@ router.post('/', protect, allowRoles('super-admin'), validateCafeCreation, async
       adminUser
     } = req.body;
 
-    console.log('=== CAFE CREATION ROUTE DEBUG ===');
-    console.log('Received data:', req.body);
+   
 
     // Check if cafe with email already exists
     const existingCafe = await Cafe.findOne({ email }).session(session);
@@ -275,6 +277,9 @@ router.post('/', protect, allowRoles('super-admin'), validateCafeCreation, async
     await session.endSession();
   }
 });
+
+
+
 // @desc    Get all cafes (Super Admin only)
 // @route   GET /api/cafes
 // @access  Private (Super Admin)
