@@ -486,7 +486,7 @@ const CreateCafeModal = ({ isOpen, onClose, onCafeCreated }) => {
                   </div>
 
                   {/* Subdomain for Pro Plan */}
-                  {formData.planType === 'pro' && (
+                  {/* {formData.planType === 'pro' && (
                     <div>
                       <label 
                         htmlFor="subdomain" 
@@ -518,7 +518,7 @@ const CreateCafeModal = ({ isOpen, onClose, onCafeCreated }) => {
                         </p>
                       )}
                     </div>
-                  )}
+                  )} */}
                 </div>
 
                 {/* Right Column - Address & Admin User */}

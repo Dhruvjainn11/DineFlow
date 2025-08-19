@@ -405,7 +405,7 @@ const EditCafeModal = ({ isOpen, onClose, cafe, onCafeUpdated }) => {
                   </div>
 
                   {/* Subdomain for Pro Plan */}
-                  {formData.planType === 'pro' && (
+                  {/* {formData.planType === 'pro' && (
                     <div>
                       <label 
                         htmlFor="subdomain" 
@@ -437,7 +437,7 @@ const EditCafeModal = ({ isOpen, onClose, cafe, onCafeUpdated }) => {
                         </p>
                       )}
                     </div>
-                  )}
+                  )} */}
                 </div>
 
                 {/* Right Column - Address */}
