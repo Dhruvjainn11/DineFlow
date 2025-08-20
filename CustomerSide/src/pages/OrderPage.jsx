@@ -235,7 +235,7 @@ export default function CustomerOrderPage() {
                   {/* Order Items with Enhanced Design */}
                   <div className="mb-8">
                     <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mr-2 text-amber-600" viewBox="0 0 20 20" fill="currentColor">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mr-2 text-theme-primary" viewBox="0 0 20 20" fill="currentColor">
                         <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z" />
                         <path fillRule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z" clipRule="evenodd" />
                       </svg>
@@ -245,17 +245,17 @@ export default function CustomerOrderPage() {
                       {order.items.map((item) => (
                         <li key={item._id} className="py-4 flex justify-between items-center group hover:bg-amber-50/50 transition-colors duration-200 px-3 -mx-3 rounded-lg">
                           <div className="flex items-center">
-                            <div className="w-10 h-10 rounded-md bg-gradient-to-br from-amber-100 to-amber-50 flex items-center justify-center mr-4">
-                              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-amber-600" viewBox="0 0 20 20" fill="currentColor">
+                            <div className="w-10 h-10 rounded-md bg-gradient-to-br from-theme-primary-100 to-theme-secondary flex items-center justify-center mr-4">
+                              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-theme-primary" viewBox="0 0 20 20" fill="currentColor">
                                 <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-3a1 1 0 00-.867.5 1 1 0 11-1.731-1A3 3 0 0113 8a3.001 3.001 0 01-2 2.83V11a1 1 0 11-2 0v-1a1 1 0 011-1 1 1 0 100-2zm0 8a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd" />
                               </svg>
                             </div>
                             <div>
-                              <span className="font-medium text-gray-900 group-hover:text-amber-700 transition-colors duration-200">
+                              <span className="font-medium text-gray-900 group-hover:text-theme-primary transition-colors duration-200">
                                 {item.menuItem?.name}
                               </span>
                               {item.size?.label && (
-                                <span className="block text-xs text-amber-600 bg-amber-50 px-2 py-1 rounded-full mt-1">
+                                <span className="block text-xs text-theme-primary bg-theme-primary-100 px-2 py-1 rounded-full mt-1">
                                   Size: {item.size.label}
                                 </span>
                               )}
@@ -273,7 +273,7 @@ export default function CustomerOrderPage() {
                             <span className="font-medium text-gray-900">
                               ₹{(item.itemPrice * item.quantity).toFixed(2)}
                             </span>
-                            <span className="block text-xs text-amber-600 bg-amber-50 px-2 py-1 rounded-full mt-1">
+                            <span className="block text-xs text-theme-primary bg-theme-primary-100 px-2 py-1 rounded-full mt-1">
                               ₹{item.itemPrice} × {item.quantity}
                             </span>
                           </div>
@@ -283,11 +283,11 @@ export default function CustomerOrderPage() {
                   </div>
 
                   {/* Enhanced Order Summary */}
-                  <div className="bg-gradient-to-br from-amber-50 to-white rounded-xl p-5 border border-amber-100 shadow-sm">
+                  <div className="bg-gradient-to-br from-theme-secondary to-white rounded-xl p-5 border border-theme-primary-100 shadow-sm">
                     <div className="flex justify-between items-center">
                       <div>
-                        <h4 className="text-sm font-semibold text-amber-600 uppercase tracking-wider mb-1">Total Amount</h4>
-                        <p className="text-3xl font-bold text-amber-800">₹{order.totalPrice.toFixed(2)}</p>
+                        <h4 className="text-sm font-semibold text-theme-primary uppercase tracking-wider mb-1">Total Amount</h4>
+                        <p className="text-3xl font-bold text-theme-primary">₹{order.totalPrice.toFixed(2)}</p>
                       </div>
                       {order.paymentStatus === "Requested" && (
                         <div className="flex items-center bg-sky-50 px-4 py-2 rounded-lg border border-sky-100">

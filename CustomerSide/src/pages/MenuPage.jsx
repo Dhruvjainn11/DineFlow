@@ -123,17 +123,17 @@ const { cafeId, tableId } = useParams();   const dispatch = useDispatch();
   };
 
   return (
-    <div className="max-w-[480px] mx-auto bg-amber-50 min-h-screen pb-16">
+    <div className="max-w-[480px] mx-auto bg-theme-secondary min-h-screen pb-16">
       {/* Header with Search */}
-      <div className="sticky top-0 z-20 bg-white shadow-sm border-b border-amber-100">
+      <div className="sticky top-0 z-20 bg-white shadow-sm border-b border-theme-primary-100">
         <div className="p-4">
-          <h1 className="text-2xl font-bold text-center text-amber-900 mb-4">DineFlow Menu</h1>
+          <h1 className="text-2xl font-bold text-center text-theme-primary mb-4">DineFlow Menu</h1>
           <div className="relative">
-            <FiSearch className="absolute left-3 top-3 text-amber-400" />
+            <FiSearch className="absolute left-3 top-3 text-theme-primary" />
             <input
               type="text"
               placeholder="Search menu items..."
-              className="w-full pl-10 pr-4 py-2 rounded-full border border-amber-200 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+              className="w-full pl-10 pr-4 py-2 rounded-full border border-theme-primary-200 focus:outline-none focus:ring-2 focus:ring-theme-primary focus:border-transparent"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
@@ -147,8 +147,8 @@ const { cafeId, tableId } = useParams();   const dispatch = useDispatch();
               onClick={() => scrollToCategory('all')}
               className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
                 activeCategory === 'all' || !activeCategory
-                  ? 'bg-amber-500 text-white'
-                  : 'bg-amber-100 text-amber-700 hover:bg-amber-200'
+                  ? 'bg-theme-primary text-white'
+                  : 'bg-theme-primary-100 text-theme-primary hover:bg-theme-primary-200'
               }`}
             >
               All Items
@@ -159,8 +159,8 @@ const { cafeId, tableId } = useParams();   const dispatch = useDispatch();
                 onClick={() => scrollToCategory(category._id)}
                 className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
                   activeCategory === category._id
-                    ? 'bg-amber-500 text-white'
-                    : 'bg-amber-100 text-amber-700 hover:bg-amber-200'
+                    ? 'bg-theme-primary text-white'
+                    : 'bg-theme-primary-100 text-theme-primary hover:bg-theme-primary-200'
                 }`}
               >
                 {category.name}
@@ -182,8 +182,8 @@ const { cafeId, tableId } = useParams();   const dispatch = useDispatch();
               ref={(el) => categoryRefs.current[categoryId] = el}
               className="scroll-mt-24"
             >
-              <h2 className="text-xl font-bold text-amber-900 mb-4 flex items-center">
-                <span className="bg-amber-500 w-1 h-6 rounded-full mr-3"></span>
+              <h2 className="text-xl font-bold text-theme-primary mb-4 flex items-center">
+                <span className="bg-theme-primary w-1 h-6 rounded-full mr-3"></span>
                 {categoryName}
               </h2>
               <div className="grid grid-cols-2 gap-4">
@@ -196,7 +196,7 @@ const { cafeId, tableId } = useParams();   const dispatch = useDispatch();
                   return (
                     <div
                       key={item._id}
-                      className="bg-white rounded-xl shadow-sm overflow-hidden transition-transform hover:scale-[1.02] border border-amber-100 hover:shadow-md cursor-pointer"
+                      className="bg-white rounded-xl shadow-sm overflow-hidden transition-transform hover:scale-[1.02] border border-theme-primary-100 hover:shadow-md cursor-pointer"
                       onClick={() => handleItemClick(item)}
                     >
                       <div className="relative pt-[100%]">
@@ -213,21 +213,21 @@ const { cafeId, tableId } = useParams();   const dispatch = useDispatch();
                         )}
                       </div>
                       <div className="relative bottom-6 p-3">
-                        <h2 className="font-semibold text-base text-amber-900 truncate">{item.name}</h2>
-                        <p className="text-sm text-amber-700 mb-1 truncate">{item.description}</p>
+                        <h2 className="font-semibold text-base text-theme-primary truncate">{item.name}</h2>
+                        <p className="text-sm text-theme-primary-dark mb-1 truncate">{item.description}</p>
                         <div className="flex justify-between items-center mt-2">
-                          <p className="font-bold text-amber-600">{displayPrice}</p>
+                          <p className="font-bold text-theme-primary">{displayPrice}</p>
                           {quantity > 0 ? (
                             <div className="flex items-center space-x-2">
                               <button
-                                className="p-1 bg-amber-100 text-amber-700 rounded-full hover:bg-amber-200 transition-colors"
+                                className="p-1 bg-theme-primary-100 text-theme-primary rounded-full hover:bg-theme-primary-200 transition-colors"
                                 onClick={(e) => { e.stopPropagation(); handleRemoveFromCart(item); }}
                               >
                                 <FiMinus size={14} />
                               </button>
-                              <span className="text-sm font-medium text-amber-800">{quantity}</span>
+                              <span className="text-sm font-medium text-theme-primary">{quantity}</span>
                               <button
-                                className="p-1 bg-amber-100 text-amber-700 rounded-full hover:bg-amber-200 transition-colors"
+                                className="p-1 bg-theme-primary-100 text-theme-primary rounded-full hover:bg-theme-primary-200 transition-colors"
                                 onClick={(e) => { e.stopPropagation(); handleAddToCart(item); }}
                               >
                                 <FiPlus size={14} />
@@ -235,7 +235,7 @@ const { cafeId, tableId } = useParams();   const dispatch = useDispatch();
                             </div>
                           ) : (
                             <button
-                              className="px-3 py-1 bg-gradient-to-r from-amber-500 to-amber-600 text-white text-sm rounded-full hover:from-amber-600 hover:to-amber-700 transition-colors shadow-sm"
+                              className="px-3 py-1 bg-theme-primary text-white text-sm rounded-full hover:bg-theme-primary-dark transition-colors shadow-sm"
                               onClick={(e) => { e.stopPropagation(); handleAddToCart(item); }}
                             >
                               Add

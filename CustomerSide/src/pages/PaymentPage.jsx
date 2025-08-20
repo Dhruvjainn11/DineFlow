@@ -116,14 +116,14 @@ export default function PaymentPage() {
 
   if (loading)
     return (
-      <div className="flex flex-col min-h-screen bg-gradient-to-b from-amber-50 to-white">
+      <div className="flex flex-col min-h-screen bg-gradient-to-b from-theme-secondary to-white">
         <div className="flex-grow flex items-center justify-center">
-          <div className="text-center p-8 bg-white rounded-2xl shadow-xl max-w-md w-full border border-amber-100">
-            <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-amber-500 mx-auto mb-6"></div>
-            <h2 className="text-2xl font-bold text-amber-800 mb-2">
+          <div className="text-center p-8 bg-white rounded-2xl shadow-xl max-w-md w-full border border-theme-primary-100">
+            <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-theme-primary mx-auto mb-6"></div>
+            <h2 className="text-2xl font-bold text-theme-primary mb-2">
               Loading Your Orders
             </h2>
-            <p className="text-amber-600">Preparing your dining experience...</p>
+            <p className="text-theme-primary-dark">Preparing your dining experience...</p>
           </div>
         </div>
         <CustomerFooter />
@@ -132,13 +132,13 @@ export default function PaymentPage() {
 
   if (!orders || orders.length === 0)
     return (
-      <div className="flex flex-col min-h-screen bg-gradient-to-b from-amber-50 to-white">
+      <div className="flex flex-col min-h-screen bg-gradient-to-b from-theme-secondary to-white">
         <div className="flex-grow flex items-center justify-center">
-          <div className="text-center p-8 bg-white rounded-2xl shadow-xl max-w-md w-full border border-amber-100">
-            <div className="w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-4">
+          <div className="text-center p-8 bg-white rounded-2xl shadow-xl max-w-md w-full border border-theme-primary-100">
+            <div className="w-16 h-16 bg-theme-primary-100 rounded-full flex items-center justify-center mx-auto mb-4">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                className="h-8 w-8 text-amber-600"
+                className="h-8 w-8 text-theme-primary"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -151,8 +151,8 @@ export default function PaymentPage() {
                 />
               </svg>
             </div>
-            <h2 className="text-2xl font-bold text-amber-800 mb-2">No Orders Yet</h2>
-            <p className="text-amber-600">Your table hasn't placed any orders</p>
+            <h2 className="text-2xl font-bold text-theme-primary mb-2">No Orders Yet</h2>
+            <p className="text-theme-primary-dark">Your table hasn't placed any orders</p>
           </div>
         </div>
         <CustomerFooter />
@@ -163,13 +163,13 @@ export default function PaymentPage() {
   const totalAmount = orders.reduce((acc, order) => acc + (order.totalPrice || 0), 0);
 
   return (
-    <div className="min-h-screen bg-amber-50 p-4">
+    <div className="min-h-screen bg-theme-secondary p-4">
       <div className="text-center mb-6">
-        <h2 className="text-2xl font-bold text-amber-900 mb-2">
+        <h2 className="text-2xl font-bold text-theme-primary mb-2">
           Payment Summary
         </h2>
         {cafeInfo && (
-          <p className="text-lg text-amber-700 font-medium">{cafeInfo.name}</p>
+          <p className="text-lg text-theme-primary-dark font-medium">{cafeInfo.name}</p>
         )}
       </div>
 
@@ -191,7 +191,7 @@ export default function PaymentPage() {
               </p>
             </div>
             <div className="text-right">
-              <p className="text-lg font-bold text-amber-600">₹{order.totalPrice?.toFixed(2)}</p>
+              <p className="text-lg font-bold text-theme-primary">₹{order.totalPrice?.toFixed(2)}</p>
               <p className={`text-sm font-medium ${
                 order.paymentStatus === "Requested"
                   ? "text-blue-600"
@@ -216,7 +216,7 @@ export default function PaymentPage() {
                         {item.menuItem?.name}
                       </span>
                       {item.size?.label && (
-                        <span className="text-xs bg-amber-100 text-amber-700 px-2 py-1 rounded-full">
+                        <span className="text-xs bg-theme-primary-100 text-theme-primary px-2 py-1 rounded-full">
                           {item.size.label}
                         </span>
                       )}
@@ -245,7 +245,7 @@ export default function PaymentPage() {
       <div className="mt-6 p-6 bg-white rounded-xl shadow-lg border border-gray-100 flex flex-col items-center">
         <div className="mb-4 text-center">
           <h3 className="text-lg font-bold text-gray-800 mb-1">Total Amount</h3>
-          <p className="text-3xl font-bold text-amber-600">₹{totalAmount.toFixed(2)}</p>
+          <p className="text-3xl font-bold text-theme-primary">₹{totalAmount.toFixed(2)}</p>
         </div>
         
         {allPaidOrRequested ? (
@@ -260,7 +260,7 @@ export default function PaymentPage() {
         ) : (
           <button
             onClick={requestPaymentAll}
-            className="px-8 py-3 bg-gradient-to-r from-amber-500 to-amber-600 text-white font-bold rounded-lg hover:from-amber-600 hover:to-amber-700 transition-all duration-200 shadow-lg hover:shadow-xl"
+            className="px-8 py-3 bg-theme-primary text-white font-bold rounded-lg hover:bg-theme-primary-dark transition-all duration-200 shadow-lg hover:shadow-xl"
           >
             Request Payment
           </button>

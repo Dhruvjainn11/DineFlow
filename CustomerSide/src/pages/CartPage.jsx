@@ -74,16 +74,16 @@ const handlePlaceOrder = async () => {
       <div className="sticky top-0 z-10 bg-white p-4 border-b border-gray-100 flex items-center">
         <button
           onClick={() => navigate(`/cafe/${cafeId}/table/${tableId}`)}
-          className="bg-amber-500 p-2 rounded-full hover:bg-indigo-50"
+          className="bg-theme-primary p-2 rounded-full hover:bg-theme-primary-100"
         >
           <FiChevronLeft size={20} />
         </button>
-        <h1 className="text-xl font-bold text-center flex-1 text-amber-500">
+        <h1 className="text-xl font-bold text-center flex-1 text-theme-primary">
           Your Cart
         </h1>
         <button
           onClick={() => dispatch(clearCart())}
-          className="text-amber-700 p-2 rounded-full hover:bg-red-50 text-sm font-medium"
+          className="text-theme-primary p-2 rounded-full hover:bg-red-50 text-sm font-medium"
           disabled={cartItems.length === 0}
         >
           Clear
@@ -98,7 +98,7 @@ const handlePlaceOrder = async () => {
             <p className="text-gray-500 mb-2">Your cart is empty</p>
             <button
               onClick={() => navigate(`/table/${tableId}`)}
-              className="mt-2 px-4 py-2 bg-amber-500 text-white rounded-lg hover:bg-amber-700"
+              className="mt-2 px-4 py-2 bg-theme-primary text-white rounded-lg hover:bg-theme-primary-dark"
             >
               Browse Menu
             </button>
@@ -128,22 +128,22 @@ const handlePlaceOrder = async () => {
                         ₹{item.price} × {item.quantity}
                       </p>
                       <div className="flex items-center justify-between">
-                        <p className="font-bold text-amber-500">
+                        <p className="font-bold text-theme-primary">
                           ₹{(item.price * item.quantity).toFixed(2)}
                         </p>
-                        <div className="flex items-center space-x-2 bg-indigo-50 rounded-full px-2">
+                        <div className="flex items-center space-x-2 bg-theme-primary-100 rounded-full px-2">
                           <button
                             onClick={() => handleQuantityChange(item, item.quantity - 1)}
-                            className="p-1 text-amber-500 hover:text-amber-700"
+                            className="p-1 text-theme-primary hover:text-theme-primary-dark"
                           >
                             <FiMinus size={14} />
                           </button>
-                          <span className="text-sm font-medium text-amber-500">
+                          <span className="text-sm font-medium text-theme-primary">
                             {item.quantity}
                           </span>
                           <button
                             onClick={() => handleQuantityChange(item, item.quantity + 1)}
-                            className="p-1 text-amber-500 hover:text-amber-700"
+                            className="p-1 text-theme-primary hover:text-theme-primary-dark"
                           >
                             <FiPlus size={14} />
                           </button>
@@ -192,7 +192,7 @@ const handlePlaceOrder = async () => {
 
                 <div className="flex justify-between pt-2 border-t border-gray-200 mt-2">
                   <span className="font-bold text-gray-800">Total</span>
-                  <span className="font-bold text-amber-500">
+                  <span className="font-bold text-theme-primary">
                     ₹{totalPrice.toFixed(2)}
                   </span>
                 </div>
@@ -203,7 +203,7 @@ const handlePlaceOrder = async () => {
             <button
               onClick={handlePlaceOrder}
               disabled={isPlacingOrder || cartItems.length === 0}
-              className="w-full py-3 bg-amber-500 text-white font-bold rounded-lg hover:bg-amber-700 disabled:bg-amber-300"
+              className="w-full py-3 bg-theme-primary text-white font-bold rounded-lg hover:bg-theme-primary-dark disabled:opacity-50"
             >
               {isPlacingOrder ? "Placing Order..." : "Place Order"}
             </button>
