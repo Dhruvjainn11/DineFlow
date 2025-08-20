@@ -38,6 +38,7 @@ export const ThemeProvider = ({ children }) => {
 
   // Apply CSS variables for theme
   const applyTheme = (themeData) => {
+    console.log('🎨 Applying theme:', themeData);
     const root = document.documentElement;
     
     // Convert hex to RGB for opacity variations
@@ -57,6 +58,11 @@ export const ThemeProvider = ({ children }) => {
     root.style.setProperty('--primary-color', themeData.primaryColor);
     root.style.setProperty('--secondary-color', themeData.secondaryColor);
     root.style.setProperty('--font-family', themeData.fontFamily);
+    
+    console.log('✅ CSS Variables set:', {
+      '--primary-color': themeData.primaryColor,
+      '--secondary-color': themeData.secondaryColor
+    });
     
     if (primaryRgb) {
       root.style.setProperty('--primary-rgb', `${primaryRgb.r}, ${primaryRgb.g}, ${primaryRgb.b}`);
@@ -125,6 +131,7 @@ export const ThemeProvider = ({ children }) => {
             customDomain: cafe.subdomain || null
           };
           
+          console.log('🔄 Setting new theme:', newTheme);
           setTheme(newTheme);
           applyTheme(newTheme);
         }
