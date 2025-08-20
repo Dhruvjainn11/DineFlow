@@ -4,18 +4,34 @@ import MenuPage from "./pages/MenuPage";
 import CartPage from "./pages/CartPage";
 import OrderPage from "./pages/OrderPage";
 import PaymentPage from "./pages/PaymentPage";
+import { CafeProvider } from "./context/CafeContext";
+import ThemeProvider from "./components/ThemeProvider";
 import "./index.css"; // Tailwind CSS styles
 
 function App() {
   return (
     <Router>
       <Routes>
-        <Route path="/cafe/:cafeId/table/:tableId" element={<MenuPage />} />
-        <Route path="/cafe/:cafeId/table/:tableId/cart" element={<CartPage />} />
-        <Route path="/cafe/:cafeId/table/:tableId/orders" element={<OrderPage />} />
-        <Route path="/cafe/:cafeId/table/:tableId/payment" element={<PaymentPage />} />
+        <Route path="/cafe/:cafeId/table/:tableId/*" element={
+          <CafeProvider>
+            <AppWithTheme />
+          </CafeProvider>
+        } />
       </Routes>
     </Router>
+  );
+}
+
+function AppWithTheme() {
+  return (
+    <ThemeProvider>
+      <Routes>
+        <Route path="/" element={<MenuPage />} />
+        <Route path="/cart" element={<CartPage />} />
+        <Route path="/orders" element={<OrderPage />} />
+        <Route path="/payment" element={<PaymentPage />} />
+      </Routes>
+    </ThemeProvider>
   );
 }
 
