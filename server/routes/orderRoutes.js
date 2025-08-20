@@ -114,6 +114,13 @@ router.post("/", validateOrderCreation ,async (req, res) => {
     });
   } catch (error) {
     console.error("Error placing order:", error);
+    
+    // Emit error event for real-time updates
+    const io = req.app.get("io");
+    if (io && cafeId) {
+      io.to(`cafe-${cafeId}`).emit('orderError', { message: error.message, operation: 'create' });
+    }
+    
     res.status(500).json({
       success: false,
       message: "Failed to place order",
@@ -311,6 +318,14 @@ router.put("/:id/status", protect, allowRoles('admin', 'staff', 'cashier'), vali
     });
   } catch (error) {
     console.error('Error updating order status:', error);
+    
+    // Emit error event for real-time updates
+    const io = req.app.get("io");
+    const userCafeId = req.user.isSuperAdmin() ? req.body.cafeId : req.user.cafeId._id;
+    if (io && userCafeId) {
+      io.to(`cafe-${userCafeId}`).emit('orderError', { message: error.message, operation: 'update' });
+    }
+    
     res.status(500).json({ 
       success: false,
       message: "Failed to update order status",

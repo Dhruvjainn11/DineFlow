@@ -134,6 +134,14 @@ router.post('/', protect, checkSubscription, checkPermission('canManageMenu'), v
     
   } catch (error) {
     console.error('Error creating category:', error);
+    
+    // Emit error event for real-time updates
+    const io = req.app.get('io');
+    const userCafeId = req.user.isSuperAdmin() ? req.body.cafeId : req.user.cafeId._id;
+    if (io && userCafeId) {
+      io.to(`cafe-${userCafeId}`).emit('category:error', { message: error.message, operation: 'create' });
+    }
+    
     res.status(500).json({ 
       success: false,
       message: 'Failed to create category',
@@ -210,6 +218,14 @@ router.put('/:id', protect, checkSubscription, checkPermission('canManageMenu'),
     
   } catch (error) {
     console.error('Error updating category:', error);
+    
+    // Emit error event for real-time updates
+    const io = req.app.get('io');
+    const userCafeId = req.user.isSuperAdmin() ? existingCategory?.cafeId : req.user.cafeId._id;
+    if (io && userCafeId) {
+      io.to(`cafe-${userCafeId}`).emit('category:error', { message: error.message, operation: 'update' });
+    }
+    
     res.status(500).json({ 
       success: false,
       message: 'Failed to update category',
@@ -267,6 +283,14 @@ router.delete('/:id', protect, checkSubscription, checkPermission('canManageMenu
     
   } catch (error) {
     console.error('Error deleting category:', error);
+    
+    // Emit error event for real-time updates
+    const io = req.app.get('io');
+    const userCafeId = req.user.isSuperAdmin() ? existingCategory?.cafeId : req.user.cafeId._id;
+    if (io && userCafeId) {
+      io.to(`cafe-${userCafeId}`).emit('category:error', { message: error.message, operation: 'delete' });
+    }
+    
     res.status(500).json({ 
       success: false,
       message: 'Failed to delete category',

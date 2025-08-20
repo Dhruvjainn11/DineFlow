@@ -61,7 +61,15 @@ router.get("/summary", protect, allowRoles("admin", "super-admin"), validateQuer
             }
           },
           orders: { $sum: 1 },
-          revenue: { $sum: "$totalPrice" }
+          revenue: {
+            $sum: {
+              $cond: [
+                { $eq: ["$paymentStatus", "Completed"] },
+                "$totalPrice",
+                0
+              ]
+            }
+          }
         }
       },
       {
@@ -110,7 +118,15 @@ router.get("/summary", protect, allowRoles("admin", "super-admin"), validateQuer
         $group: {
           _id: null,
           orders: { $sum: 1 },
-          revenue: { $sum: "$totalPrice" }
+          revenue: {
+            $sum: {
+              $cond: [
+                { $eq: ["$paymentStatus", "Completed"] },
+                "$totalPrice",
+                0
+              ]
+            }
+          }
         }
       }
     ]);

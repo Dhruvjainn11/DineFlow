@@ -274,6 +274,14 @@ if (sizes && Array.isArray(sizes)) {
     
   } catch (error) {
     console.error("Error creating menu item:", error);
+    
+    // Emit error event for real-time updates
+    const io = req.app.get('io');
+    const userCafeId = req.user.isSuperAdmin() ? req.body.cafeId : req.user.cafeId._id;
+    if (io && userCafeId) {
+      io.to(`cafe-${userCafeId}`).emit('menuError', { message: error.message, operation: 'create' });
+    }
+    
     res.status(500).json({ 
       success: false,
       message: 'Error creating menu item', 
@@ -404,6 +412,14 @@ router.put('/:id', protect, checkSubscription, checkPermission('canManageMenu'),
     
   } catch (error) {
     console.error("Error updating menu item:", error);
+    
+    // Emit error event for real-time updates
+    const io = req.app.get('io');
+    const userCafeId = req.user.isSuperAdmin() ? existingMenuItem?.cafeId : req.user.cafeId._id;
+    if (io && userCafeId) {
+      io.to(`cafe-${userCafeId}`).emit('menuError', { message: error.message, operation: 'update' });
+    }
+    
     res.status(500).json({ 
       success: false,
       message: 'Error updating menu item', 
@@ -449,6 +465,14 @@ router.delete('/:id', protect, checkSubscription, checkPermission('canManageMenu
     
   } catch (error) {
     console.error('Error deleting menu item:', error);
+    
+    // Emit error event for real-time updates
+    const io = req.app.get('io');
+    const userCafeId = req.user.isSuperAdmin() ? existingMenuItem?.cafeId : req.user.cafeId._id;
+    if (io && userCafeId) {
+      io.to(`cafe-${userCafeId}`).emit('menuError', { message: error.message, operation: 'delete' });
+    }
+    
     res.status(500).json({ 
       success: false,
       message: 'Error deleting menu item', 

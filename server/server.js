@@ -93,6 +93,31 @@ io.on('connection', (socket) => {
     console.log(`Socket ${socket.id} left cafe room: cafe-${cafeId}`);
   });
 
+  // Test event handlers for development
+  socket.on('testNotification', (data) => {
+    if (data.cafeId) {
+      io.to(`cafe-${data.cafeId}`).emit(data.event, data.data);
+    }
+  });
+
+  socket.on('testMenuCreated', (data) => {
+    if (data.cafeId) {
+      io.to(`cafe-${data.cafeId}`).emit('menuCreated', data.data);
+    }
+  });
+
+  socket.on('testMenuUpdated', (data) => {
+    if (data.cafeId) {
+      io.to(`cafe-${data.cafeId}`).emit('menuUpdated', data.data);
+    }
+  });
+
+  socket.on('testMenuDeleted', (data) => {
+    if (data.cafeId) {
+      io.to(`cafe-${data.cafeId}`).emit('menuDeleted', data.data);
+    }
+  });
+
   // Handle disconnection
   socket.on('disconnect', () => {
     console.log(`🔴 User disconnected: ${socket.id}`);

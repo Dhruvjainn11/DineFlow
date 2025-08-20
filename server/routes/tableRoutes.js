@@ -160,6 +160,14 @@ router.post(
       });
     } catch (error) {
       console.error('Error creating table:', error.stack || error);
+      
+      // Emit error event for real-time updates
+      const io = req.app.get('io');
+      const resolvedCafeId = req.user.isSuperAdmin() ? req.body.cafeId : req.user.cafeId._id || req.user.cafeId;
+      if (io && resolvedCafeId) {
+        io.to(`cafe-${resolvedCafeId}`).emit('tableError', { message: error.message, operation: 'create' });
+      }
+      
       res.status(500).json({ 
         success: false,
         message: 'Server error', 
@@ -227,6 +235,14 @@ router.put('/:id',
     
   } catch (error) {
     console.error('Error updating table:', error);
+    
+    // Emit error event for real-time updates
+    const io = req.app.get('io');
+    const userCafeId = req.user.isSuperAdmin() ? existingTable?.cafeId : req.user.cafeId._id;
+    if (io && userCafeId) {
+      io.to(`cafe-${userCafeId}`).emit('tableError', { message: error.message, operation: 'update' });
+    }
+    
     res.status(500).json({ 
       success: false,
       message: 'Failed to update table',
@@ -290,6 +306,14 @@ router.delete('/:id',
     
   } catch (error) {
     console.error('Error deleting table:', error);
+    
+    // Emit error event for real-time updates
+    const io = req.app.get('io');
+    const userCafeId = req.user.isSuperAdmin() ? existingTable?.cafeId : req.user.cafeId._id;
+    if (io && userCafeId) {
+      io.to(`cafe-${userCafeId}`).emit('tableError', { message: error.message, operation: 'delete' });
+    }
+    
     res.status(500).json({ 
       success: false,
       message: 'Failed to delete table',
