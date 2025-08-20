@@ -22,10 +22,24 @@ export const CafeProvider = ({ children }) => {
       if (!cafeId) return;
       
       try {
-        const response = await api.get(`/cafes/${cafeId}`);
-        setCafeInfo(response.data.data);
+        // Use the public theme endpoint to get cafe info with theme
+        const response = await api.get(`/theme/${cafeId}`);
+        if (response.data.success) {
+          setCafeInfo({
+            ...response.data.data,
+            id: cafeId,
+            name: response.data.data.cafeName
+          });
+        }
       } catch (error) {
         console.error('Failed to fetch cafe info:', error);
+        // Fallback to regular cafe endpoint
+        try {
+          const fallbackResponse = await api.get(`/public/cafe/${cafeId}/menu`);
+          setCafeInfo(fallbackResponse.data.data?.cafe);
+        } catch (fallbackError) {
+          console.error('Fallback fetch failed:', fallbackError);
+        }
       } finally {
         setLoading(false);
       }
