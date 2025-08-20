@@ -105,12 +105,12 @@ export default function CustomerOrderPage() {
   }, [tableId]);
 
   if (loading) return (
-    <div className="flex flex-col min-h-screen bg-gradient-to-b from-amber-50 to-white">
+    <div className="flex flex-col min-h-screen bg-gradient-to-b from-theme-secondary to-white">
       <div className="flex-grow flex items-center justify-center">
-        <div className="text-center p-8 bg-white rounded-2xl shadow-xl max-w-md w-full border border-amber-100">
-          <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-amber-500 mx-auto mb-6"></div>
-          <h2 className="text-2xl font-bold text-amber-800 mb-2">Loading Your Orders</h2>
-          <p className="text-amber-600">Preparing your dining experience...</p>
+        <div className="text-center p-8 bg-white rounded-2xl shadow-xl max-w-md w-full border border-theme-primary-100">
+          <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-theme-primary mx-auto mb-6"></div>
+          <h2 className="text-2xl font-bold text-theme-primary mb-2">Loading Your Orders</h2>
+          <p className="text-theme-primary-dark">Preparing your dining experience...</p>
         </div>
       </div>
       <CustomerFooter />
@@ -118,16 +118,16 @@ export default function CustomerOrderPage() {
   );
 
   if (!orders || orders.length === 0) return (
-    <div className="flex flex-col min-h-screen bg-gradient-to-b from-amber-50 to-white">
+    <div className="flex flex-col min-h-screen bg-gradient-to-b from-theme-secondary to-white">
       <div className="flex-grow flex items-center justify-center">
-        <div className="text-center p-8 bg-white rounded-2xl shadow-xl max-w-md w-full border border-amber-100">
-          <div className="w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <div className="text-center p-8 bg-white rounded-2xl shadow-xl max-w-md w-full border border-theme-primary-100">
+          <div className="w-16 h-16 bg-theme-primary-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-theme-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
           </div>
-          <h2 className="text-2xl font-bold text-amber-800 mb-2">No Orders Yet</h2>
-          <p className="text-amber-600">Your table hasn't placed any orders</p>
+          <h2 className="text-2xl font-bold text-theme-primary mb-2">No Orders Yet</h2>
+          <p className="text-theme-primary-dark">Your table hasn't placed any orders</p>
         </div>
       </div>
       <CustomerFooter />
@@ -136,7 +136,7 @@ export default function CustomerOrderPage() {
 
   // Enhanced status colors with better visual hierarchy
   const statusColorMap = {
-    Pending: 'bg-amber-100 text-amber-800 border-amber-200',
+    Pending: 'bg-theme-primary-100 text-theme-primary border-theme-primary-200',
     'In Progress': 'bg-blue-100 text-blue-800 border-blue-200',
     Ready: 'bg-emerald-100 text-emerald-800 border-emerald-200',
     Completed: 'bg-green-100 text-green-800 border-green-200',
@@ -144,7 +144,7 @@ export default function CustomerOrderPage() {
   };
 
   const paymentStatusMap = {
-    Pending: 'bg-amber-100 text-amber-800 border-amber-200',
+    Pending: 'bg-theme-primary-100 text-theme-primary border-theme-primary-200',
     Requested: 'bg-sky-100 text-sky-800 border-sky-200',
     Completed: 'bg-emerald-100 text-emerald-800 border-emerald-200',
     Failed: 'bg-rose-100 text-rose-800 border-rose-200',
@@ -152,16 +152,16 @@ export default function CustomerOrderPage() {
   };
 
   return (
-    <div className="flex flex-col min-h-screen bg-gradient-to-b from-amber-50 to-white">
+    <div className="flex flex-col min-h-screen bg-gradient-to-b from-theme-secondary to-white">
       <div className="flex-grow container mx-auto px-4 py-8">
         <div className="max-w-4xl mx-auto">
           {/* Enhanced Header Section */}
           <div className="mb-10 text-center">
-            <h1 className="text-4xl font-bold text-amber-900 mb-2">Your Dining Experience</h1>
+            <h1 className="text-4xl font-bold text-theme-primary mb-2">Your Dining Experience</h1>
             {cafeInfo && (
-              <p className="text-xl text-amber-700 font-medium mb-3">{cafeInfo.name}</p>
+              <p className="text-xl text-theme-primary-dark font-medium mb-3">{cafeInfo.name}</p>
             )}
-            <div className="inline-flex items-center bg-gradient-to-r from-amber-500 to-amber-600 text-white px-6 py-2 rounded-full shadow-md">
+            <div className="inline-flex items-center bg-theme-primary text-white px-6 py-2 rounded-full shadow-md">
               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
                 <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
               </svg>
@@ -174,13 +174,13 @@ export default function CustomerOrderPage() {
             {orders.map((order) => (
               <div key={order._id} className="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100 hover:shadow-xl transition-all duration-300">
                 {/* Order Header with Gradient */}
-                <div className="bg-gradient-to-r from-amber-500 to-amber-600 px-6 py-5">
+                <div className="bg-theme-primary px-6 py-5">
                   <div className="flex justify-between items-center">
                     <div>
                       <h2 className="text-xl font-bold text-white">
                         Order #{order.orderNumber || order._id.slice(-6).toUpperCase()}
                       </h2>
-                      <p className="text-amber-100 text-sm mt-1">
+                      <p className="text-white/80 text-sm mt-1">
                         {new Date(order.createdAt).toLocaleString([], {
                           weekday: 'short',
                           month: 'short',
@@ -190,7 +190,7 @@ export default function CustomerOrderPage() {
                         })}
                       </p>
                     </div>
-                    <span className="text-xs font-bold bg-amber-800/90 text-white px-3 py-1.5 rounded-full">
+                    <span className="text-xs font-bold bg-theme-primary-dark text-white px-3 py-1.5 rounded-full">
                       {order.items.length} item{order.items.length !== 1 ? 's' : ''}
                     </span>
                   </div>
@@ -203,30 +203,14 @@ export default function CustomerOrderPage() {
                     <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm">
                       <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Order Status</h3>
                       <div className={`px-4 py-2 rounded-lg border ${statusColorMap[order.status]} flex items-center`}>
-                        <div className="w-2 h-2 rounded-full mr-2" style={{
-                          backgroundColor: {
-                            Pending: '#f59e0b',
-                            'In Progress': '#3b82f6',
-                            Ready: '#10b981',
-                            Completed: '#22c55e',
-                            Cancelled: '#f43f5e'
-                          }[order.status]
-                        }}></div>
+                        <div className="w-2 h-2 bg-theme-primary rounded-full mr-2"></div>
                         <span className="font-medium">{order.status}</span>
                       </div>
                     </div>
                     <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm">
                       <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Payment Status</h3>
                       <div className={`px-4 py-2 rounded-lg border ${paymentStatusMap[order.paymentStatus || "Not Requested"]} flex items-center`}>
-                        <div className="w-2 h-2 rounded-full mr-2" style={{
-                          backgroundColor: {
-                            Pending: '#f59e0b',
-                            Requested: '#0ea5e9',
-                            Completed: '#10b981',
-                            Failed: '#f43f5e',
-                            'Not Requested': '#64748b'
-                          }[order.paymentStatus || "Not Requested"]
-                        }}></div>
+                        <div className="w-2 h-2 bg-theme-primary rounded-full mr-2"></div>
                         <span className="font-medium">{order.paymentStatus || "Not Requested"}</span>
                       </div>
                     </div>
@@ -243,7 +227,7 @@ export default function CustomerOrderPage() {
                     </h3>
                     <ul className="divide-y divide-gray-200">
                       {order.items.map((item) => (
-                        <li key={item._id} className="py-4 flex justify-between items-center group hover:bg-amber-50/50 transition-colors duration-200 px-3 -mx-3 rounded-lg">
+                        <li key={item._id} className="py-4 flex justify-between items-center group hover:bg-theme-primary-50 transition-colors duration-200 px-3 -mx-3 rounded-lg">
                           <div className="flex items-center">
                             <div className="w-10 h-10 rounded-md bg-gradient-to-br from-theme-primary-100 to-theme-secondary flex items-center justify-center mr-4">
                               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-theme-primary" viewBox="0 0 20 20" fill="currentColor">
