@@ -10,6 +10,70 @@ import Cafe from "../models/Cafe.js";
 const router = express.Router();
 
 /**
+ * @desc    Debug analytics data
+ * @route   GET /api/analytics/debug
+ * @access  Private (admin/super-admin only)
+ */
+router.get("/debug", protect, allowRoles("admin", "super-admin"), async (req, res) => {
+  try {
+    let cafeId;
+    if (req.user.role === 'super-admin') {
+      cafeId = req.query.cafeId || null;
+    } else {
+      cafeId = req.user.cafeId?._id || req.user.cafeId;
+    }
+    const cafeFilter = cafeId ? { cafeId } : {};
+    
+    console.log('🔍 Debug Analytics - CafeId:', cafeId);
+    console.log('🔍 Debug Analytics - Filter:', cafeFilter);
+    
+    // Get all orders for debugging
+    const allOrders = await Order.find(cafeFilter).sort({ createdAt: -1 }).limit(10);
+    console.log('🔍 Debug Analytics - Recent Orders:', allOrders.length);
+    
+    // Log each order details
+    allOrders.forEach((order, index) => {
+      console.log(`Order ${index + 1}:`, {
+        id: order._id,
+        cafeId: order.cafeId,
+        totalPrice: order.totalPrice,
+        paymentStatus: order.paymentStatus,
+        status: order.status,
+        createdAt: order.createdAt
+      });
+    });
+    
+    // Count by payment status
+    const statusCounts = await Order.aggregate([
+      { $match: cafeFilter },
+      { $group: { _id: '$paymentStatus', count: { $sum: 1 }, totalRevenue: { $sum: '$totalPrice' } } }
+    ]);
+    
+    console.log('🔍 Debug Analytics - Status Counts:', statusCounts);
+    
+    res.json({
+      success: true,
+      debug: {
+        cafeId,
+        cafeFilter,
+        totalOrders: allOrders.length,
+        recentOrders: allOrders.map(o => ({
+          id: o._id,
+          cafeId: o.cafeId,
+          totalPrice: o.totalPrice,
+          paymentStatus: o.paymentStatus,
+          createdAt: o.createdAt
+        })),
+        statusCounts
+      }
+    });
+  } catch (err) {
+    console.error("Debug Analytics Error:", err);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+/**
  * @desc    Get analytics summary for cafe
  * @route   GET /api/analytics/summary
  * @access  Private (admin/super-admin only)
@@ -17,10 +81,19 @@ const router = express.Router();
 router.get("/summary", protect, allowRoles("admin", "super-admin"), validateQueryPagination, handleValidationErrors, async (req, res) => {
   try {
     // Get user's cafeId (null for super admin)
-    const cafeId = req.user.role === 'super-admin' ? null : req.user.cafeId;
+    let cafeId;
+    if (req.user.role === 'super-admin') {
+      cafeId = req.query.cafeId || null;
+    } else {
+      // For regular users, get cafeId from populated object or direct reference
+      cafeId = req.user.cafeId?._id || req.user.cafeId;
+    }
     
     // Build base filter for cafe-specific queries
     const cafeFilter = cafeId ? { cafeId } : {};
+    
+    console.log('📊 Analytics Summary - User:', req.user.role, 'CafeId:', cafeId);
+    console.log('📊 Analytics Summary - Filter:', cafeFilter);
     
     // Total Orders
     const totalOrders = await Order.countDocuments(cafeFilter);
@@ -32,12 +105,19 @@ router.get("/summary", protect, allowRoles("admin", "super-admin"), validateQuer
       Order.countDocuments({ ...cafeFilter, paymentStatus: "Completed" }),
     ]);
 
-    // Total Revenue - only from completed payments
+    // Total Revenue - from all orders (including pending payments for better tracking)
     const totalRevenueAgg = await Order.aggregate([
-      { $match: { ...cafeFilter, paymentStatus: "Completed" } },
+      { $match: cafeFilter },
       { $group: { _id: null, total: { $sum: "$totalPrice" } } },
     ]);
     const totalRevenue = totalRevenueAgg[0]?.total || 0;
+
+    // Completed Revenue - only from completed payments
+    const completedRevenueAgg = await Order.aggregate([
+      { $match: { ...cafeFilter, paymentStatus: "Completed" } },
+      { $group: { _id: null, total: { $sum: "$totalPrice" } } },
+    ]);
+    const completedRevenue = completedRevenueAgg[0]?.total || 0;
 
     // Get 7-day daily statistics
     const sevenDaysAgo = new Date();
@@ -161,6 +241,15 @@ router.get("/summary", protect, allowRoles("admin", "super-admin"), validateQuer
       }
     });
 
+    console.log('📊 Analytics Summary - Results:', {
+      totalOrders,
+      totalRevenue,
+      completedRevenue,
+      pendingPayments,
+      requestedPayments,
+      completedPayments
+    });
+    
     res.json({
       success: true,
       data: {
@@ -170,6 +259,7 @@ router.get("/summary", protect, allowRoles("admin", "super-admin"), validateQuer
           requested: requestedPayments,
           completed: completedPayments,
           totalRevenue,
+          completedRevenue,
         },
         tables: {
           total: allTables.length,
@@ -199,7 +289,12 @@ router.get("/summary", protect, allowRoles("admin", "super-admin"), validateQuer
 router.get("/advanced", protect, allowRoles("admin", "super-admin"), requireAdvancedAnalytics, async (req, res) => {
   try {
     const { startDate, endDate, period = 'daily' } = req.query;
-    const cafeId = req.user.role === 'super-admin' ? req.query.cafeId : req.user.cafeId;
+    let cafeId;
+    if (req.user.role === 'super-admin') {
+      cafeId = req.query.cafeId || null;
+    } else {
+      cafeId = req.user.cafeId?._id || req.user.cafeId;
+    }
     
     // Verify cafe access for non-super-admin users
     if (req.user.role !== 'super-admin' && !req.user.cafeId) {

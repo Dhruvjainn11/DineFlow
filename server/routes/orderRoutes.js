@@ -367,7 +367,7 @@ const table = await Table.findById(req.params.tableId);
     // Emit to cafe-specific room
     const io = req.app.get("io");
     io.to(`cafe-${table.cafeId}`).emit("paymentRequestedBulk", { 
-       tableId: table._id.toString(), 
+       tableId: table.tableNumber.toString(), 
       orders 
     });
 
@@ -426,11 +426,24 @@ router.put("/table/:tableNumber/payment-complete-all", protect, allowRoles('admi
       currentOrder: null,
     });
 
+    // Get the updated orders to emit proper data
+    const completedOrders = await Order.find({
+      cafeId: table.cafeId,
+      tableNumber: table.tableNumber,
+      paymentStatus: "Completed"
+    });
+
     // Emit to cafe-specific room
     const io = req.app.get("io");
     io.to(`cafe-${table.cafeId}`).emit("paymentCompletedBulk", { 
-      tableId: table._id.toString(), 
-      orderIds: updatedOrders.modifiedCount 
+      tableId: table.tableNumber.toString(), 
+      cafeId: table.cafeId,
+      orderIds: completedOrders.map(o => o._id)
+    });
+
+    // Also emit individual payment completed events for each order
+    completedOrders.forEach(order => {
+      io.to(`cafe-${table.cafeId}`).emit("paymentCompleted", order);
     });
 
     res.json({ 

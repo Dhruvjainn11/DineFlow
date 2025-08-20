@@ -463,6 +463,102 @@ router.get('/analytics/:cafeId', protect, allowRoles('admin', 'super-admin'), re
 });
 
 /**
+ * @desc    Webhook for payment success (can be called by payment gateways or admin)
+ * @route   POST /api/payments/webhook/success
+ * @access  Public (for payment gateway webhooks)
+ */
+router.post('/webhook/success', async (req, res) => {
+  try {
+    const { tableId, cafeId, paymentMethod = 'cash', transactionId } = req.body;
+
+    if (!tableId) {
+      return res.status(400).json({ 
+        success: false,
+        message: 'tableId is required' 
+      });
+    }
+
+    // Find table to get table number
+    let tableNumber = tableId;
+    let actualCafeId = cafeId;
+    
+    // If tableId is an ObjectId, find the table
+    if (tableId.match(/^[0-9a-fA-F]{24}$/)) {
+      const table = await Table.findById(tableId);
+      if (table) {
+        tableNumber = table.tableNumber;
+        actualCafeId = table.cafeId;
+      }
+    }
+
+    // Update all unpaid orders for this table
+    const updatedOrders = await Order.updateMany(
+      { 
+        cafeId: actualCafeId,
+        tableNumber: Number(tableNumber), 
+        paymentStatus: { $ne: "Completed" } 
+      },
+      { 
+        paymentStatus: "Completed", 
+        paymentCompletedAt: new Date(),
+        'paymentDetails.method': paymentMethod,
+        'paymentDetails.transactionId': transactionId || `manual-${Date.now()}`
+      }
+    );
+
+    // Get the completed orders
+    const completedOrders = await Order.find({
+      cafeId: actualCafeId,
+      tableNumber: Number(tableNumber),
+      paymentStatus: "Completed"
+    }).populate('items.menuItem');
+
+    // Update table status
+    await Table.updateOne(
+      { cafeId: actualCafeId, tableNumber: Number(tableNumber) },
+      {
+        status: "Available",
+        currentOrder: null
+      }
+    );
+
+    // Emit socket events for real-time updates
+    const io = req.app.get('io');
+    if (io) {
+      // Emit bulk payment completed
+      io.to(`cafe-${actualCafeId}`).emit('paymentCompletedBulk', {
+        tableId: tableNumber.toString(),
+        cafeId: actualCafeId,
+        orderIds: completedOrders.map(o => o._id),
+        paymentMethod
+      });
+
+      // Emit individual payment completed events
+      completedOrders.forEach(order => {
+        io.to(`cafe-${actualCafeId}`).emit('paymentCompleted', order);
+      });
+    }
+
+    res.json({
+      success: true,
+      message: 'Payment completed successfully',
+      data: {
+        ordersUpdated: updatedOrders.modifiedCount,
+        totalAmount: completedOrders.reduce((sum, order) => sum + order.totalPrice, 0)
+      }
+    });
+
+  } catch (error) {
+    console.error('Payment webhook error:', error);
+    res.status(500).json({ 
+      success: false,
+      message: 'Failed to process payment',
+      error: error.message 
+    });
+  }
+});
+
+/**
  * @desc    Process refund for an order
  * @route   POST /api/payments/refund
  * @access  Private (admin only)
