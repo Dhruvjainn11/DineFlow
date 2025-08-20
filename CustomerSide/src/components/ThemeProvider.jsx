@@ -5,9 +5,12 @@ const ThemeProvider = ({ children }) => {
   const { cafeInfo } = useCafe();
   
   useEffect(() => {
+    console.log('🎨 Customer ThemeProvider - cafeInfo changed:', cafeInfo);
     if (cafeInfo?.theme) {
+      console.log('✅ Applying cafe theme:', cafeInfo.theme);
       applyTheme(cafeInfo.theme, cafeInfo);
     } else {
+      console.log('⚠️ No theme found, applying default');
       applyDefaultTheme();
     }
   }, [cafeInfo]);
