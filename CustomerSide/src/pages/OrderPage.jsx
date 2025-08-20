@@ -8,6 +8,7 @@ export default function CustomerOrderPage() {
   const { tableId} = useParams();
   const [orders, setOrders] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [cafeInfo, setCafeInfo] = useState(null);
 
   const fetchCurrentOrder = async () => {
     try {
@@ -15,6 +16,20 @@ export default function CustomerOrderPage() {
       console.log(res.data.data);
       
       setOrders(res.data.data);
+      
+      // Fetch cafe info if we have orders
+      if (res.data.data.length > 0 && !cafeInfo) {
+        const cafeId = res.data.data[0].cafeId._id || res.data.data[0].cafeId;
+        try {
+          const cafeRes = await api.get(`/cafes/${cafeId}`);
+          setCafeInfo(cafeRes.data.data);
+          // Join cafe room for real-time updates
+          socket.emit('joinCafeRoom', cafeId);
+        } catch (cafeErr) {
+          console.error("Failed to fetch cafe info", cafeErr);
+        }
+      }
+      
       setLoading(false);
     } catch (err) {
       console.error("Failed to fetch order:", err);
@@ -27,6 +42,7 @@ export default function CustomerOrderPage() {
 
     // Real-time order status updates
     socket.on("orderStatusUpdated", (updatedOrder) => {
+      console.log("Order status updated:", updatedOrder);
       setOrders((prevOrders) => {
         if (!prevOrders) return [updatedOrder];
         
@@ -38,6 +54,7 @@ export default function CustomerOrderPage() {
 
     // New order received
     socket.on("newOrder", (newOrder) => {
+      console.log("New order received:", newOrder);
       if (newOrder?.tableNumber?.toString?.() === tableId || newOrder?.tableNumber === Number(tableId)) {
         setOrders((prevOrders) => {
           if (!prevOrders) return [newOrder];
@@ -48,16 +65,42 @@ export default function CustomerOrderPage() {
 
     // Order completed
     socket.on("orderCompleted", (completedOrder) => {
+      console.log("Order completed:", completedOrder);
       setOrders((prevOrders) => {
         if (!prevOrders) return [];
         return prevOrders.filter((order) => order._id !== completedOrder._id);
       });
     });
 
+    // Payment status updates
+    socket.on("paymentCompleted", (updatedOrder) => {
+      console.log("Payment completed:", updatedOrder);
+      setOrders((prevOrders) => {
+        if (!prevOrders) return [];
+        return prevOrders.map((order) => 
+          order._id === updatedOrder._id 
+            ? { ...order, paymentStatus: "Completed" }
+            : order
+        );
+      });
+    });
+
+    socket.on("paymentCompletedBulk", ({ tableId: updatedTableId }) => {
+      console.log("Bulk payment completed for table:", updatedTableId);
+      if (updatedTableId.toString() === tableId) {
+        setOrders((prevOrders) => {
+          if (!prevOrders) return [];
+          return prevOrders.map((order) => ({ ...order, paymentStatus: "Completed" }));
+        });
+      }
+    });
+
     return () => {
       socket.off("orderStatusUpdated");
       socket.off("newOrder");
       socket.off("orderCompleted");
+      socket.off("paymentCompleted");
+      socket.off("paymentCompletedBulk");
     };
   }, [tableId]);
 
@@ -114,7 +157,10 @@ export default function CustomerOrderPage() {
         <div className="max-w-4xl mx-auto">
           {/* Enhanced Header Section */}
           <div className="mb-10 text-center">
-            <h1 className="text-4xl font-bold text-amber-900 mb-3">Your Dining Experience</h1>
+            <h1 className="text-4xl font-bold text-amber-900 mb-2">Your Dining Experience</h1>
+            {cafeInfo && (
+              <p className="text-xl text-amber-700 font-medium mb-3">{cafeInfo.name}</p>
+            )}
             <div className="inline-flex items-center bg-gradient-to-r from-amber-500 to-amber-600 text-white px-6 py-2 rounded-full shadow-md">
               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
                 <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
@@ -225,10 +271,10 @@ export default function CustomerOrderPage() {
                           </div>
                           <div className="text-right">
                             <span className="font-medium text-gray-900">
-                              ₹{(((item.size?.price ?? item.itemPrice ?? item.menuItem?.price) || 0) * item.quantity).toFixed(2)}
+                              ₹{(item.itemPrice * item.quantity).toFixed(2)}
                             </span>
                             <span className="block text-xs text-amber-600 bg-amber-50 px-2 py-1 rounded-full mt-1">
-                              × {item.quantity}
+                              ₹{item.itemPrice} × {item.quantity}
                             </span>
                           </div>
                         </li>

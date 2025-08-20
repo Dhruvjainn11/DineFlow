@@ -8,6 +8,7 @@ export default function PaymentPage() {
   const { tableId } = useParams();
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [cafeInfo, setCafeInfo] = useState(null);
 
   // Fetch all orders for this table (unpaid or partially paid)
   const fetchOrders = async () => {
@@ -16,6 +17,20 @@ export default function PaymentPage() {
       console.log(res.data.data);
       
       setOrders(res.data.data);
+      
+      // Fetch cafe info if we have orders
+      if (res.data.data.length > 0 && !cafeInfo) {
+        const cafeId = res.data.data[0].cafeId._id || res.data.data[0].cafeId;
+        try {
+          const cafeRes = await api.get(`/cafes/${cafeId}`);
+          setCafeInfo(cafeRes.data.data);
+          // Join cafe room for real-time updates
+          socket.emit('joinCafeRoom', cafeId);
+        } catch (cafeErr) {
+          console.error("Failed to fetch cafe info", cafeErr);
+        }
+      }
+      
       setLoading(false);
     } catch (err) {
       console.error("Failed to fetch orders", err);
@@ -48,6 +63,7 @@ export default function PaymentPage() {
 
     // Real-time payment status updates
     socket.on("paymentCompleted", (updatedOrder) => {
+      console.log("Payment completed for order:", updatedOrder);
       setOrders((prev) =>
         prev.map((order) =>
           order._id === updatedOrder._id
@@ -60,7 +76,7 @@ export default function PaymentPage() {
         setOrders((prev) =>
           prev.filter((order) => order._id !== updatedOrder._id)
         );
-      }, 7000);
+      }, 3000);
     });
 
     // Bulk payment requested
@@ -72,13 +88,14 @@ export default function PaymentPage() {
 
     // Bulk payment completed
     socket.on("paymentCompletedBulk", ({ tableId: updatedTableId }) => {
+      console.log("Bulk payment completed for table:", updatedTableId);
       if (updatedTableId.toString() === tableId) {
         // Mark all orders completed and remove after delay
         setOrders((prev) =>
           prev.map((order) => ({ ...order, paymentStatus: "Completed" }))
         );
 
-        setTimeout(() => setOrders([]), 7000);
+        setTimeout(() => setOrders([]), 3000);
       }
     });
 
@@ -147,9 +164,14 @@ export default function PaymentPage() {
 
   return (
     <div className="min-h-screen bg-amber-50 p-4">
-      <h2 className="text-2xl font-bold text-center text-amber-900 mb-4">
-        Payment Summary
-      </h2>
+      <div className="text-center mb-6">
+        <h2 className="text-2xl font-bold text-amber-900 mb-2">
+          Payment Summary
+        </h2>
+        {cafeInfo && (
+          <p className="text-lg text-amber-700 font-medium">{cafeInfo.name}</p>
+        )}
+      </div>
 
       {orders.map((order) => (
         <div key={order._id} className="bg-white shadow-lg p-6 mb-6 rounded-xl border border-gray-100">
@@ -207,10 +229,10 @@ export default function PaymentPage() {
                   </div>
                   <div className="text-right">
                     <span className="font-medium text-gray-800">
-                      ₹{(((item.size?.price ?? item.itemPrice ?? item.menuItem?.price) || 0) * item.quantity).toFixed(2)}
+                      ₹{(item.itemPrice * item.quantity).toFixed(2)}
                     </span>
                     <span className="block text-xs text-gray-500">
-                      × {item.quantity}
+                      ₹{item.itemPrice} × {item.quantity}
                     </span>
                   </div>
                 </div>
