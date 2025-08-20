@@ -21,8 +21,15 @@ export default function CustomerOrderPage() {
       if (res.data.data.length > 0 && !cafeInfo) {
         const cafeId = res.data.data[0].cafeId._id || res.data.data[0].cafeId;
         try {
-          const cafeRes = await api.get(`/cafes/${cafeId}`);
-          setCafeInfo(cafeRes.data.data);
+          // Use theme API to get cafe info with theme
+          const cafeRes = await api.get(`/theme/${cafeId}`);
+          if (cafeRes.data.success) {
+            setCafeInfo({
+              ...cafeRes.data.data,
+              id: cafeId,
+              name: cafeRes.data.data.cafeName
+            });
+          }
           // Join cafe room for real-time updates
           socket.emit('joinCafeRoom', cafeId);
         } catch (cafeErr) {
