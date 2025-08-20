@@ -9,6 +9,7 @@ export default function AdminPaymentManager() {
   const [orders, setOrders] = useState([]);
   const [paidTables, setPaidTables] = useState([]);
   const [selectedOrder, setSelectedOrder] = useState(null);
+  const [cafeName, setCafeName] = useState(null)
 
   // Group orders by table and calculate total + payment status
   const groupOrdersByTable = (ordersList) => {
@@ -52,6 +53,10 @@ export default function AdminPaymentManager() {
       console.log("Fetched orders:", res.data.data);
       
       setOrders(groupOrdersByTable(res.data.data));
+      let cafeId = res.data.data[0]?.cafeId || {};
+      console.log("Fetched Cafe ID:", cafeId.name);
+      
+      setCafeName(cafeId.name || "DineFlow Cafe");
     } catch (err) {
       console.error("Failed to load orders", err);
     }
@@ -327,7 +332,7 @@ export default function AdminPaymentManager() {
 
       {/* Receipt Modal */}
       {selectedOrder && (
-        <Receipt order={selectedOrder} onClose={() => setSelectedOrder(null)} />
+        <Receipt order={selectedOrder} cafe={cafeName}  onClose={() => setSelectedOrder(null)} />
       )}
     </RoleBasedLayout>
   );

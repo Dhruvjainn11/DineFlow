@@ -1,6 +1,6 @@
 import React from "react";
 
-export default function Receipt({ order, onClose }) {
+export default function Receipt({ order, onClose, cafe}) {
   if (!order) return null;
 
   const gstPercent = 0.05; // 5% GST
@@ -8,13 +8,15 @@ export default function Receipt({ order, onClose }) {
   const gstAmount = subtotal * gstPercent;
   const totalAmount = subtotal + gstAmount;
   console.log(order);
+  
+  
 
   return (
     <>
       <div className="receipt-overlay" onClick={onClose} />
       <div className="receipt-container" id="receipt-to-print">
         <div className="receipt-content">
-          <h2 className="receipt-header">{order.cafeId.name}</h2>
+          <h2 className="receipt-header">Cafe {cafe}</h2>
           <div className="receipt-meta">
             <p>Order ID: {order._id}</p>
             <p>Table No: {order.tableNumber || "N/A"}</p>
@@ -85,7 +87,7 @@ export default function Receipt({ order, onClose }) {
         </div>
       </div>
 
-      <style jsx>{`
+      <style>{`
         /* Base styles for screen display */
         .receipt-overlay {
           position: fixed;
