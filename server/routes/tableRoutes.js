@@ -168,6 +168,14 @@ router.post(
         io.to(`cafe-${resolvedCafeId}`).emit('tableError', { message: error.message, operation: 'create' });
       }
       
+      // Handle MongoDB duplicate key error
+      if (error.code === 11000) {
+        return res.status(400).json({
+          success: false,
+          message: `Table ${req.body.tableNumber} already exists in this cafe`
+        });
+      }
+      
       res.status(500).json({ 
         success: false,
         message: 'Server error', 
