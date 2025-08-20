@@ -284,37 +284,37 @@ const AnalyticsDashboard = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <MetricsCard
             title="Total Revenue"
-            value={formatCurrency(overview.totalRevenue)}
-            change={overview.revenueChange}
-            trend={overview.revenueChange >= 0 ? 'up' : 'down'}
+            value={formatCurrency(overview.payments?.totalRevenue || 0)}
+            change={overview.payments?.revenueChange || 0}
+            trend={(overview.payments?.revenueChange || 0) >= 0 ? 'up' : 'down'}
             icon="💰"
             color="green"
           />
           <MetricsCard
             title="Total Orders"
-            value={overview.totalOrders}
-            change={overview.ordersChange}
-            trend={overview.ordersChange >= 0 ? 'up' : 'down'}
+            value={overview.totalOrders || 0}
+            change={overview.ordersChange || 0}
+            trend={(overview.ordersChange || 0) >= 0 ? 'up' : 'down'}
             icon="📋"
             color="blue"
           />
           <MetricsCard
             title="Average Order Value"
-            value={formatCurrency(overview.averageOrderValue)}
-            change={overview.aovChange}
-            trend={overview.aovChange >= 0 ? 'up' : 'down'}
+            value={formatCurrency((overview.payments?.totalRevenue || 0) / (overview.totalOrders || 1))}
+            change={overview.aovChange || 0}
+            trend={(overview.aovChange || 0) >= 0 ? 'up' : 'down'}
             icon="💵"
             color="purple"
           />
           <MetricsCard
-            title={hasFeature('advancedAnalytics') ? "QR Code Scans" : "Active Tables"}
-            value={hasFeature('advancedAnalytics') ? overview.qrScans : overview.activeTables}
-            change={hasFeature('advancedAnalytics') ? overview.qrScansChange : overview.activeTablesChange}
+            title={hasFeature('advancedAnalytics') ? "Completed Payments" : "Active Tables"}
+            value={hasFeature('advancedAnalytics') ? (overview.payments?.completed || 0) : (overview.tables?.Occupied || 0)}
+            change={hasFeature('advancedAnalytics') ? (overview.payments?.completedChange || 0) : (overview.tables?.change || 0)}
             trend={hasFeature('advancedAnalytics') ? 
-              (overview.qrScansChange >= 0 ? 'up' : 'down') : 
-              (overview.activeTablesChange >= 0 ? 'up' : 'down')
+              ((overview.payments?.completedChange || 0) >= 0 ? 'up' : 'down') : 
+              ((overview.tables?.change || 0) >= 0 ? 'up' : 'down')
             }
-            icon={hasFeature('advancedAnalytics') ? "📱" : "🪑"}
+            icon={hasFeature('advancedAnalytics') ? "✅" : "🪑"}
             color="orange"
           />
         </div>

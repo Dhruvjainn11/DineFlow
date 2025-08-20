@@ -29,7 +29,7 @@ export class AnalyticsService {
 
   // Get dashboard overview data
   async getDashboardOverview(dateRange = 7) {
-    return this.apiCall(`/analytics/overview?days=${dateRange}`);
+    return this.apiCall(`/analytics/summary?days=${dateRange}`);
   }
 
   // Get sales analytics
@@ -109,8 +109,8 @@ export const calculatePercentageChange = (current, previous) => {
 };
 
 // Format currency
-export const formatCurrency = (amount, currency = 'USD') => {
-  return new Intl.NumberFormat('en-US', {
+export const formatCurrency = (amount, currency = 'INR') => {
+  return new Intl.NumberFormat('en-IN', {
     style: 'currency',
     currency: currency
   }).format(amount);
