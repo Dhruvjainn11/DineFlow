@@ -293,10 +293,26 @@ const CreateCafeModal = ({ isOpen, onClose, onCafeCreated }) => {
           onCafeCreated();
         }
         
-        // Refresh theme after a short delay to ensure user context is updated
-        setTimeout(() => {
-          console.log('🔄 Refreshing theme after cafe creation');
-          refreshTheme();
+        // Auto-login as the new cafe admin to apply theme
+        setTimeout(async () => {
+          console.log('🔄 Auto-login as new cafe admin');
+          try {
+            const loginResponse = await api.post('/auth/login', {
+              username: formData.adminUser.username.trim(),
+              password: formData.adminUser.password.trim()
+            });
+            
+            if (loginResponse.data.success) {
+              // Store new token
+              localStorage.setItem('token', loginResponse.data.token);
+              // Reload page to apply new user context and theme
+              window.location.reload();
+            }
+          } catch (error) {
+            console.error('Auto-login failed:', error);
+            // Fallback: just refresh theme
+            refreshTheme();
+          }
         }, 500);
       } else {
         toast.error(response.data.message || 'Failed to create cafe');
