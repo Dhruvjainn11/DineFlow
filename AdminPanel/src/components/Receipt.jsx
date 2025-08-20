@@ -30,15 +30,22 @@ export default function Receipt({ order, onClose }) {
               </tr>
             </thead>
             <tbody>
-              {order.items.map(({ menuItem, quantity }) => (
-                <tr key={menuItem._id}>
-                  <td className="item-col">{menuItem.name}</td>
-                  <td className="qty-col">{quantity}</td>
-                  <td className="price-col">
-                    ₹{(menuItem.price * quantity).toFixed(2)}
-                  </td>
-                </tr>
-              ))}
+              {order.items.map((item, index) => {
+                const { menuItem, quantity, itemPrice, size } = item;
+                const actualPrice = itemPrice || menuItem?.price || 0;
+                return (
+                  <tr key={menuItem?._id || index}>
+                    <td className="item-col">
+                      {menuItem?.name || 'Unknown Item'}
+                      {size?.label && <div style={{fontSize: '11px', color: '#666'}}>({size.label})</div>}
+                    </td>
+                    <td className="qty-col">{quantity}</td>
+                    <td className="price-col">
+                      ₹{(actualPrice * quantity).toFixed(2)}
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
             <tfoot>
               <tr>

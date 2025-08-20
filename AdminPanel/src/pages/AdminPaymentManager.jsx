@@ -77,20 +77,29 @@ export default function AdminPaymentManager() {
     };
 
     const handleNewOrder = (newOrder) => {
-      // New orders should be visible on payment page until paid
+      fetchAllRelevantOrders();
+    };
+
+    const handleOrderStatusUpdated = (updatedOrder) => {
       fetchAllRelevantOrders();
     };
 
     socket.on("paymentRequested", handlePaymentRequested);
     socket.on("paymentRequestedBulk", handlePaymentRequestedBulk);
     socket.on("paymentCompleted", handlePaymentCompleted);
+    socket.on("paymentCompletedBulk", fetchAllRelevantOrders);
     socket.on("newOrder", handleNewOrder);
+    socket.on("orderStatusUpdated", handleOrderStatusUpdated);
+    socket.on("orderCompleted", handleOrderStatusUpdated);
 
     return () => {
       socket.off("paymentRequested", handlePaymentRequested);
       socket.off("paymentRequestedBulk", handlePaymentRequestedBulk);
       socket.off("paymentCompleted", handlePaymentCompleted);
+      socket.off("paymentCompletedBulk", fetchAllRelevantOrders);
       socket.off("newOrder", handleNewOrder);
+      socket.off("orderStatusUpdated", handleOrderStatusUpdated);
+      socket.off("orderCompleted", handleOrderStatusUpdated);
     };
   }, []);
 
@@ -137,6 +146,8 @@ export default function AdminPaymentManager() {
         order.items.map(item => ({
           menuItem: item.menuItem,
           quantity: item.quantity,
+          itemPrice: item.size?.price || item.itemPrice || item.menuItem?.price || 0,
+          size: item.size
         }))
       );
 
