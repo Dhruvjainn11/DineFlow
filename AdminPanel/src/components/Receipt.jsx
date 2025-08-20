@@ -14,10 +14,10 @@ export default function Receipt({ order, onClose }) {
       <div className="receipt-overlay" onClick={onClose} />
       <div className="receipt-container" id="receipt-to-print">
         <div className="receipt-content">
-          <h2 className="receipt-header">Cafe XYZ</h2>
+          <h2 className="receipt-header">{order.cafeId.name}</h2>
           <div className="receipt-meta">
             <p>Order ID: {order._id}</p>
-            <p>Table No: {order.tableNumber?.tableNumber || "N/A"}</p>
+            <p>Table No: {order.tableNumber || "N/A"}</p>
             <p>Date: {new Date(order.createdAt).toLocaleString()}</p>
           </div>
 
