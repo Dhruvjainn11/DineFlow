@@ -2,7 +2,7 @@
 import express from "express";
 import { protect, allowRoles } from "../middleware/authMiddleware.js";
 import { requireAdvancedAnalytics } from '../middleware/featureMiddleware.js';
-import { validateQueryPagination, handleValidationErrors } from '../middleware/validationMiddleware.js';
+// import { validateQueryPagination, handleValidationErrors } from '../middleware/validationMiddleware.js';
 import Order from "../models/Order.js";
 import Table from "../models/Table.js";
 import Cafe from "../models/Cafe.js";
@@ -78,7 +78,7 @@ router.get("/debug", protect, allowRoles("admin", "super-admin"), async (req, re
  * @route   GET /api/analytics/summary
  * @access  Private (admin/super-admin only)
  */
-router.get("/summary", protect, allowRoles("admin", "super-admin"), validateQueryPagination, handleValidationErrors, async (req, res) => {
+router.get("/summary", protect, allowRoles("admin", "super-admin"), async (req, res) => {
   try {
     // Get user's cafeId (null for super admin)
     let cafeId;
@@ -119,17 +119,19 @@ router.get("/summary", protect, allowRoles("admin", "super-admin"), validateQuer
     ]);
     const completedRevenue = completedRevenueAgg[0]?.total || 0;
 
-    // Get 7-day daily statistics
-    const sevenDaysAgo = new Date();
-    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-    sevenDaysAgo.setHours(0, 0, 0, 0);
+    // Get daily statistics based on plan (Basic: 7 days, Pro: 30 days)
+    const isProPlan = req.user.cafeId?.subscription?.planType === 'pro' || req.user.role === 'super-admin';
+    const daysBack = isProPlan ? 30 : 7;
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() - daysBack);
+    startDate.setHours(0, 0, 0, 0);
 
-    // Get all orders from the last 7 days
+    // Get all orders from the specified period
     const dailyStats = await Order.aggregate([
       {
         $match: {
           ...cafeFilter,
-          createdAt: { $gte: sevenDaysAgo }
+          createdAt: { $gte: startDate }
         }
       },
       {
@@ -168,7 +170,7 @@ router.get("/summary", protect, allowRoles("admin", "super-admin"), validateQuer
     });
 
     const completeDailyStats = [];
-    for (let i = 6; i >= 0; i--) {
+    for (let i = daysBack - 1; i >= 0; i--) {
       const date = new Date();
       date.setDate(date.getDate() - i);
       date.setHours(0, 0, 0, 0);
@@ -212,6 +214,101 @@ router.get("/summary", protect, allowRoles("admin", "super-admin"), validateQuer
     ]);
 
     const todayData = todayStats[0] || { orders: 0, revenue: 0 };
+
+    // Pro-only features
+    let peakHours = [];
+    let popularItems = [];
+    let hourlyStats = [];
+    
+    if (isProPlan) {
+      // Peak hours analysis
+      const peakHoursData = await Order.aggregate([
+        {
+          $match: {
+            ...cafeFilter,
+            createdAt: { $gte: startDate }
+          }
+        },
+        {
+          $group: {
+            _id: { $hour: "$createdAt" },
+            orders: { $sum: 1 },
+            revenue: { $sum: "$totalPrice" }
+          }
+        },
+        { $sort: { orders: -1 } },
+        { $limit: 3 }
+      ]);
+      peakHours = peakHoursData;
+
+      // Popular items (Pro gets top 10, Basic gets top 5)
+      const popularItemsData = await Order.aggregate([
+        { $match: { ...cafeFilter, createdAt: { $gte: startDate } } },
+        { $unwind: "$items" },
+        {
+          $group: {
+            _id: "$items.menuItem",
+            totalOrdered: { $sum: "$items.quantity" },
+            totalRevenue: { $sum: { $multiply: ["$items.quantity", "$items.itemPrice"] } }
+          }
+        },
+        { $sort: { totalOrdered: -1 } },
+        { $limit: 10 },
+        {
+          $lookup: {
+            from: "menuitems",
+            localField: "_id",
+            foreignField: "_id",
+            as: "menuItem"
+          }
+        }
+      ]);
+      popularItems = popularItemsData;
+
+      // Hourly stats for the week
+      const weekAgo = new Date();
+      weekAgo.setDate(weekAgo.getDate() - 7);
+      const hourlyStatsData = await Order.aggregate([
+        {
+          $match: {
+            ...cafeFilter,
+            createdAt: { $gte: weekAgo }
+          }
+        },
+        {
+          $group: {
+            _id: { $hour: "$createdAt" },
+            orders: { $sum: 1 },
+            revenue: { $sum: "$totalPrice" }
+          }
+        },
+        { $sort: { _id: 1 } }
+      ]);
+      hourlyStats = hourlyStatsData;
+    } else {
+      // Basic plan gets top 5 popular items only
+      const popularItemsData = await Order.aggregate([
+        { $match: { ...cafeFilter, createdAt: { $gte: startDate } } },
+        { $unwind: "$items" },
+        {
+          $group: {
+            _id: "$items.menuItem",
+            totalOrdered: { $sum: "$items.quantity" }
+          }
+        },
+        { $sort: { totalOrdered: -1 } },
+        { $limit: 5 },
+        {
+          $lookup: {
+            from: "menuitems",
+            localField: "_id",
+            foreignField: "_id",
+            as: "menuItem"
+          }
+        }
+      ]);
+      popularItems = popularItemsData;
+    }
 
     // Get all tables with their current orders
     const allTables = await Table.find(cafeFilter).populate({
@@ -269,6 +366,18 @@ router.get("/summary", protect, allowRoles("admin", "super-admin"), validateQuer
         },
         dailyStats: completeDailyStats,
         todayStats: todayData,
+        planType: isProPlan ? 'pro' : 'basic',
+        daysBack,
+        // Pro-only features
+        ...(isProPlan && {
+          peakHours,
+          hourlyStats,
+          popularItems: popularItems.slice(0, 10)
+        }),
+        // Basic plan features
+        ...(!isProPlan && {
+          popularItems: popularItems.slice(0, 5)
+        })
       }
     });
   } catch (err) {

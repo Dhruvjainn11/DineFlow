@@ -14,6 +14,7 @@ import analyticsRoutes from './routes/analyticsRoutes.js';
 import cafeRoutes from './routes/cafeRoutes.js';
 import paymentRoutes from './routes/paymentRoutes.js';
 import superAdminRoutes from './routes/superAdminRoutes.js';
+import themeRoutes from './routes/themeRoutes.js';
 dotenv.config();
 
 const app = express();
@@ -66,6 +67,7 @@ app.use('/api/analytics', analyticsRoutes);
 app.use('/api/cafes', cafeRoutes);
 app.use('/api/payments', paymentRoutes);
 app.use('/api/super-admin', superAdminRoutes);
+app.use('/api/theme', themeRoutes);
 app.use('/api/public', (await import('./routes/publicRoutes.js')).default);
 app.use('/api/health', (await import('./routes/healthRoutes.js')).default);
 
