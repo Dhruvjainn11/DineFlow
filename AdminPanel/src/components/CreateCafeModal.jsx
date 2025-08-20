@@ -2,8 +2,10 @@ import React, { useState, useEffect, useRef } from 'react';
 import { XMarkIcon } from '@heroicons/react/24/outline';
 import api from '../utils/api';
 import { toast } from 'react-toastify';
+import { useTheme } from '../context/ThemeContext';
 
 const CreateCafeModal = ({ isOpen, onClose, onCafeCreated }) => {
+  const { refreshTheme } = useTheme();
   // Initialize with default values to prevent controlled/uncontrolled warnings
   const [formData, setFormData] = useState({
     name: '',
@@ -283,6 +285,10 @@ const CreateCafeModal = ({ isOpen, onClose, onCafeCreated }) => {
       
       if (response.data.success) {
         toast.success('Cafe created successfully! 🎉');
+        
+        // Refresh theme to show new cafe's theme
+        refreshTheme();
+        
         onClose();
         
         // Call the callback to refresh the cafe list

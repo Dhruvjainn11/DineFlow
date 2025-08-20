@@ -136,6 +136,11 @@ export const ThemeProvider = ({ children }) => {
     }
   };
 
+  // Refresh theme (for external calls)
+  const refreshTheme = () => {
+    fetchCafeTheme();
+  };
+
   // Update theme (for Pro plan cafes)
   const updateTheme = async (newThemeData) => {
     if (!features.themeCustomization) {
@@ -252,7 +257,8 @@ export const ThemeProvider = ({ children }) => {
     getLogoUrl,
     resetTheme,
     getThemeClass,
-    applyTheme
+    applyTheme,
+    refreshTheme
   };
 
   return (
