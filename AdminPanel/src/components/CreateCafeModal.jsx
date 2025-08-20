@@ -286,15 +286,18 @@ const CreateCafeModal = ({ isOpen, onClose, onCafeCreated }) => {
       if (response.data.success) {
         toast.success('Cafe created successfully! 🎉');
         
-        // Refresh theme to show new cafe's theme
-        refreshTheme();
-        
         onClose();
         
         // Call the callback to refresh the cafe list
         if (onCafeCreated) {
           onCafeCreated();
         }
+        
+        // Refresh theme after a short delay to ensure user context is updated
+        setTimeout(() => {
+          console.log('🔄 Refreshing theme after cafe creation');
+          refreshTheme();
+        }, 500);
       } else {
         toast.error(response.data.message || 'Failed to create cafe');
       }
