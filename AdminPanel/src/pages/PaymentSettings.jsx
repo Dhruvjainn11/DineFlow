@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import RoleBasedLayout from "../layouts/RoleBasedLayout";
-import FeatureGate from '../components/Common/FeatureGate';
+// import FeatureGate from '../components/Common/FeatureGate';
 import api from '../utils/api';
 
 export default function PaymentSettings() {
@@ -350,9 +350,36 @@ export default function PaymentSettings() {
     );
   };
 
-  return (
-    <FeatureGate requiredFeature="onlinePayments">
+  // Check if user has Pro plan or is super admin
+  const hasPaymentAccess = user?.role === 'super-admin' || cafe?.subscription?.planType === 'pro';
+  
+  if (!hasPaymentAccess) {
+    return (
       <RoleBasedLayout>
+        <div className="p-6">
+          <div className="bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-lg p-6">
+            <div className="flex items-start">
+              <div className="flex-shrink-0">
+                <svg className="h-6 w-6 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                </svg>
+              </div>
+              <div className="ml-3">
+                <h3 className="text-lg font-medium text-blue-900">Pro Feature Required</h3>
+                <p className="mt-2 text-blue-700">Online payment settings are available with Pro plan. Upgrade to accept online payments through Razorpay, Stripe, and other gateways.</p>
+                <button className="mt-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700">
+                  Upgrade to Pro
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </RoleBasedLayout>
+    );
+  }
+
+  return (
+    <RoleBasedLayout>
         <div className="p-6 space-y-6">
           <div className="flex justify-between items-center">
             <div>
@@ -405,6 +432,5 @@ export default function PaymentSettings() {
           </div>
         </div>
       </RoleBasedLayout>
-    </FeatureGate>
   );
 }

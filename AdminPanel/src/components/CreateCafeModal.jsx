@@ -11,6 +11,11 @@ const CreateCafeModal = ({ isOpen, onClose, onCafeCreated }) => {
     phone: '',
     planType: 'basic',
     subdomain: '',
+    theme: {
+      primaryColor: '#3B82F6',
+      secondaryColor: '#F3F4F6',
+      fontFamily: 'Inter'
+    },
     address: {
       street: '',
       city: '',
@@ -42,6 +47,11 @@ const CreateCafeModal = ({ isOpen, onClose, onCafeCreated }) => {
         phone: '',
         planType: 'basic',
         subdomain: '',
+        theme: {
+          primaryColor: '#3B82F6',
+          secondaryColor: '#F3F4F6',
+          fontFamily: 'Inter'
+        },
         address: {
           street: '',
           city: '',
@@ -243,6 +253,11 @@ const CreateCafeModal = ({ isOpen, onClose, onCafeCreated }) => {
       // if (formData.planType === 'pro' && formData.subdomain?.trim()) {
       //   payload.subdomain = formData.subdomain.trim();
       // }
+
+      // Add theme
+      if (formData.theme) {
+        payload.theme = formData.theme;
+      }
 
       // Add admin user for Pro plan
       if (formData) {
@@ -483,6 +498,85 @@ const CreateCafeModal = ({ isOpen, onClose, onCafeCreated }) => {
                         {errors.planType}
                       </p>
                     )}
+                  </div>
+                  
+                  {/* Theme Selection */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Theme</label>
+                    <div className="grid grid-cols-3 gap-2 mb-3">
+                      {[
+                        { name: 'Blue', primary: '#3B82F6', secondary: '#F3F4F6' },
+                        { name: 'Green', primary: '#10B981', secondary: '#ECFDF5' },
+                        { name: 'Purple', primary: '#8B5CF6', secondary: '#F3E8FF' },
+                        { name: 'Red', primary: '#EF4444', secondary: '#FEF2F2' },
+                        { name: 'Amber', primary: '#F59E0B', secondary: '#FEF3C7' },
+                        { name: 'Gray', primary: '#6B7280', secondary: '#F9FAFB' }
+                      ].map((preset) => (
+                        <button
+                          key={preset.name}
+                          type="button"
+                          onClick={() => {
+                            handleInputChange('theme.primaryColor', preset.primary);
+                            handleInputChange('theme.secondaryColor', preset.secondary);
+                          }}
+                          className={`p-2 rounded border text-xs ${
+                            formData.theme?.primaryColor === preset.primary
+                              ? 'border-blue-500 bg-blue-50'
+                              : 'border-gray-200 hover:border-gray-300'
+                          }`}
+                        >
+                          <div className="flex items-center space-x-1 mb-1">
+                            <div
+                              className="w-3 h-3 rounded-full"
+                              style={{ backgroundColor: preset.primary }}
+                            />
+                            <div
+                              className="w-3 h-3 rounded-full"
+                              style={{ backgroundColor: preset.secondary }}
+                            />
+                          </div>
+                          <div>{preset.name}</div>
+                        </button>
+                      ))}
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-xs font-medium text-gray-700 mb-1">
+                          Primary Color
+                        </label>
+                        <div className="flex items-center space-x-2">
+                          <input
+                            type="color"
+                            value={formData.theme?.primaryColor || '#3B82F6'}
+                            onChange={(e) => handleInputChange('theme.primaryColor', e.target.value)}
+                            className="w-8 h-8 border border-gray-300 rounded cursor-pointer"
+                          />
+                          <input
+                            type="text"
+                            value={formData.theme?.primaryColor || '#3B82F6'}
+                            onChange={(e) => handleInputChange('theme.primaryColor', e.target.value)}
+                            className="flex-1 px-2 py-1 border border-gray-300 rounded text-xs"
+                          />
+                        </div>
+                      </div>
+                      
+                      <div>
+                        <label className="block text-xs font-medium text-gray-700 mb-1">
+                          Font
+                        </label>
+                        <select
+                          value={formData.theme?.fontFamily || 'Inter'}
+                          onChange={(e) => handleInputChange('theme.fontFamily', e.target.value)}
+                          className="w-full px-2 py-1 border border-gray-300 rounded text-xs"
+                        >
+                          <option value="Inter">Inter</option>
+                          <option value="Roboto">Roboto</option>
+                          <option value="Poppins">Poppins</option>
+                          <option value="Open Sans">Open Sans</option>
+                        </select>
+                      </div>
+                    </div>
                   </div>
 
                   {/* Subdomain for Pro Plan */}

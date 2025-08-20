@@ -3,7 +3,7 @@ import RoleBasedLayout from "../layouts/RoleBasedLayout";
 import api from "../utils/api";
 import { socket } from "../utils/socket";
 import Receipt from "../components/Receipt"; // Import your Receipt component
-import { useAuth } from "../context/AuthContext";
+// import { useAuth } from "../context/AuthContext";
 
 export default function AdminPaymentManager() {
   const [orders, setOrders] = useState([]);
@@ -69,23 +69,23 @@ export default function AdminPaymentManager() {
       console.log("✅ Connected to Socket:", socket.id);
     });
 
-    const handlePaymentRequested = (updatedOrder) => {
+    const handlePaymentRequested = () => {
       fetchAllRelevantOrders();
     };
 
-    const handlePaymentRequestedBulk = ({ tableId, orders }) => {
+    const handlePaymentRequestedBulk = () => {
       fetchAllRelevantOrders();
     };
 
-    const handlePaymentCompleted = (updatedOrder) => {
+    const handlePaymentCompleted = () => {
       fetchAllRelevantOrders();
     };
 
-    const handleNewOrder = (newOrder) => {
+    const handleNewOrder = () => {
       fetchAllRelevantOrders();
     };
 
-    const handleOrderStatusUpdated = (updatedOrder) => {
+    const handleOrderStatusUpdated = () => {
       fetchAllRelevantOrders();
     };
 

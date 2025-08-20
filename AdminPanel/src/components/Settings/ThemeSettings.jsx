@@ -1,5 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useTheme } from '../../context/ThemeContext';
+import ThemePresets from './ThemePresets';
+import { validateTheme, checkAccessibility } from '../../utils/themeValidation';
 
 const ThemeSettings = () => {
   const { theme, features, cafeInfo, updateTheme, hasFeature } = useTheme();
@@ -11,6 +13,8 @@ const ThemeSettings = () => {
   });
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
+  const [validationErrors, setValidationErrors] = useState({});
+  const [accessibilityWarnings, setAccessibilityWarnings] = useState([]);
 
   // Available font families
   const fontOptions = [
@@ -62,11 +66,28 @@ const ThemeSettings = () => {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
+    const newFormData = {
+      ...formData,
       [name]: value
-    }));
+    };
+    setFormData(newFormData);
+    
+    if (validationErrors[name]) {
+      setValidationErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors[name];
+        return newErrors;
+      });
+    }
   };
+  
+  useEffect(() => {
+    const validation = validateTheme(formData);
+    setValidationErrors(validation.errors);
+    
+    const warnings = checkAccessibility(formData);
+    setAccessibilityWarnings(warnings);
+  }, [formData]);
 
   const handleLogoUpload = (e) => {
     const file = e.target.files[0];
@@ -85,6 +106,16 @@ const ThemeSettings = () => {
   };
 
   const handleSave = async () => {
+    const validation = validateTheme(formData);
+    if (!validation.isValid) {
+      setValidationErrors(validation.errors);
+      setMessage({
+        type: 'error',
+        text: 'Please fix the validation errors before saving'
+      });
+      return;
+    }
+
     setIsLoading(true);
     setMessage({ type: '', text: '' });
 
@@ -118,8 +149,24 @@ const ThemeSettings = () => {
     fontFamily: formData.fontFamily
   };
 
+  const handlePresetSelect = (preset) => {
+    setFormData({
+      primaryColor: preset.primaryColor,
+      secondaryColor: preset.secondaryColor,
+      logoUrl: formData.logoUrl, // Keep existing logo
+      fontFamily: preset.fontFamily
+    });
+    setMessage({ type: '', text: '' });
+  };
+
   return (
     <div className="space-y-6">
+      {/* Theme Presets */}
+      <ThemePresets 
+        onPresetSelect={handlePresetSelect}
+        currentTheme={formData}
+      />
+      
       {/* Header */}
       <div className="bg-white rounded-lg shadow p-6">
         <div className="flex items-center justify-between">

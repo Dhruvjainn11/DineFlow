@@ -14,7 +14,9 @@ export default function KitchenDashboard() {
 
     const fetchOrders = async () => {
       const res = await getOrders();
-      setOrders(res);
+      console.log(res.data);
+      
+      setOrders(res.data.filter((o) => o.status !== "Completed"));
     };
 
     fetchOrders();

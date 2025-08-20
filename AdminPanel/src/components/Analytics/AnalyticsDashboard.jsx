@@ -47,8 +47,8 @@ const AnalyticsDashboard = () => {
       { value: 90, label: 'Last 3 Months' }
     ];
     
-    return hasFeature('thirtyDayAnalytics') ? proRanges : basicRanges;
-  }, [hasFeature]);
+    return overview?.planType === 'pro' ? proRanges : basicRanges;
+  }, [overview?.planType]);
 
   // Available tabs based on plan
   const availableTabs = useMemo(() => {
@@ -64,8 +64,8 @@ const AnalyticsDashboard = () => {
       { id: 'qr-codes', label: 'QR Codes', icon: '📱' }
     ];
     
-    return hasFeature('advancedAnalytics') ? proTabs : basicTabs;
-  }, [hasFeature]);
+    return overview?.planType === 'pro' ? proTabs : basicTabs;
+  }, [overview?.planType]);
 
   // Load analytics data
   useEffect(() => {
@@ -80,6 +80,16 @@ const AnalyticsDashboard = () => {
       // Load overview data (available to all plans)
       const overviewData = await analyticsService.getDashboardOverview(dateRange);
       setOverview(overviewData.data);
+      
+      // Set popular items from overview if available
+      if (overviewData.data.popularItems) {
+        setPopularItems(overviewData.data.popularItems);
+      }
+      
+      // Set peak hours from overview if available (Pro only)
+      if (overviewData.data.peakHours) {
+        setPeakHours(overviewData.data.peakHours);
+      }
 
       // Load sales data
       const sales = await analyticsService.getSalesAnalytics(dateRange);
@@ -89,10 +99,7 @@ const AnalyticsDashboard = () => {
       const orders = await analyticsService.getOrderAnalytics(dateRange);
       setOrderData(orders.data);
 
-      // Load popular items (Basic: 5 items, Pro: 20 items)
-      const itemLimit = hasFeature('advancedAnalytics') ? 20 : 5;
-      const items = await analyticsService.getPopularItems(dateRange, itemLimit);
-      setPopularItems(items.data);
+      // Popular items are now loaded from overview data above
 
       // Pro-only features
       if (hasFeature('advancedAnalytics')) {
@@ -163,11 +170,11 @@ const AnalyticsDashboard = () => {
             {/* Plan indicator */}
             <div className="flex items-center space-x-2">
               <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                hasFeature('advancedAnalytics') 
+                overview?.planType === 'pro'
                   ? 'bg-purple-100 text-purple-800' 
                   : 'bg-blue-100 text-blue-800'
               }`}>
-                {hasFeature('advancedAnalytics') ? 'Advanced Analytics' : 'Basic Analytics'}
+                {overview?.planType === 'pro' ? 'Pro Analytics' : 'Basic Analytics'}
               </span>
             </div>
 
@@ -194,30 +201,20 @@ const AnalyticsDashboard = () => {
                 {refreshing ? '↻' : '🔄'} Refresh
               </button>
               
-              <FeatureToggle feature="advancedAnalytics">
+              {overview?.planType === 'pro' && (
                 <button
                   onClick={handleExport}
                   className="px-3 py-2 text-sm font-medium text-white bg-primary border border-transparent rounded-md hover:bg-primary/90"
                 >
                   📊 Export
                 </button>
-              </FeatureToggle>
+              )}
             </div>
           </div>
         </div>
 
-        {/* Pro features info */}
-        <FeatureToggle 
-          feature="advancedAnalytics"
-          fallback={
-            <div className="mt-4">
-              <FeatureGate 
-                feature="advancedAnalytics" 
-                upgradeMessage="Upgrade to Pro for advanced analytics including peak hours, table performance, QR scan tracking, and 30-day historical data"
-              />
-            </div>
-          }
-        >
+        {/* Plan info */}
+        {overview?.planType === 'pro' ? (
           <div className="mt-4 bg-gradient-to-r from-purple-50 to-blue-50 border border-purple-200 rounded-lg p-4">
             <div className="flex items-center space-x-3">
               <div className="flex-shrink-0">
@@ -226,14 +223,30 @@ const AnalyticsDashboard = () => {
                 </svg>
               </div>
               <div>
-                <h4 className="text-sm font-medium text-purple-900">Advanced Analytics Active</h4>
+                <h4 className="text-sm font-medium text-purple-900">Pro Analytics Active</h4>
                 <p className="text-xs text-purple-700 mt-1">
-                  30-day history • Peak hours • Table performance • QR analytics • Export data
+                  30-day history • Peak hours • Popular items • Hourly patterns • Export data
                 </p>
               </div>
             </div>
           </div>
-        </FeatureToggle>
+        ) : (
+          <div className="mt-4 bg-gradient-to-r from-blue-50 to-gray-50 border border-blue-200 rounded-lg p-4">
+            <div className="flex items-center space-x-3">
+              <div className="flex-shrink-0">
+                <svg className="h-6 w-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                </svg>
+              </div>
+              <div>
+                <h4 className="text-sm font-medium text-blue-900">Basic Analytics</h4>
+                <p className="text-xs text-blue-700 mt-1">
+                  7-day history • Basic metrics • Top 5 items
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Error display */}
@@ -255,8 +268,8 @@ const AnalyticsDashboard = () => {
         </div>
       )}
 
-      {/* Tab navigation for Pro users */}
-      <FeatureToggle feature="advancedAnalytics">
+      {/* Tab navigation */}
+      {availableTabs.length > 1 && (
         <div className="bg-white rounded-lg shadow">
           <div className="border-b border-gray-200">
             <nav className="-mb-px flex space-x-8 px-6">
@@ -277,7 +290,7 @@ const AnalyticsDashboard = () => {
             </nav>
           </div>
         </div>
-      </FeatureToggle>
+      )}
 
       {/* Overview Metrics - Always visible */}
       {overview && (
@@ -336,46 +349,87 @@ const AnalyticsDashboard = () => {
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-semibold text-gray-900">Popular Items</h3>
               <span className="text-sm text-gray-500">
-                Top {hasFeature('advancedAnalytics') ? '20' : '5'}
+                Top {overview?.planType === 'pro' ? '10' : '5'}
               </span>
             </div>
             <PopularItems items={popularItems} />
+            {overview?.planType === 'basic' && (
+              <div className="mt-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                <p className="text-sm text-blue-700">
+                  📈 Upgrade to Pro for top 10 items, revenue tracking, and hourly analysis
+                </p>
+              </div>
+            )}
           </div>
         </div>
       )}
 
+      {/* Pro-only features in overview */}
+      {overview?.planType === 'pro' && overview?.peakHours && (
+        <div className="bg-white rounded-lg shadow p-6">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Peak Hours (Last 30 Days)</h3>
+          <PeakHoursChart data={overview.peakHours} />
+        </div>
+      )}
+      
+      {overview?.planType === 'pro' && overview?.hourlyStats && (
+        <div className="bg-white rounded-lg shadow p-6">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Hourly Order Pattern (Last Week)</h3>
+          <div className="grid grid-cols-24 gap-1 h-32">
+            {Array.from({ length: 24 }, (_, hour) => {
+              const hourData = overview.hourlyStats.find(h => h._id === hour);
+              const orders = hourData?.orders || 0;
+              const maxOrders = Math.max(...overview.hourlyStats.map(h => h.orders));
+              const height = maxOrders > 0 ? (orders / maxOrders) * 100 : 0;
+              
+              return (
+                <div key={hour} className="flex flex-col items-center">
+                  <div className="flex-1 flex items-end">
+                    <div 
+                      className="w-full bg-gradient-to-t from-blue-400 to-blue-600 rounded-t-sm"
+                      style={{ height: `${height}%` }}
+                      title={`${hour}:00 - ${orders} orders`}
+                    ></div>
+                  </div>
+                  {hour % 6 === 0 && (
+                    <div className="text-xs text-gray-500 mt-1">
+                      {hour === 0 ? '12AM' : hour < 12 ? `${hour}AM` : hour === 12 ? '12PM' : `${hour-12}PM`}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+      
       {/* Pro-only tabs */}
-      <FeatureToggle feature="advancedAnalytics">
-        {activeTab === 'sales' && salesData && (
-          <div className="space-y-6">
-            <div className="bg-white rounded-lg shadow p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Detailed Sales Analysis</h3>
-              <SalesChart data={salesData} dateRange={dateRange} detailed={true} />
-            </div>
-            
-            {peakHours.length > 0 && (
+      {overview?.planType === 'pro' && (
+        <>
+          {activeTab === 'sales' && salesData && (
+            <div className="space-y-6">
               <div className="bg-white rounded-lg shadow p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Peak Hours</h3>
-                <PeakHoursChart data={peakHours} />
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Detailed Sales Analysis</h3>
+                <SalesChart data={salesData} dateRange={dateRange} detailed={true} />
               </div>
-            )}
-          </div>
-        )}
+            </div>
+          )}
 
-        {activeTab === 'tables' && (
-          <div className="bg-white rounded-lg shadow p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Table Performance</h3>
-            <TableAnalytics data={tableAnalytics} />
-          </div>
-        )}
+          {activeTab === 'tables' && (
+            <div className="bg-white rounded-lg shadow p-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Table Performance</h3>
+              <TableAnalytics data={tableAnalytics} />
+            </div>
+          )}
 
-        {activeTab === 'qr-codes' && (
-          <div className="bg-white rounded-lg shadow p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">QR Code Analytics</h3>
-            <QRAnalytics data={qrAnalytics} />
-          </div>
-        )}
-      </FeatureToggle>
+          {activeTab === 'qr-codes' && (
+            <div className="bg-white rounded-lg shadow p-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">QR Code Analytics</h3>
+              <QRAnalytics data={qrAnalytics} />
+            </div>
+          )}
+        </>
+      )}
     </div>
   );
 };

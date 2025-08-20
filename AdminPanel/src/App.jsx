@@ -16,6 +16,7 @@ import SuperAdminAnalyticsDashboard from "./pages/SuperAdminAnalyticsDashboard";
 import SuperAdminSystemSettings from "./pages/SuperAdminSystemSettings";
 import ProtectedRoute from "./components/ProtectedRoute";
 import PaymentSettings from "./pages/PaymentSettings";
+import Settings from "./pages/Settings";
 import { AuthProvider } from "./context/AuthContext";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -46,6 +47,7 @@ function AppContent() {
     <Route path="analytics" element={<Analytics />} />
     <Route path="payment" element={<AdminPaymentManager />} />
     <Route path="payment-settings" element={<PaymentSettings />} />
+    <Route path="settings" element={<Settings />} />
     <Route path="kitchen/dashboard" element={<KitchenDashboard />} /> 
   </Route>
 
