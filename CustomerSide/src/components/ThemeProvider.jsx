@@ -16,6 +16,7 @@ const ThemeProvider = ({ children }) => {
   }, [cafeInfo]);
 
   const applyTheme = (theme, cafe) => {
+    console.log('🎨 Customer applyTheme called with:', theme);
     const root = document.documentElement;
     
     // Apply primary color and variations
@@ -24,6 +25,11 @@ const ThemeProvider = ({ children }) => {
       root.style.setProperty('--theme-primary', theme.primaryColor);
       root.style.setProperty('--theme-primary-dark', adjustBrightness(theme.primaryColor, -20));
       root.style.setProperty('--theme-primary-light', adjustBrightness(theme.primaryColor, 20));
+      
+      console.log('✅ Customer CSS Variables set:', {
+        '--theme-primary': theme.primaryColor,
+        '--theme-primary-dark': adjustBrightness(theme.primaryColor, -20)
+      });
       
       if (primaryRgb) {
         root.style.setProperty('--theme-primary-rgb', `${primaryRgb.r}, ${primaryRgb.g}, ${primaryRgb.b}`);
@@ -46,6 +52,11 @@ const ThemeProvider = ({ children }) => {
       root.style.setProperty('--theme-font-family', theme.fontFamily);
       document.body.style.fontFamily = `${theme.fontFamily}, system-ui, -apple-system, sans-serif`;
     }
+    
+    console.log('🔧 Final CSS check:', {
+      '--theme-primary': getComputedStyle(root).getPropertyValue('--theme-primary'),
+      '--theme-secondary': getComputedStyle(root).getPropertyValue('--theme-secondary')
+    });
     
     // Update page title and favicon for white-label
     if (cafe?.features?.whiteLabel && cafe.name) {
