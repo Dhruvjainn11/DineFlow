@@ -2,6 +2,7 @@ import { createContext, useContext, useState, useEffect } from "react";
 import React from "react";
 import { jwtDecode } from "jwt-decode";
 import api from "../utils/api";
+import { socket } from "../utils/socket";
 
 const AuthContext = createContext();
 
@@ -50,6 +51,8 @@ export const AuthProvider = ({ children }) => {
       
       if (response.data.success) {
         setCafe(response.data.data);
+        // Join cafe room for real-time updates
+        socket.emit('joinCafeRoom', cafeId);
       } else {
         console.error('Cafe data fetch failed:', response.data.message);
       }
@@ -112,6 +115,11 @@ export const AuthProvider = ({ children }) => {
   };
 
   const logout = () => {
+    // Leave cafe room before logout
+    if (cafe?._id) {
+      socket.emit('leaveCafeRoom', cafe._id);
+    }
+    
     localStorage.removeItem("token");
     setToken(null);
     setUser(null);

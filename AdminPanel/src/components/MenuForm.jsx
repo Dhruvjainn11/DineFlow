@@ -78,7 +78,7 @@ const submitHandler = async (data) => {
     reset();
   } catch (err) {
     console.error("Error:", err);
-    alert(err.response?.data?.message || "Failed to create menu item");
+    // Error is already handled by the service with toast
   }
 };
   const handleBackdropClick = (e) => {

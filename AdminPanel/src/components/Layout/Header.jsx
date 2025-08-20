@@ -1,6 +1,8 @@
 import React from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
+import RealtimeStatusIndicator from '../RealtimeStatusIndicator';
+import NotificationCenter from '../NotificationCenter';
 
 const Header = ({ title = 'Dashboard', subtitle = '' }) => {
   const { user, logout } = useAuth();
@@ -65,6 +67,10 @@ const Header = ({ title = 'Dashboard', subtitle = '' }) => {
 
           {/* Right side - User info and actions */}
           <div className="flex items-center space-x-4">
+            {/* Real-time Status */}
+            <div className="hidden sm:block">
+              <RealtimeStatusIndicator />
+            </div>
             {/* Plan Badge */}
             <div className="hidden sm:flex items-center">
               {cafeInfo?.plan && (
@@ -78,15 +84,8 @@ const Header = ({ title = 'Dashboard', subtitle = '' }) => {
               )}
             </div>
 
-            {/* Notification Bell - Pro feature */}
-            {hasFeature('prioritySupport') && (
-              <button className="relative p-2 text-gray-400 hover:text-gray-500 transition-colors">
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 17h5l-5 5v-5zM21 3L9 15l-6-6-3 3 9 9 15-15z" />
-                </svg>
-                <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
-              </button>
-            )}
+            {/* Notification Center */}
+            <NotificationCenter />
 
             {/* User Dropdown */}
             <div className="relative inline-block text-left group">

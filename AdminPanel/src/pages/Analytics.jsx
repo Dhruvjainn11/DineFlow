@@ -42,10 +42,16 @@ export default function Analytics() {
     const fetchAnalytics = async () => {
       try {
         const res = await api.get("/analytics/summary");
-        console.log(res.data.data);
-        setData(res.data.data);
+        console.log('Analytics response:', res.data);
+        if (res.data.success) {
+          setData(res.data.data);
+        } else {
+          console.error('Analytics API returned error:', res.data.message);
+          setData(null);
+        }
       } catch (err) {
-        console.error("Failed to fetch analytics:", err.message);
+        console.error("Failed to fetch analytics:", err);
+        setData(null);
       } finally {
         setLoading(false);
       }
@@ -82,17 +88,23 @@ export default function Analytics() {
     </RoleBasedLayout>
   );
 
-  const { totalOrders, payments, tables, dailyStats, todayStats } = data;
+  const { 
+    totalOrders = 0, 
+    payments = { pending: 0, requested: 0, completed: 0, totalRevenue: 0 }, 
+    tables = { Occupied: 0, Available: 0 }, 
+    dailyStats = [], 
+    todayStats = { orders: 0, revenue: 0 } 
+  } = data || {};
 
   const paymentData = [
-    { name: "Pending", value: payments.pending },
-    { name: "Requested", value: payments.requested },
-    { name: "Completed", value: payments.completed },
+    { name: "Pending", value: payments?.pending || 0 },
+    { name: "Requested", value: payments?.requested || 0 },
+    { name: "Completed", value: payments?.completed || 0 },
   ];
 
   const tableData = [
-    { name: "Occupied", value: tables.Occupied },
-    { name: "Available", value: tables.Available },
+    { name: "Occupied", value: tables?.Occupied || 0 },
+    { name: "Available", value: tables?.Available || 0 },
   ];
 
   // Format daily stats for charts

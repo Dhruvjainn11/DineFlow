@@ -7,6 +7,7 @@ import MenuItem from "../components/MenuItem";
 import CategoryForm from "../components/CategoryForm";
 import RoleBasedLayout from "../layouts/RoleBasedLayout";
 import { socket } from "../utils/socket";
+import { toast } from "react-toastify";
 import { Plus, Upload } from "lucide-react";
 
 const MenuManagement = () => {
@@ -18,6 +19,7 @@ const MenuManagement = () => {
   useEffect(() => {
     fetchMenus();
 
+    // Real-time updates for menu state
     socket.on("menuCreated", (newItem) => {
       setMenus((prev) => [...prev, newItem]);
     });

@@ -15,13 +15,14 @@ export default function CategoryForm({onClose }) {
   
   const create = async (data) => {
     try {
-        const response = await createCategory(data);
-        console.log("Category created successfully:", response);
-        onClose();
-        } catch (error) {
-        console.error("Error creating category:", error);
-        }
+      const response = await createCategory(data);
+      console.log("Category created successfully:", response);
+      onClose();
+    } catch (error) {
+      console.error("Error creating category:", error);
+      // Error is already handled by the service with toast
     }
+  }
 
   const submitHandler = async(data) => {
 create(data)

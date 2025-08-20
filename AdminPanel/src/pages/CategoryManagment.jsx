@@ -34,31 +34,28 @@ const [categoryToDelete, setCategoryToDelete] = useState(null);
       console.error("Error fetching categories:", err);
     });
   
-      // Real-time update
+      // Real-time state updates
       socket.on("category:created", (newCategory) => {
-         
         setCategories(prev => [...prev, newCategory]);
       });
 
-        // 🟢 Listen for real-time updated category
-  socket.on("category:updated", (updatedCategory) => {
-    setCategories((prev) =>
-      prev.map((cat) =>
-        cat._id === updatedCategory._id ? updatedCategory : cat
-      )
-    );
-  });
+      socket.on("category:updated", (updatedCategory) => {
+        setCategories((prev) =>
+          prev.map((cat) =>
+            cat._id === updatedCategory._id ? updatedCategory : cat
+          )
+        );
+      });
 
-  socket.on("category:deleted", (deletedId) => {
-  setCategories((prev) => prev.filter((cat) => cat._id !== deletedId));
-  toast.success("Category deleted");
-});
+      socket.on("category:deleted", (deletedId) => {
+        setCategories((prev) => prev.filter((cat) => cat._id !== deletedId));
+      });
       
       // Cleanup
       return () => {
         socket.off("category:created");
-          socket.off("category:updated");
-           socket.off("category:deleted");
+        socket.off("category:updated");
+        socket.off("category:deleted");
       };
     }, []);
 

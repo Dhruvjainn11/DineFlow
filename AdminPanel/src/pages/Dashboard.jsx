@@ -1,6 +1,7 @@
 import RoleBasedLayout from "../layouts/RoleBasedLayout";
 import React from "react";
 import { useAuth } from "../context/AuthContext";
+import RealtimeTestPanel from "../components/RealtimeTestPanel";
 
 const Dashboard = () => {
   const { isSuperAdmin } = useAuth();
@@ -21,6 +22,10 @@ const Dashboard = () => {
         
         {/* Dashboard content will be added here */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {/* Real-time Test Panel - for development/testing */}
+          {process.env.NODE_ENV === 'development' && (
+            <RealtimeTestPanel />
+          )}
           {/* Dashboard cards/widgets can be added here */}
         </div>
       </div>

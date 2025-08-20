@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from "react";
 import api from "../utils/api";
+import { socket } from "../utils/socket";
+import { toast } from "react-toastify";
 import { X, Plus, Upload, Download, Save, FileText } from "lucide-react";
 
 export default function BulkMenuForm({ onClose, onRefresh }) {
@@ -12,8 +14,10 @@ export default function BulkMenuForm({ onClose, onRefresh }) {
       category: "",
       imageUrl: "",
       ingredients: "",
+      sizeLabels: "",
+      sizePrices: "",
       sizes: [],
-      jain: false // Add jain field
+      jain: false
     }
   ]);
   const [loading, setLoading] = useState(false);
@@ -43,6 +47,8 @@ export default function BulkMenuForm({ onClose, onRefresh }) {
         category: "",
         imageUrl: "",
         ingredients: "",
+        sizeLabels: "",
+        sizePrices: "",
         sizes: [],
         jain: false
       }
@@ -87,44 +93,69 @@ export default function BulkMenuForm({ onClose, onRefresh }) {
     reader.onload = (e) => {
       const csv = e.target.result;
       const lines = csv.split('\n');
-      const headers = lines[0].split(',').map(h => h.trim());
+      
+      // Detect delimiter (tab or comma)
+      const firstLine = lines[0];
+      const delimiter = firstLine.includes('\t') ? '\t' : ',';
+      
+      const headers = firstLine.split(delimiter).map(h => h.trim());
       
       const parsedData = lines.slice(1).filter(line => line.trim()).map((line) => {
-        const values = line.split(',').map(v => v.trim());
+        // Handle CSV parsing with proper quote handling
+        const values = [];
+        let current = '';
+        let inQuotes = false;
+        
+        for (let i = 0; i < line.length; i++) {
+          const char = line[i];
+          if (char === '"') {
+            inQuotes = !inQuotes;
+          } else if (char === delimiter && !inQuotes) {
+            values.push(current.trim());
+            current = '';
+          } else {
+            current += char;
+          }
+        }
+        values.push(current.trim());
+        
         const item = {};
         
         headers.forEach((header, i) => {
           const value = values[i] || '';
-          switch (header.toLowerCase()) {
+          const cleanValue = value.replace(/^"|"$/g, '').trim();
+          switch (header.toLowerCase().trim()) {
             case 'name':
-              item.name = value;
+              item.name = cleanValue;
               break;
             case 'description':
-              item.description = value;
+              item.description = cleanValue;
               break;
             case 'price':
-              item.price = value;
+              item.price = cleanValue;
               break;
             case 'category':
-              item.category = value;
+              // Find category by name and use its ID
+              const foundCategory = categories.find(cat => cat.name.toLowerCase() === cleanValue.toLowerCase());
+              item.category = foundCategory ? foundCategory._id : cleanValue;
               break;
             case 'image url':
             case 'imageurl':
-              item.imageUrl = value;
+              item.imageUrl = cleanValue;
               break;
             case 'ingredients':
-              item.ingredients = value;
+              item.ingredients = cleanValue;
               break;
             case 'size labels':
             case 'sizelabels':
-              item.sizeLabels = value;
+              item.sizeLabels = cleanValue;
               break;
             case 'size prices':
             case 'sizeprices':
-              item.sizePrices = value;
+              item.sizePrices = cleanValue;
               break;
             case 'jain':
-              item.jain = value.toLowerCase() === 'true';
+              item.jain = cleanValue.toLowerCase() === 'true';
               break;
           }
         });
@@ -164,7 +195,9 @@ export default function BulkMenuForm({ onClose, onRefresh }) {
         category: item.category || "",
         imageUrl: item.imageUrl || "",
         ingredients: item.ingredients || "",
-        sizes: sizes,
+        sizeLabels: item.sizeLabels || "",
+        sizePrices: item.sizePrices || "",
+        sizes: [],
         jain: item.jain || false
       };
     });
@@ -178,33 +211,41 @@ export default function BulkMenuForm({ onClose, onRefresh }) {
     setLoading(true);
     try {
       const itemsToSubmit = menuItems.map(item => {
-        const ingredients = item.ingredients
+        const ingredients = item.ingredients && typeof item.ingredients === 'string'
           ? item.ingredients.split(',').map(i => i.trim()).filter(i => i)
           : [];
         
-        const sizes = item.sizes
-          .filter(size => size.label && size.price)
-          .map(size => ({
-            label: size.label,
-            price: parseFloat(size.price),
-            available: true
-          }));
+        let sizes = [];
+        if (item.sizeLabels && item.sizePrices) {
+          const labels = item.sizeLabels.split('|').map(l => l.trim());
+          const prices = item.sizePrices.split('|').map(p => p.trim());
+          
+          labels.forEach((label, index) => {
+            if (label && prices[index]) {
+              sizes.push({
+                label: label,
+                price: parseFloat(prices[index]),
+                available: true
+              });
+            }
+          });
+        }
 
         return {
           name: item.name,
           description: item.description,
           price: item.price ? parseFloat(item.price) : null,
           category: item.category,
-          imageUrl: item.imageUrl,
-          ingredients,
+          imageUrl: item.imageUrl || '',
+          ingredients: ingredients.join(','),
           sizes,
           available: true,
-          jain: item.jain || false // Add jain field
+          jain: item.jain || false
         };
       }).filter(item => item.name && item.category); // Only submit items with name and category
 
       if (itemsToSubmit.length === 0) {
-        alert("Please add at least one menu item with name and category");
+        toast.error("Please add at least one menu item with name and category");
         return;
       }
 
@@ -213,12 +254,12 @@ export default function BulkMenuForm({ onClose, onRefresh }) {
         await api.post("/menu", item);
       }
 
-      alert(`Successfully created ${itemsToSubmit.length} menu items!`);
+      toast.success(`Successfully created ${itemsToSubmit.length} menu items!`);
       onRefresh();
       onClose();
     } catch (err) {
       console.error("Failed to create menu items:", err);
-      alert("Failed to create menu items. Please check your data and try again.");
+      toast.error("Failed to create menu items. Please check your data and try again.");
     } finally {
       setLoading(false);
     }
@@ -227,7 +268,9 @@ export default function BulkMenuForm({ onClose, onRefresh }) {
   const downloadTemplate = () => {
     const template = [
       "Name,Description,Price,Category,Image URL,Ingredients,Size Labels,Size Prices,Jain",
-      "Example Item,Delicious example,10.99,Category ID,https://example.com/image.jpg,ingredient1,ingredient2,Small|Medium,5.99|8.99,true"
+      "Pizza Margherita,Classic pizza with tomato and mozzarella,12.99,Main Course,https://example.com/pizza.jpg,\"tomato sauce,mozzarella,basil\",Small|Medium|Large,8.99|12.99|16.99,false",
+      "Pasta Alfredo,Creamy pasta with parmesan cheese,14.50,Main Course,https://example.com/pasta.jpg,\"pasta,cream,parmesan,garlic\",Regular|Large,14.50|18.50,true",
+      "Caesar Salad,Fresh romaine lettuce with caesar dressing,8.99,Salads,,\"lettuce,croutons,parmesan,caesar dressing\",,8.99,true"
     ].join('\n');
     
     const blob = new Blob([template], { type: 'text/csv' });
@@ -368,186 +411,163 @@ export default function BulkMenuForm({ onClose, onRefresh }) {
           </div>
         )}
 
-        {/* Manual Form Section */}
-        <div className="p-6 space-y-6">
-          <div className="flex justify-between items-center">
-            <h3 className="text-lg font-semibold text-gray-900">Manual Entry</h3>
-            <p className="text-sm text-gray-500">Or manually add items below</p>
+        {/* Column-based Form Section */}
+        <div className="p-6">
+          <div className="flex justify-between items-center mb-6">
+            <h3 className="text-lg font-semibold text-gray-900">Bulk Menu Entry</h3>
+            <button
+              onClick={addMenuItem}
+              className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+            >
+              <Plus size={16} />
+              Add Row
+            </button>
           </div>
 
-          {menuItems.map((item, itemIndex) => (
-            <div key={itemIndex} className="border border-gray-200 rounded-lg p-6 bg-gray-50">
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-lg font-semibold text-gray-900">
-                  Menu Item #{itemIndex + 1}
-                </h3>
-                {menuItems.length > 1 && (
-                  <button
-                    onClick={() => removeMenuItem(itemIndex)}
-                    className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
-                  >
-                    <X size={16} />
-                  </button>
-                )}
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {/* Basic Info */}
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Name *
-                    </label>
-                    <input
-                      type="text"
-                      value={item.name}
-                      onChange={(e) => updateMenuItem(itemIndex, "name", e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent"
-                      placeholder="Item name"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Description
-                    </label>
-                    <textarea
-                      value={item.description}
-                      onChange={(e) => updateMenuItem(itemIndex, "description", e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent"
-                      rows={3}
-                      placeholder="Item description"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Base Price
-                    </label>
-                    <input
-                      type="number"
-                      step="0.01"
-                      value={item.price}
-                      onChange={(e) => updateMenuItem(itemIndex, "price", e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent"
-                      placeholder="0.00"
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Category *
-                    </label>
-                    <select
-                      value={item.category}
-                      onChange={(e) => updateMenuItem(itemIndex, "category", e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent"
-                    >
-                      <option value="">Select Category</option>
-                      {categories.map((cat) => (
-                        <option key={cat._id} value={cat._id}>
-                          {cat.name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Image URL
-                    </label>
-                    <input
-                      type="url"
-                      value={item.imageUrl}
-                      onChange={(e) => updateMenuItem(itemIndex, "imageUrl", e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent"
-                      placeholder="https://example.com/image.jpg"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Ingredients (comma-separated)
-                    </label>
-                    <input
-                      type="text"
-                      value={item.ingredients}
-                      onChange={(e) => updateMenuItem(itemIndex, "ingredients", e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent"
-                      placeholder="ingredient1, ingredient2, ingredient3"
-                    />
-                  </div>
-
-                  <div className="flex items-center space-x-2">
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Jain Available
-                    </label>
-                    <input
-                      type="checkbox"
-                      checked={item.jain || false}
-                      onChange={(e) => updateMenuItem(itemIndex, "jain", e.target.checked)}
-                      className="h-5 w-5 text-green-600 border-gray-300 rounded focus:ring-green-500"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Sizes Section */}
-              <div className="mt-6">
-                <div className="flex justify-between items-center mb-3">
-                  <h4 className="text-md font-medium text-gray-900">Sizes (Optional)</h4>
-                  <button
-                    onClick={() => addSize(itemIndex)}
-                    className="flex items-center gap-1 px-3 py-1 bg-amber-100 text-amber-700 rounded-lg hover:bg-amber-200 transition-colors text-sm"
-                  >
-                    <Plus size={14} />
-                    Add Size
-                  </button>
-                </div>
-
-                {item.sizes.length > 0 && (
-                  <div className="space-y-3">
-                    {item.sizes.map((size, sizeIndex) => (
-                      <div key={sizeIndex} className="flex gap-3 items-center">
-                        <input
-                          type="text"
-                          value={size.label}
-                          onChange={(e) => updateSize(itemIndex, sizeIndex, "label", e.target.value)}
-                          className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent"
-                          placeholder="Size label (e.g., Small, Medium)"
-                        />
-                        <input
-                          type="number"
-                          step="0.01"
-                          value={size.price}
-                          onChange={(e) => updateSize(itemIndex, sizeIndex, "price", e.target.value)}
-                          className="w-24 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent"
-                          placeholder="Price"
-                        />
+          <div className="overflow-x-auto">
+            <table className="w-full border-collapse border border-gray-300">
+              <thead>
+                <tr className="bg-gray-50">
+                  <th className="border border-gray-300 px-3 py-2 text-left font-medium text-gray-700 min-w-[150px]">
+                    Name *
+                  </th>
+                  <th className="border border-gray-300 px-3 py-2 text-left font-medium text-gray-700 min-w-[200px]">
+                    Description
+                  </th>
+                  <th className="border border-gray-300 px-3 py-2 text-left font-medium text-gray-700 min-w-[100px]">
+                    Price
+                  </th>
+                  <th className="border border-gray-300 px-3 py-2 text-left font-medium text-gray-700 min-w-[150px]">
+                    Category *
+                  </th>
+                  <th className="border border-gray-300 px-3 py-2 text-left font-medium text-gray-700 min-w-[200px]">
+                    Ingredients
+                  </th>
+                  <th className="border border-gray-300 px-3 py-2 text-left font-medium text-gray-700 min-w-[200px]">
+                    Image URL
+                  </th>
+                  <th className="border border-gray-300 px-3 py-2 text-left font-medium text-gray-700 min-w-[150px]">
+                    Size Labels
+                  </th>
+                  <th className="border border-gray-300 px-3 py-2 text-left font-medium text-gray-700 min-w-[150px]">
+                    Size Prices
+                  </th>
+                  <th className="border border-gray-300 px-3 py-2 text-left font-medium text-gray-700 min-w-[80px]">
+                    Jain
+                  </th>
+                  <th className="border border-gray-300 px-3 py-2 text-center font-medium text-gray-700 w-[50px]">
+                    Action
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {menuItems.map((item, itemIndex) => (
+                  <tr key={itemIndex} className="hover:bg-gray-50">
+                    <td className="border border-gray-300 p-2">
+                      <input
+                        type="text"
+                        value={item.name}
+                        onChange={(e) => updateMenuItem(itemIndex, "name", e.target.value)}
+                        className="w-full px-2 py-1 border border-gray-200 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                        placeholder="Item name"
+                      />
+                    </td>
+                    <td className="border border-gray-300 p-2">
+                      <textarea
+                        value={item.description}
+                        onChange={(e) => updateMenuItem(itemIndex, "description", e.target.value)}
+                        className="w-full px-2 py-1 border border-gray-200 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500 resize-none"
+                        rows={2}
+                        placeholder="Description"
+                      />
+                    </td>
+                    <td className="border border-gray-300 p-2">
+                      <input
+                        type="number"
+                        step="0.01"
+                        value={item.price}
+                        onChange={(e) => updateMenuItem(itemIndex, "price", e.target.value)}
+                        className="w-full px-2 py-1 border border-gray-200 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                        placeholder="0.00"
+                      />
+                    </td>
+                    <td className="border border-gray-300 p-2">
+                      <select
+                        value={item.category}
+                        onChange={(e) => updateMenuItem(itemIndex, "category", e.target.value)}
+                        className="w-full px-2 py-1 border border-gray-200 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                      >
+                        <option value="">Select</option>
+                        {categories.map((cat) => (
+                          <option key={cat._id} value={cat._id}>
+                            {cat.name}
+                          </option>
+                        ))}
+                      </select>
+                    </td>
+                    <td className="border border-gray-300 p-2">
+                      <input
+                        type="text"
+                        value={item.ingredients}
+                        onChange={(e) => updateMenuItem(itemIndex, "ingredients", e.target.value)}
+                        className="w-full px-2 py-1 border border-gray-200 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                        placeholder="ingredient1, ingredient2"
+                      />
+                    </td>
+                    <td className="border border-gray-300 p-2">
+                      <input
+                        type="text"
+                        value={item.imageUrl || ''}
+                        onChange={(e) => updateMenuItem(itemIndex, "imageUrl", e.target.value)}
+                        className="w-full px-2 py-1 border border-gray-200 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                        placeholder="https://example.com/image.jpg"
+                      />
+                    </td>
+                    <td className="border border-gray-300 p-2">
+                      <input
+                        type="text"
+                        value={item.sizeLabels || ''}
+                        onChange={(e) => updateMenuItem(itemIndex, "sizeLabels", e.target.value)}
+                        className="w-full px-2 py-1 border border-gray-200 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                        placeholder="Small|Medium|Large"
+                      />
+                    </td>
+                    <td className="border border-gray-300 p-2">
+                      <input
+                        type="text"
+                        value={item.sizePrices || ''}
+                        onChange={(e) => updateMenuItem(itemIndex, "sizePrices", e.target.value)}
+                        className="w-full px-2 py-1 border border-gray-200 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                        placeholder="8.99|12.99|16.99"
+                      />
+                    </td>
+                    <td className="border border-gray-300 p-2 text-center">
+                      <input
+                        type="checkbox"
+                        checked={item.jain || false}
+                        onChange={(e) => updateMenuItem(itemIndex, "jain", e.target.checked)}
+                        className="h-4 w-4 text-green-600 border-gray-300 rounded focus:ring-green-500"
+                      />
+                    </td>
+                    <td className="border border-gray-300 p-2 text-center">
+                      {menuItems.length > 1 && (
                         <button
-                          onClick={() => removeSize(itemIndex, sizeIndex)}
-                          className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                          onClick={() => removeMenuItem(itemIndex)}
+                          className="p-1 text-red-500 hover:bg-red-50 rounded transition-colors"
                         >
-                          <X size={14} />
+                          <X size={16} />
                         </button>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
-          ))}
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
 
-          {/* Add More Button */}
-          <button
-            onClick={addMenuItem}
-            className="w-full py-4 border-2 border-dashed border-gray-300 rounded-lg text-gray-600 hover:border-amber-400 hover:text-amber-600 transition-colors"
-          >
-            <Plus size={20} className="mx-auto mb-2" />
-            Add Another Menu Item
-          </button>
+          <div className="mt-4 text-sm text-gray-500">
+            <p>* Required fields. Use comma-separated values for ingredients. Use pipe-separated values for sizes (Small|Medium|Large).</p>
+          </div>
         </div>
 
         {/* Footer */}

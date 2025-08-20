@@ -19,15 +19,18 @@ import PaymentSettings from "./pages/PaymentSettings";
 import { AuthProvider } from "./context/AuthContext";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { useRealtimeNotifications } from "./hooks/useRealtimeNotifications";
 
-function App() {
+function AppContent() {
+  useRealtimeNotifications();
+  
   useEffect(() => {
     socket.connect();
     return () => socket.disconnect();
   }, []);
   
-  return (
-    <AuthProvider>
+  return ( <>
+
       <Routes>
         <Route path="/" element={<Login />} />
         <Route path="/login" element={<Login />} />
@@ -68,7 +71,17 @@ function App() {
         pauseOnFocusLoss
         draggable
         pauseOnHover
+        theme="light"
+        limit={5}
       />
+        </>
+  );
+}
+
+function App() {
+  return (
+    <AuthProvider>
+      <AppContent />
     </AuthProvider>
   );
 }

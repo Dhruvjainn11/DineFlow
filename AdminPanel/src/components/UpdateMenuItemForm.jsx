@@ -15,18 +15,8 @@ export default function UpdateMenuItemForm({ onClose, item, onRefresh }) {
     formState: { errors },
     reset,
     watch,
-  } = useForm({
-    defaultValues: {
-      name: item?.name || "",
-      description: item?.description || "",
-      price: item?.price || "", // Use empty string for better form behavior
-      category: item?.category?._id || item?.category || "",
-      available: item?.available === true || item?.available === 'true' || true,
-      jain: item?.jain === true || item?.jain === 'true' || false, // Add jain field
-      imageUrl: item?.imageUrl || "",
-      ingredients: (item?.ingredients || []).join(", "),
-    },
-  });
+    setValue
+  } = useForm();
 
   const formImageUrl = watch("imageUrl");
   const formCategory = watch("category");
@@ -39,7 +29,7 @@ export default function UpdateMenuItemForm({ onClose, item, onRefresh }) {
   }, [formCategory, formAvailable]);
 
 useEffect(() => {
-  if (item) {
+  if (item && categories.length > 0) {
     reset({
       name: item.name || "",
       description: item.description || "",
@@ -52,7 +42,7 @@ useEffect(() => {
     });
     setSizes(item.sizes || []);
   }
-}, [item, reset]);
+}, [item, categories, reset]);
 
   useEffect(() => {
     const fetchCategories = async () => {
