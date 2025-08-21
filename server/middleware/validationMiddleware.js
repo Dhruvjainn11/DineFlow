@@ -150,11 +150,18 @@ export const validateOrderStatusUpdate = [
 export const validateTableCreation = [
   body('tableNumber').isInt({ min: 1 }).withMessage('Valid table number is required'),
   body('cafeId').optional().isMongoId().withMessage('Valid cafe ID required'),
-  query('cafeId').optional().isMongoId().withMessage('Valid cafe ID required'),
   body('capacity').optional().isInt({ min: 1, max: 20 }).withMessage('Capacity must be 1-20'),
   body('tableName').optional().trim().isLength({ max: 50 }).withMessage('Table name cannot exceed 50 characters'),
   body('location').optional().trim().isLength({ max: 100 }).withMessage('Location cannot exceed 100 characters'),
-  handleValidationErrors
+  body('status').optional().isIn(['Available', 'Occupied', 'Reserved', 'Maintenance']).withMessage('Invalid status'),
+  // Custom validation to ensure cafeId is provided for super admin
+  body().custom((value, { req }) => {
+    const { user } = req;
+    if (user && user.role === 'superadmin' && !req.body.cafeId) {
+      throw new Error('cafeId is required for super admin');
+    }
+    return true;
+  })
 ];
 
 export const validateTableUpdate = [

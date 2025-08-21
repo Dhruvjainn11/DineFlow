@@ -74,10 +74,19 @@ router.post(
 
       console.log("Received table creation request:", req.body);
       console.log("User making request:", user.username, user.role);
+      console.log("User cafeId:", user.cafeId);
       
       // Resolve correct cafe
-      let resolvedCafeId = cafeId;
-      if (!user.isSuperAdmin()) {
+      let resolvedCafeId;
+      if (user.isSuperAdmin()) {
+        if (!cafeId) {
+          return res.status(400).json({ 
+            success: false,
+            message: 'cafeId is required for super admin' 
+          });
+        }
+        resolvedCafeId = cafeId;
+      } else {
         if (!user.cafeId) {
           return res.status(400).json({ 
             success: false,
@@ -87,26 +96,44 @@ router.post(
         resolvedCafeId = user.cafeId._id || user.cafeId;
       }
 
+      console.log("Resolved cafeId:", resolvedCafeId);
+      
       const cafe = await Cafe.findById(resolvedCafeId);
       if (!cafe) {
-        return res.status(404).json({ message: 'Cafe not found' });
+        return res.status(404).json({ 
+          success: false,
+          message: 'Cafe not found' 
+        });
       }
+      
+      console.log("Found cafe:", cafe.name);
 
-      // Prevent duplicate tables
+      // Prevent duplicate tables within the same cafe
       const existingTable = await Table.findOne({ 
         cafeId: resolvedCafeId, 
-        tableNumber 
+        tableNumber: parseInt(tableNumber)
       });
+      
+      console.log("Checking for existing table with cafeId:", resolvedCafeId, "tableNumber:", parseInt(tableNumber));
+      console.log("Existing table found:", existingTable ? 'YES' : 'NO');
+      
       if (existingTable) {
-        return res.status(400).json({ message: 'Table already exists in this cafe' });
+        return res.status(400).json({ 
+          success: false,
+          message: `Table ${tableNumber} already exists in this cafe` 
+        });
       }
 
-      // Create new table
-      const newTable = new Table({
-        tableNumber,
+      // Create new table with all provided data
+      const tableData = {
+        tableNumber: parseInt(tableNumber),
         cafeId: resolvedCafeId,
-        createdBy: user._id
-      });
+        ...req.body // Include tableName, capacity, location, status if provided
+      };
+      delete tableData.cafeId; // Remove duplicate
+      tableData.cafeId = resolvedCafeId;
+      
+      const newTable = new Table(tableData);
 
       // QR Code Data
       const qrData = newTable.getQRCodeData(cafe);
