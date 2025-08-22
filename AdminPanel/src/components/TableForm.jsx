@@ -39,6 +39,7 @@ const TableForm = ({ onSuccess, onCancel }) => {
       const result = await createTable(payload);
       toast.success('Table created successfully!');
       onSuccess?.(result);
+      onCancel?.(); // Close the modal after successful creation
     } catch (error) {
       console.error('Error creating table:', error);
       
