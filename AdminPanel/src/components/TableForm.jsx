@@ -5,7 +5,7 @@ import { createTable } from '../services/tableService';
 import { useAuth } from '../context/AuthContext';
 import { X } from 'lucide-react';
 
-const TableForm = ({ onSuccess, onCancel }) => {
+const TableForm = ({ onSuccess, onCancel, onClose }) => {
   const { user } = useAuth();
   const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm();
 
@@ -39,7 +39,7 @@ const TableForm = ({ onSuccess, onCancel }) => {
       const result = await createTable(payload);
       toast.success('Table created successfully!');
       onSuccess?.(result);
-      onCancel?.(); // Close the modal after successful creation
+      onClose?.();
     } catch (error) {
       console.error('Error creating table:', error);
       
