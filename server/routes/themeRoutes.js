@@ -5,6 +5,77 @@ import { validateObjectId } from '../middleware/validationMiddleware.js';
 
 const router = express.Router();
 
+// @desc    Get theme presets
+// @route   GET /api/theme/presets
+// @access  Public
+router.get('/presets', async (req, res) => {
+  try {
+    const presets = [
+      {
+        id: 'default',
+        name: 'DineFlow Blue',
+        description: 'Classic blue theme',
+        primaryColor: '#3B82F6',
+        secondaryColor: '#F3F4F6',
+        fontFamily: 'Inter'
+      },
+      {
+        id: 'warm',
+        name: 'Warm Amber',
+        description: 'Cozy amber theme',
+        primaryColor: '#F59E0B',
+        secondaryColor: '#FEF3C7',
+        fontFamily: 'Inter'
+      },
+      {
+        id: 'elegant',
+        name: 'Elegant Purple',
+        description: 'Sophisticated purple',
+        primaryColor: '#8B5CF6',
+        secondaryColor: '#F3E8FF',
+        fontFamily: 'Poppins'
+      },
+      {
+        id: 'fresh',
+        name: 'Fresh Green',
+        description: 'Natural green theme',
+        primaryColor: '#10B981',
+        secondaryColor: '#ECFDF5',
+        fontFamily: 'Inter'
+      },
+      {
+        id: 'bold',
+        name: 'Bold Red',
+        description: 'Energetic red theme',
+        primaryColor: '#EF4444',
+        secondaryColor: '#FEF2F2',
+        fontFamily: 'Montserrat'
+      },
+      {
+        id: 'professional',
+        name: 'Professional Gray',
+        description: 'Clean gray theme',
+        primaryColor: '#6B7280',
+        secondaryColor: '#F9FAFB',
+        fontFamily: 'Source Sans Pro'
+      }
+    ];
+
+    res.json({
+      success: true,
+      data: presets
+    });
+
+  } catch (error) {
+    console.error('Error fetching theme presets:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch theme presets',
+      error: error.message
+    });
+  }
+});
+
 // @desc    Get cafe theme
 // @route   GET /api/theme/:cafeId
 // @access  Public (for customer-side theme loading)
@@ -76,14 +147,6 @@ router.put('/:cafeId', protect, validateObjectId('cafeId'), async (req, res) => 
       return res.status(404).json({
         success: false,
         message: 'Cafe not found'
-      });
-    }
-
-    // Check if cafe has theme customization feature
-    if (!cafe.hasFeature('themeCustomization') && !req.user.isSuperAdmin()) {
-      return res.status(403).json({
-        success: false,
-        message: 'Theme customization is not available in your current plan'
       });
     }
 
@@ -173,77 +236,6 @@ router.post('/:cafeId/reset', protect, validateObjectId('cafeId'), async (req, r
     res.status(500).json({
       success: false,
       message: 'Failed to reset theme',
-      error: error.message
-    });
-  }
-});
-
-// @desc    Get theme presets
-// @route   GET /api/theme/presets
-// @access  Public
-router.get('/presets', async (req, res) => {
-  try {
-    const presets = [
-      {
-        id: 'default',
-        name: 'DineFlow Blue',
-        description: 'Classic blue theme',
-        primaryColor: '#3B82F6',
-        secondaryColor: '#F3F4F6',
-        fontFamily: 'Inter'
-      },
-      {
-        id: 'warm',
-        name: 'Warm Amber',
-        description: 'Cozy amber theme',
-        primaryColor: '#F59E0B',
-        secondaryColor: '#FEF3C7',
-        fontFamily: 'Inter'
-      },
-      {
-        id: 'elegant',
-        name: 'Elegant Purple',
-        description: 'Sophisticated purple',
-        primaryColor: '#8B5CF6',
-        secondaryColor: '#F3E8FF',
-        fontFamily: 'Poppins'
-      },
-      {
-        id: 'fresh',
-        name: 'Fresh Green',
-        description: 'Natural green theme',
-        primaryColor: '#10B981',
-        secondaryColor: '#ECFDF5',
-        fontFamily: 'Inter'
-      },
-      {
-        id: 'bold',
-        name: 'Bold Red',
-        description: 'Energetic red theme',
-        primaryColor: '#EF4444',
-        secondaryColor: '#FEF2F2',
-        fontFamily: 'Montserrat'
-      },
-      {
-        id: 'professional',
-        name: 'Professional Gray',
-        description: 'Clean gray theme',
-        primaryColor: '#6B7280',
-        secondaryColor: '#F9FAFB',
-        fontFamily: 'Source Sans Pro'
-      }
-    ];
-
-    res.json({
-      success: true,
-      data: presets
-    });
-
-  } catch (error) {
-    console.error('Error fetching theme presets:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to fetch theme presets',
       error: error.message
     });
   }

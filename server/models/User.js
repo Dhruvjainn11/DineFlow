@@ -156,7 +156,7 @@ userSchema.pre('save', function(next) {
 
 // Indexes for better performance
 userSchema.index({ cafeId: 1, role: 1 });
-userSchema.index({ username: 1, cafeId: 1 }, { unique: true });
+userSchema.index({ username: 1 }, { unique: true });
 userSchema.index({ email: 1 }, { sparse: true });
 
 const User = mongoose.model('User', userSchema);

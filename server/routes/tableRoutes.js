@@ -69,7 +69,8 @@ router.post(
   handleValidationErrors,
   async (req, res) => {
     try {
-      const { tableNumber, cafeId } = req.body;
+      const { tableNumber } = req.body;
+      const cafeId = req.body.cafeId || req.query.cafeId;
       const { user } = req;
 
       console.log("Received table creation request:", req.body);
