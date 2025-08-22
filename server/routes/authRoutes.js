@@ -145,7 +145,8 @@ router.post("/login/super-admin", async (req, res) => {
   try {
     const { username, password } = req.body;
 
-  
+    console.log("Login attempt with username:", username);
+    
 
     // 1. Validate
     if (!username || !password) {

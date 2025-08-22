@@ -1,6 +1,6 @@
 // createSuperAdmin.js
 import mongoose from "mongoose";
-import bcrypt from "bcryptjs";
+import bcrypt from "bcrypt";
 import dotenv from "dotenv";
 import User from "./models/User.js";
 import Cafe from "./models/Cafe.js";
@@ -10,12 +10,12 @@ dotenv.config();
 const createSuperAdmin = async () => {
   try {
     // Connect to MongoDB
-    await mongoose.connect(process.env.MONGO_URI);
+    await mongoose.connect(process.env.MONGO_URI); 
     console.log("✅ MongoDB connected");
 
-    const email = "super@dineflow.com";
-    const username = "superadmin";
-    const password = "123456"; // Use a strong password in production
+    const email = "dhruvjainn25@gmail.com";
+    const username = "Dineflow@dhruvjainn25";
+    const password = "Dineflow@255296"; // Use a strong password in production
 
     // Check if a super admin already exists
     const existingUser = await User.findOne({ email });
@@ -30,15 +30,11 @@ const createSuperAdmin = async () => {
       return;
     }
 
-    // Hash the password
-    const hashedPassword = await bcrypt.hash(password, 10);
-    console.log(`Password "${password}" hashed successfully. New hash: ${hashedPassword}`);
-
-    // Create super admin
+    // Create super admin (password will be auto-hashed by User model)
     const superAdmin = await User.create({
       username,
       email,
-      password: hashedPassword,
+      password, // Don't hash manually - let the model do it
       role: "super-admin",
     });
 
