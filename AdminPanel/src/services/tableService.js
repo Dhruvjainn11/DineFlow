@@ -1,42 +1,49 @@
-import api from "../utils/api";
-import { handleApiError } from "../utils/errorHandler";
+import api from '../utils/api';
 
-export const getTables = async () => {
+export const createTable = async (tableData) => {
   try {
-    const res = await api.get("/tables");
-    return res.data;
+    console.log('TableService: Creating table with data:', tableData);
+    
+    // Ensure cafeId is included in the request body
+    if (!tableData.cafeId) {
+      throw new Error('cafeId is required');
+    }
+
+    const response = await api.post('/tables', tableData);
+    return response.data;
   } catch (error) {
-    handleApiError(error, 'Fetch tables');
+    console.error('TableService: Create table failed:', error);
     throw error;
   }
 };
 
-export const createTable = async (data) => {
+export const getTables = async (cafeId) => {
   try {
-    const res = await api.post("/tables", data);
-    return res.data;
+    const params = cafeId ? { cafeId } : {};
+    const response = await api.get('/tables', { params });
+    return response.data;
   } catch (error) {
-    handleApiError(error, 'Create table');
+    console.error('TableService: Get tables failed:', error);
     throw error;
   }
 };
 
-export const updateTable = async (id, data) => {
+export const updateTable = async (tableId, updateData) => {
   try {
-    const res = await api.put(`/tables/${id}`, data);
-    return res.data;
+    const response = await api.put(`/tables/${tableId}`, updateData);
+    return response.data;
   } catch (error) {
-    handleApiError(error, 'Update table');
+    console.error('TableService: Update table failed:', error);
     throw error;
   }
 };
 
-export const deleteTable = async (id) => {
+export const deleteTable = async (tableId) => {
   try {
-    const res = await api.delete(`/tables/${id}`);
-    return res.data;
+    const response = await api.delete(`/tables/${tableId}`);
+    return response.data;
   } catch (error) {
-    handleApiError(error, 'Delete table');
+    console.error('TableService: Delete table failed:', error);
     throw error;
   }
 };
