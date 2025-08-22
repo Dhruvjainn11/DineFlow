@@ -185,12 +185,12 @@ const CreateCafeModal = ({ isOpen, onClose, onCafeCreated }) => {
       newErrors.planType = 'Subscription plan is required';
     }
 
-    // Validate subdomain for Pro plan
-    if (formData.planType === 'pro' && !formData.subdomain?.trim()) {
-      newErrors.subdomain = 'Subdomain is required for Pro plan';
-    } else if (formData.subdomain && !/^[a-z0-9-]+$/.test(formData.subdomain)) {
-      newErrors.subdomain = 'Subdomain must contain only lowercase letters, numbers, and hyphens';
-    }
+    // Subdomain validation removed since it's commented out in the UI
+    // if (formData.planType === 'pro' && !formData.subdomain?.trim()) {
+    //   newErrors.subdomain = 'Subdomain is required for Pro plan';
+    // } else if (formData.subdomain && !/^[a-z0-9-]+$/.test(formData.subdomain)) {
+    //   newErrors.subdomain = 'Subdomain must contain only lowercase letters, numbers, and hyphens';
+    // }
 
     // Validate admin user (always required)
     if (!formData.adminUser?.username?.trim()) {
@@ -198,7 +198,7 @@ const CreateCafeModal = ({ isOpen, onClose, onCafeCreated }) => {
     }
     if (!formData.adminUser?.password?.trim()) {
       newErrors['adminUser.password'] = 'Admin password is required';
-    } else if (formData.adminUser.password.length < 6) {
+    } else if (formData.adminUser.password.trim().length < 6) {
       newErrors['adminUser.password'] = 'Password must be at least 6 characters';
     }
 
@@ -214,11 +214,20 @@ const CreateCafeModal = ({ isOpen, onClose, onCafeCreated }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    console.log('=== FORM SUBMIT TRIGGERED ===');
+    console.log('Form data:', formData);
     
-    if (!validateForm()) {
+    const isValid = validateForm();
+    console.log('Form validation result:', isValid);
+    console.log('Validation errors:', errors);
+    console.log('Detailed validation errors:', Object.keys(errors).length > 0 ? errors : 'No errors');
+    
+    if (!isValid) {
+      console.log('Form validation failed, stopping submission');
       return;
     }
 
+    console.log('Setting isSubmitting to true');
     setIsSubmitting(true);
     
     try {
@@ -291,29 +300,8 @@ const CreateCafeModal = ({ isOpen, onClose, onCafeCreated }) => {
           onCafeCreated();
         }
         
-        // Auto-login as the new cafe admin to apply theme
-      //   setTimeout(async () => {
-      //     console.log('🔄 Auto-login as new cafe admin');
-      //     try {
-      //       const loginResponse = await api.post('/auth/login', {
-      //         username: formData.adminUser.username.trim(),
-      //         password: formData.adminUser.password.trim()
-      //       });
-            
-      //       if (loginResponse.data.success) {
-      //         // Store new token
-      //         localStorage.setItem('token', loginResponse.data.token);
-      //         // Reload page to apply new user context and theme
-      //         window.location.reload();
-      //       }
-      //     } catch (error) {
-      //       console.error('Auto-login failed:', error);
-      //       // Fallback: just refresh theme
-      //       refreshTheme();
-      //     }
-      //   }, 500);
-      // } else {
-      //   toast.error(response.data.message || 'Failed to create cafe');
+      } else {
+        toast.error(response.data.message || 'Failed to create cafe');
       }
     } catch (error) {
       console.error('Error creating cafe:', error);
