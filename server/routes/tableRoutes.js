@@ -110,13 +110,24 @@ router.post(
       console.log("Found cafe:", cafe.name);
 
       // Prevent duplicate tables within the same cafe
+      console.log("=== DUPLICATE CHECK DEBUG ===");
+      console.log("Resolved cafeId:", resolvedCafeId, "(type:", typeof resolvedCafeId, ")");
+      console.log("Table number:", parseInt(tableNumber), "(type:", typeof parseInt(tableNumber), ")");
+      
       const existingTable = await Table.findOne({ 
         cafeId: resolvedCafeId, 
         tableNumber: parseInt(tableNumber)
       });
       
-      console.log("Checking for existing table with cafeId:", resolvedCafeId, "tableNumber:", parseInt(tableNumber));
+      console.log("Query executed:", { cafeId: resolvedCafeId, tableNumber: parseInt(tableNumber) });
       console.log("Existing table found:", existingTable ? 'YES' : 'NO');
+      if (existingTable) {
+        console.log("Existing table details:", {
+          _id: existingTable._id,
+          cafeId: existingTable.cafeId,
+          tableNumber: existingTable.tableNumber
+        });
+      }
       
       if (existingTable) {
         return res.status(400).json({ 

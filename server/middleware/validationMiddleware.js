@@ -154,14 +154,7 @@ export const validateTableCreation = [
   body('tableName').optional().trim().isLength({ max: 50 }).withMessage('Table name cannot exceed 50 characters'),
   body('location').optional().trim().isLength({ max: 100 }).withMessage('Location cannot exceed 100 characters'),
   body('status').optional().isIn(['Available', 'Occupied', 'Reserved', 'Maintenance']).withMessage('Invalid status'),
-  // Custom validation to ensure cafeId is provided for super admin
-  body().custom((value, { req }) => {
-    const { user } = req;
-    if (user && user.role === 'superadmin' && !req.body.cafeId) {
-      throw new Error('cafeId is required for super admin');
-    }
-    return true;
-  })
+  handleValidationErrors
 ];
 
 export const validateTableUpdate = [
