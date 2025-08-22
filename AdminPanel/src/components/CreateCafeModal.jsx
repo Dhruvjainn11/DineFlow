@@ -2,10 +2,10 @@ import React, { useState, useEffect, useRef } from 'react';
 import { XMarkIcon } from '@heroicons/react/24/outline';
 import api from '../utils/api';
 import { toast } from 'react-toastify';
-import { useTheme } from '../context/ThemeContext';
+// import { useTheme } from '../context/ThemeContext';
 
 const CreateCafeModal = ({ isOpen, onClose, onCafeCreated }) => {
-  const { refreshTheme } = useTheme();
+  // const { refreshTheme } = useTheme();
   // Initialize with default values to prevent controlled/uncontrolled warnings
   const [formData, setFormData] = useState({
     name: '',
@@ -192,16 +192,14 @@ const CreateCafeModal = ({ isOpen, onClose, onCafeCreated }) => {
       newErrors.subdomain = 'Subdomain must contain only lowercase letters, numbers, and hyphens';
     }
 
-    // Validate admin user for Pro plan
-    if (formData.planType === 'pro') {
-      if (!formData.adminUser?.username?.trim()) {
-        newErrors['adminUser.username'] = 'Admin username is required for Pro plan';
-      }
-      if (!formData.adminUser?.password?.trim()) {
-        newErrors['adminUser.password'] = 'Admin password is required for Pro plan';
-      } else if (formData.adminUser.password.length < 6) {
-        newErrors['adminUser.password'] = 'Password must be at least 6 characters';
-      }
+    // Validate admin user (always required)
+    if (!formData.adminUser?.username?.trim()) {
+      newErrors['adminUser.username'] = 'Admin username is required';
+    }
+    if (!formData.adminUser?.password?.trim()) {
+      newErrors['adminUser.password'] = 'Admin password is required';
+    } else if (formData.adminUser.password.length < 6) {
+      newErrors['adminUser.password'] = 'Password must be at least 6 characters';
     }
 
     setErrors(newErrors);
@@ -261,8 +259,8 @@ const CreateCafeModal = ({ isOpen, onClose, onCafeCreated }) => {
         payload.theme = formData.theme;
       }
 
-      // Add admin user for Pro plan
-      if (formData) {
+      // Add admin user (always required now)
+      if (formData.adminUser?.username?.trim() && formData.adminUser?.password?.trim()) {
         payload.adminUser = {
           username: formData.adminUser.username.trim(),
           password: formData.adminUser.password.trim(),
@@ -294,28 +292,28 @@ const CreateCafeModal = ({ isOpen, onClose, onCafeCreated }) => {
         }
         
         // Auto-login as the new cafe admin to apply theme
-        setTimeout(async () => {
-          console.log('🔄 Auto-login as new cafe admin');
-          try {
-            const loginResponse = await api.post('/auth/login', {
-              username: formData.adminUser.username.trim(),
-              password: formData.adminUser.password.trim()
-            });
+      //   setTimeout(async () => {
+      //     console.log('🔄 Auto-login as new cafe admin');
+      //     try {
+      //       const loginResponse = await api.post('/auth/login', {
+      //         username: formData.adminUser.username.trim(),
+      //         password: formData.adminUser.password.trim()
+      //       });
             
-            if (loginResponse.data.success) {
-              // Store new token
-              localStorage.setItem('token', loginResponse.data.token);
-              // Reload page to apply new user context and theme
-              window.location.reload();
-            }
-          } catch (error) {
-            console.error('Auto-login failed:', error);
-            // Fallback: just refresh theme
-            refreshTheme();
-          }
-        }, 500);
-      } else {
-        toast.error(response.data.message || 'Failed to create cafe');
+      //       if (loginResponse.data.success) {
+      //         // Store new token
+      //         localStorage.setItem('token', loginResponse.data.token);
+      //         // Reload page to apply new user context and theme
+      //         window.location.reload();
+      //       }
+      //     } catch (error) {
+      //       console.error('Auto-login failed:', error);
+      //       // Fallback: just refresh theme
+      //       refreshTheme();
+      //     }
+      //   }, 500);
+      // } else {
+      //   toast.error(response.data.message || 'Failed to create cafe');
       }
     } catch (error) {
       console.error('Error creating cafe:', error);
@@ -739,12 +737,10 @@ const CreateCafeModal = ({ isOpen, onClose, onCafeCreated }) => {
                     </div>
                   </div>
 
-                  {/* Admin User for Pro Plan */}
-                  {(
-                    <>
-                      <div className="border-t pt-4">
-                        <h5 className="text-sm font-medium text-gray-900 mb-3">Admin User (Required for Pro Plan)</h5>
-                      </div>
+                  {/* Admin User - Required for all plans */}
+                  <div className="border-t pt-4">
+                    <h5 className="text-sm font-medium text-gray-900 mb-3">Admin User (Required)</h5>
+                  </div>
                       
                       {/* Username & Password */}
                       <div className="grid grid-cols-2 gap-3">
@@ -842,8 +838,6 @@ const CreateCafeModal = ({ isOpen, onClose, onCafeCreated }) => {
                           />
                         </div>
                       </div>
-                    </>
-                  )}
                 </div>
               </div>
 
