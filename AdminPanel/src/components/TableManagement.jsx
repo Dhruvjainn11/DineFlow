@@ -3,17 +3,19 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import TableForm from './TableForm';
 import { getTables } from '../services/tableService';
-import { Download, QrCode } from 'lucide-react';
-import { downloadSingleQR, downloadAllQRs } from '../utils/qrPdfGenerator';
+// import { Download, QrCode } from 'lucide-react';
+// import { downloadSingleQR, downloadAllQRs } from '../utils/qrPdfGenerator';
 
 const TableManagement = () => {
+  console.log('=== TableManagement component loaded ===');
+  
   const { user } = useAuth();
   const [showForm, setShowForm] = useState(false);
   const [tables, setTables] = useState([]);
   const [loading, setLoading] = useState(true);
   const [cafe, setCafe] = useState(null);
   
-  console.log('TableManagement render - Tables:', tables.length, 'Cafe:', cafe ? 'loaded' : 'null');
+  console.log('TableManagement render - Tables:', tables.length, 'Cafe:', cafe ? 'loaded' : 'null', 'User:', user?.username);
 
   // For super admin: Set selected cafe in localStorage
   useEffect(() => {
@@ -96,11 +98,10 @@ const TableManagement = () => {
         <div className="flex gap-3 mt-4 sm:mt-0">
           {tables.length > 0 && cafe && (
             <button
-              onClick={() => downloadAllQRs(tables, cafe)}
+              onClick={() => console.log('Download all clicked')}
               className="px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center shadow-md hover:shadow-lg"
             >
-              <Download size={16} className="mr-2" />
-              Download All QR
+              📥 Download All QR
             </button>
           )}
           <button
@@ -201,11 +202,11 @@ const TableManagement = () => {
                     <div className="flex items-center gap-2">
                       {cafe && (
                         <button
-                          onClick={() => downloadSingleQR(table, cafe)}
+                          onClick={() => console.log('Download single clicked', table.tableNumber)}
                           className="text-blue-600 hover:text-blue-800 p-1 rounded hover:bg-blue-50 transition-colors"
                           title="Download QR Code"
                         >
-                          <QrCode size={18} />
+                          📱
                         </button>
                       )}
                       <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(table.status)}`}>

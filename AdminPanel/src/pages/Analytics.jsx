@@ -28,7 +28,8 @@ import {
   TrendingUp, 
   Calendar,
   DollarSign,
-  ShoppingCart
+  ShoppingCart,
+  BarChart3
 } from "lucide-react";
 import FeatureGate from "../components/Common/FeatureGate";
 
@@ -44,6 +45,7 @@ export default function Analytics() {
         const res = await api.get("/analytics/summary");
         console.log('Analytics response:', res.data);
         if (res.data.success) {
+          console.log('30-day stats:', res.data.data.thirtyDayStats);
           setData(res.data.data);
         } else {
           console.error('Analytics API returned error:', res.data.message);
@@ -93,8 +95,12 @@ export default function Analytics() {
     payments = { pending: 0, requested: 0, completed: 0, totalRevenue: 0 }, 
     tables = { Occupied: 0, Available: 0 }, 
     dailyStats = [], 
-    todayStats = { orders: 0, revenue: 0 } 
+    todayStats = { orders: 0, revenue: 0 },
+    planType = 'basic'
   } = data || {};
+  
+  const isProPlan = planType === 'pro';
+  const periodLabel = '7-Day'; // Always 7 days for main charts
 
   const paymentData = [
     { name: "Pending", value: payments?.pending || 0 },
@@ -107,26 +113,34 @@ export default function Analytics() {
     { name: "Available", value: tables?.Available || 0 },
   ];
 
-  // Format daily stats for charts
-  const dailyChartData = dailyStats?.map(day => ({
+  // Format daily stats for charts - ALWAYS use only last 7 days
+  const last7Days = dailyStats?.slice(-7) || [];
+  const dailyChartData = last7Days.map(day => ({
     date: new Date(day.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
     orders: day.orders,
     revenue: day.revenue,
     revenueFormatted: `₹${day.revenue.toLocaleString()}`
-  })) || [];
+  }));
 
-  // Calculate 7-day totals
-  const sevenDayStats = dailyStats?.reduce((acc, day) => ({
+  // Calculate 7-day totals from last 7 days only
+  const periodStats = last7Days.reduce((acc, day) => ({
     orders: acc.orders + day.orders,
     revenue: acc.revenue + day.revenue
-  }), { orders: 0, revenue: 0 }) || { orders: 0, revenue: 0 };
+  }), { orders: 0, revenue: 0 });
 
   return (
     <RoleBasedLayout>
       <div className="p-6 space-y-8">
         {/* Header */}
         <div className="space-y-2">
-          <h1 className="text-3xl font-bold text-gray-900">Restaurant Analytics</h1>
+          <div className="flex items-center justify-between">
+            <h1 className="text-3xl font-bold text-gray-900">Restaurant Analytics</h1>
+            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+              isProPlan ? 'bg-purple-100 text-purple-800' : 'bg-blue-100 text-blue-800'
+            }`}>
+              {isProPlan ? 'Pro Plan' : 'Basic Plan'}
+            </span>
+          </div>
           <p className="text-gray-500 flex items-center gap-2">
             <Calendar className="h-4 w-4" />
             Comprehensive overview of your restaurant performance
@@ -168,7 +182,7 @@ export default function Analytics() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-500 uppercase tracking-wider">7-Day Orders</p>
-                <p className="mt-2 text-3xl font-semibold text-purple-600">{sevenDayStats.orders}</p>
+                <p className="mt-2 text-3xl font-semibold text-purple-600">{periodStats.orders}</p>
                 <p className="mt-1 text-xs text-gray-400">Last 7 days total</p>
               </div>
               <div className="p-3 bg-purple-50 rounded-lg shadow-inner">
@@ -182,7 +196,7 @@ export default function Analytics() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-500 uppercase tracking-wider">7-Day Revenue</p>
-                <p className="mt-2 text-3xl font-semibold text-amber-600">₹{sevenDayStats.revenue.toLocaleString()}</p>
+                <p className="mt-2 text-3xl font-semibold text-amber-600">₹{periodStats.revenue.toLocaleString()}</p>
                 <p className="mt-1 text-xs text-gray-400">Last 7 days total</p>
               </div>
               <div className="p-3 bg-amber-50 rounded-lg shadow-inner">
@@ -460,11 +474,8 @@ export default function Analytics() {
         </div>
 
         {/* Advanced Analytics Section (Pro Only) */}
-        <FeatureGate
-          feature="advancedAnalytics"
-          className="mt-8"
-          upgradeMessage="Unlock advanced analytics with detailed insights, customer behavior analysis, and 30-day trends with Pro plan."
-        >
+        {isProPlan && (
+          <div className="mt-8 space-y-6">
           <div className="space-y-6">
             <div className="flex items-center justify-between">
               <div>
@@ -497,7 +508,7 @@ export default function Analytics() {
                   <div>
                     <p className="text-sm font-medium text-gray-500 uppercase tracking-wider">Orders per Day</p>
                     <p className="mt-2 text-2xl font-semibold text-green-600">
-                      {dailyStats && dailyStats.length > 0 ? Math.round(sevenDayStats.orders / 7) : 0}
+                      {dailyStats && dailyStats.length > 0 ? Math.round(periodStats.orders / 7) : 0}
                     </p>
                   </div>
                   <div className="p-2 bg-green-50 rounded-lg">
@@ -531,49 +542,83 @@ export default function Analytics() {
               </div>
             </div>
 
-            {/* 30-Day Trends (Pro Only) */}
+            {/* 30-Day Analytics Chart */}
             <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
               <div className="mb-6">
                 <h3 className="text-lg font-semibold text-gray-900">30-Day Performance Trend</h3>
                 <p className="text-sm text-gray-600">Extended analytics showing month-long patterns</p>
               </div>
               
-              <div className="h-[400px] flex items-center justify-center bg-gray-50 rounded-lg">
-                <div className="text-center space-y-2">
-                  <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto">
-                    <TrendingUp className="h-8 w-8 text-purple-600" />
-                  </div>
-                  <p className="text-gray-900 font-medium">30-Day Analytics Available</p>
-                  <p className="text-sm text-gray-500">Extended trend analysis with Pro subscription</p>
+              {isProPlan && data.thirtyDayStats ? (
+                <div className="h-[400px]">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart data={data.thirtyDayStats.map(day => ({
+                      date: new Date(day.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+                      orders: day.orders,
+                      revenue: day.revenue
+                    }))}>
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
+                      <XAxis 
+                        dataKey="date" 
+                        axisLine={false}
+                        tickLine={false}
+                        tick={{ fill: '#6b7280', fontSize: 11 }}
+                        interval={4}
+                      />
+                      <YAxis 
+                        axisLine={false}
+                        tickLine={false}
+                        tick={{ fill: '#6b7280' }}
+                        tickFormatter={(value) => `₹${value.toLocaleString()}`}
+                      />
+                      <Tooltip 
+                        cursor={{ fill: '#f3f4f6' }}
+                        formatter={(value, name) => [
+                          name === 'revenue' ? `₹${value.toLocaleString()}` : `${value} orders`,
+                          name === 'revenue' ? 'Revenue' : 'Orders'
+                        ]}
+                        contentStyle={{
+                          borderRadius: '8px',
+                          boxShadow: '0 2px 10px rgba(0,0,0,0.1)',
+                          border: 'none'
+                        }}
+                      />
+                      <Area 
+                        type="monotone" 
+                        dataKey="revenue" 
+                        stroke="#8b5cf6" 
+                        fill="#8b5cf6" 
+                        fillOpacity={0.2}
+                        strokeWidth={2}
+                      />
+                      <Area 
+                        type="monotone" 
+                        dataKey="orders" 
+                        stroke="#f59e0b" 
+                        fill="#f59e0b" 
+                        fillOpacity={0.1}
+                        strokeWidth={2}
+                      />
+                    </AreaChart>
+                  </ResponsiveContainer>
                 </div>
-              </div>
+              ) : (
+                <div className="h-[400px] flex items-center justify-center bg-gray-50 rounded-lg">
+                  <div className="text-center space-y-2">
+                    <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto">
+                      <TrendingUp className="h-8 w-8 text-purple-600" />
+                    </div>
+                    <p className="text-gray-900 font-medium">30-Day Analytics Available</p>
+                    <p className="text-sm text-gray-500">Extended trend analysis with Pro subscription</p>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
-        </FeatureGate>
+          </div>
+        )}
 
-        {/* 30-Day Analytics Toggle (Pro Feature) */}
-        <FeatureGate
-          feature="thirtyDayAnalytics"
-          showUpgrade={false}
-          fallback={null}
-        >
-          <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
-            <div className="flex items-center justify-between mb-4">
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900">Extended Analytics Period</h3>
-                <p className="text-sm text-gray-600">Switch between 7-day and 30-day analytics view</p>
-              </div>
-              <div className="flex space-x-2">
-                <button className="px-3 py-1 text-sm font-medium text-blue-600 bg-blue-50 rounded-md">
-                  7 Days
-                </button>
-                <button className="px-3 py-1 text-sm font-medium text-gray-600 bg-gray-50 rounded-md hover:bg-gray-100">
-                  30 Days
-                </button>
-              </div>
-            </div>
-          </div>
-        </FeatureGate>
+
       </div>
     </RoleBasedLayout>
   );

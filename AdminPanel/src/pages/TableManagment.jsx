@@ -4,8 +4,9 @@ import RoleBasedLayout from "../layouts/RoleBasedLayout";
 import TableForm from "../components/TableForm";
 import TableUpdateForm from "../components/TableUpdateForm";
 import { socket } from "../utils/socket";
-import { Pencil, Trash2, X } from "lucide-react";
+import { Pencil, Trash2, X, Download, QrCode } from "lucide-react";
 import ConfirmDialog from "../components/ConfirmDialog";
+import { downloadSingleQR, downloadAllQRs } from "../utils/qrPdfGenerator";
 
 export default function TableManagement({ onClose }) {
   const [tables, setTables] = useState([]);
@@ -16,6 +17,7 @@ export default function TableManagement({ onClose }) {
   const [selectedTable, setSelectedTable] = useState(null);
   const [showUpdateForm, setShowUpdateForm] = useState(false);
   const [tableToUpdate, setTableToUpdate] = useState(null);
+  const [cafe, setCafe] = useState(null);
   const cafeId = localStorage.getItem("cafeId");
 
   const tableStatuses = {
@@ -71,6 +73,18 @@ useEffect(() => {
     try {
       const data = await getTables();
       setTables(data.data);
+      
+      // Set cafe data for QR generation
+      if (data.data.length > 0 && data.data[0].cafeId) {
+        setCafe(data.data[0].cafeId);
+      } else {
+        // Fallback: create cafe object from localStorage
+        setCafe({
+          _id: cafeId,
+          name: 'Current Cafe',
+          theme: { primaryColor: '#3B82F6' }
+        });
+      }
     } catch (error) {
       console.error("Error fetching tables:", error);
     }
@@ -110,12 +124,23 @@ useEffect(() => {
       <div className="p-6">
         <div className="w-full flex justify-between items-center mb-6">
           <h2 className="text-2xl font-bold">Table Management</h2>
-          <button
-            onClick={() => setShowForm(true)}
-            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition"
-          >
-            + Add Table
-          </button>
+          <div className="flex gap-3">
+            {tables.length > 0 && cafe && (
+              <button
+                onClick={() => downloadAllQRs(tables, cafe)}
+                className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition flex items-center gap-2"
+              >
+                <Download size={16} />
+                Download All QR
+              </button>
+            )}
+            <button
+              onClick={() => setShowForm(true)}
+              className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition"
+            >
+              + Add Table
+            </button>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -150,6 +175,18 @@ useEffect(() => {
                     )}
                   </div>
                   <div className="flex space-x-2">
+                    {cafe && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          downloadSingleQR(table, cafe);
+                        }}
+                        className="text-green-600 hover:text-green-800"
+                        title="Download QR Code"
+                      >
+                        <QrCode size={20} />
+                      </button>
+                    )}
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
