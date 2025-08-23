@@ -1,14 +1,18 @@
 import React, { useState, useEffect } from "react";
 import { useDispatch } from "react-redux";
 import { X, Plus, Minus } from "lucide-react";
-import { addToCart } from "../redux/slices/cartSlice"; // Assuming you have this action
+import { addToCart } from "../redux/slices/cartSlice";
+import { useCafe } from "../context/CafeContext";
 
 
 export default function MenuItemModal({ item, onClose }) {
   const dispatch = useDispatch();
+  const { cafeInfo } = useCafe();
   const [selectedSize, setSelectedSize] = useState(item.sizes?.[0] || null);
   const [quantity, setQuantity] = useState(1);
   const [finalPrice, setFinalPrice] = useState(item.price || (item.sizes && item.sizes[0]?.price) || 0);
+  
+  const primaryColor = cafeInfo?.theme?.primaryColor || '#F59E0B';
 
   useEffect(() => {
     // If the item has sizes, set the default price to the first size's price.
@@ -67,12 +71,14 @@ export default function MenuItemModal({ item, onClose }) {
           <img
             src={item.imageUrl}
             alt={item.name}
-            className="w-32 h-32 object-cover mx-auto rounded-full border-4 border-amber-100 shadow-lg"
+            className="w-32 h-32 object-cover mx-auto rounded-full border-4 shadow-lg"
+            style={{ borderColor: `${primaryColor}20` }}
           />
         </div>
 
         <div className="text-center mb-4">
-          <h2 className="text-2xl font-bold text-center text-amber-900 flex items-center justify-center gap-2">
+          <h2 className="text-2xl font-bold text-center flex items-center justify-center gap-2"
+              style={{ color: primaryColor }}>
             {item.name}
             {item.jain && (
               <span className="bg-green-500 text-white text-sm font-bold rounded-full w-6 h-6 flex items-center justify-center">
@@ -82,28 +88,39 @@ export default function MenuItemModal({ item, onClose }) {
           </h2>
         </div>
 
-        <p className="text-center text-sm text-amber-700 mb-4">{item.description}</p>
+        <p className="text-center text-sm mb-4" style={{ color: `${primaryColor}cc` }}>{item.description}</p>
         
         {item.ingredients && item.ingredients.length > 0 && (
           <div className="mb-4 text-center">
-            <h3 className="font-semibold text-amber-900">Ingredients</h3>
-            <p className="text-sm text-amber-700">{item.ingredients.join(', ')}</p>
+            <h3 className="font-semibold" style={{ color: primaryColor }}>Ingredients</h3>
+            <p className="text-sm" style={{ color: `${primaryColor}cc` }}>{item.ingredients.join(', ')}</p>
           </div>
         )}
 
         {item.sizes && item.sizes.length > 0 && (
           <div className="mb-4">
-            <h3 className="font-semibold text-amber-900 mb-2">Choose Size:</h3>
+            <h3 className="font-semibold mb-2" style={{ color: primaryColor }}>Choose Size:</h3>
             <div className="flex flex-wrap gap-2">
               {item.sizes.map((size) => (
                 <button
                   key={size._id}
                   onClick={() => handleSizeChange(size)}
-                  className={`px-4 py-2 rounded-full border transition-colors ${
-                    selectedSize?._id === size._id
-                      ? "bg-amber-600 text-white border-amber-600"
-                      : "bg-white text-amber-900 border-amber-200 hover:bg-amber-100"
-                  }`}
+                  className="px-4 py-2 rounded-full border transition-colors"
+                  style={{
+                    backgroundColor: selectedSize?._id === size._id ? primaryColor : 'white',
+                    color: selectedSize?._id === size._id ? 'white' : primaryColor,
+                    borderColor: selectedSize?._id === size._id ? primaryColor : `${primaryColor}40`
+                  }}
+                  onMouseEnter={(e) => {
+                    if (selectedSize?._id !== size._id) {
+                      e.target.style.backgroundColor = `${primaryColor}10`;
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (selectedSize?._id !== size._id) {
+                      e.target.style.backgroundColor = 'white';
+                    }
+                  }}
                 >
                   {size.label} (₹{size.price})
                 </button>
@@ -116,21 +133,36 @@ export default function MenuItemModal({ item, onClose }) {
           <div className="flex items-center space-x-3">
             <button
               onClick={handleDecrement}
-              className="p-1 bg-amber-100 text-amber-700 rounded-full hover:bg-amber-200 transition-colors"
+              className="p-1 rounded-full transition-colors"
+              style={{ 
+                backgroundColor: `${primaryColor}20`,
+                color: primaryColor
+              }}
+              onMouseEnter={(e) => e.target.style.backgroundColor = `${primaryColor}30`}
+              onMouseLeave={(e) => e.target.style.backgroundColor = `${primaryColor}20`}
             >
               <Minus size={16} />
             </button>
-            <span className="text-lg font-bold text-amber-800">{quantity}</span>
+            <span className="text-lg font-bold" style={{ color: primaryColor }}>{quantity}</span>
             <button
               onClick={handleIncrement}
-              className="p-1 bg-amber-100 text-amber-700 rounded-full hover:bg-amber-200 transition-colors"
+              className="p-1 rounded-full transition-colors"
+              style={{ 
+                backgroundColor: `${primaryColor}20`,
+                color: primaryColor
+              }}
+              onMouseEnter={(e) => e.target.style.backgroundColor = `${primaryColor}30`}
+              onMouseLeave={(e) => e.target.style.backgroundColor = `${primaryColor}20`}
             >
               <Plus size={16} />
             </button>
           </div>
           <button
             onClick={handleAddToCart}
-            className="px-6 py-2 bg-amber-600 text-white font-bold rounded-full shadow-md hover:bg-amber-700 transition-colors"
+            className="px-6 py-2 text-white font-bold rounded-full shadow-md transition-colors"
+            style={{ backgroundColor: primaryColor }}
+            onMouseEnter={(e) => e.target.style.backgroundColor = `${primaryColor}dd`}
+            onMouseLeave={(e) => e.target.style.backgroundColor = primaryColor}
           >
             Add to Cart (₹{finalPrice * quantity})
           </button>
