@@ -1,0 +1,8 @@
+Add these dependencies to your AdminPanel package.json:
+
+npm install jspdf jszip file-saver
+
+Dependencies needed:
+- jspdf: ^2.5.1
+- jszip: ^3.10.1  
+- file-saver: ^2.0.5

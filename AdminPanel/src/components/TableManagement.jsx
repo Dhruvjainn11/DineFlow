@@ -3,12 +3,17 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import TableForm from './TableForm';
 import { getTables } from '../services/tableService';
+import { Download, QrCode } from 'lucide-react';
+import { downloadSingleQR, downloadAllQRs } from '../utils/qrPdfGenerator';
 
 const TableManagement = () => {
   const { user } = useAuth();
   const [showForm, setShowForm] = useState(false);
   const [tables, setTables] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [cafe, setCafe] = useState(null);
+  
+  console.log('TableManagement render - Tables:', tables.length, 'Cafe:', cafe ? 'loaded' : 'null');
 
   // For super admin: Set selected cafe in localStorage
   useEffect(() => {
@@ -36,6 +41,24 @@ const TableManagement = () => {
       
       const result = await getTables(cafeId);
       setTables(result.data);
+      
+      console.log('Tables result:', result.data);
+      
+      // Set cafe data for QR generation
+      if (result.data.length > 0) {
+        console.log('First table cafeId:', result.data[0].cafeId);
+        if (result.data[0].cafeId) {
+          setCafe(result.data[0].cafeId);
+        } else {
+          // Fallback: get cafe data from user or API
+          const cafeData = user.role === 'super-admin' ? 
+            { _id: cafeId, name: 'Selected Cafe', theme: { primaryColor: '#3B82F6' } } :
+            user.cafeId;
+          setCafe(cafeData);
+        }
+      }
+      
+      console.log('Cafe state set to:', cafe);
     } catch (error) {
       console.error('Failed to load tables:', error);
     } finally {
@@ -45,6 +68,12 @@ const TableManagement = () => {
 
   useEffect(() => {
     loadTables();
+    // Temporary: Force set cafe data for testing
+    setCafe({
+      _id: '68a88f5640dd24a85085932f',
+      name: 'Test Cafe',
+      theme: { primaryColor: '#3B82F6' }
+    });
   }, []);
 
   const getStatusColor = (status) => {
@@ -64,15 +93,26 @@ const TableManagement = () => {
           <h1 className="text-3xl font-bold text-gray-900">Table Management</h1>
           <p className="text-gray-600 mt-2">Manage and organize your restaurant tables</p>
         </div>
-        <button
-          onClick={() => setShowForm(true)}
-          className="px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors flex items-center mt-4 sm:mt-0 shadow-md hover:shadow-lg"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
-            <path fillRule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clipRule="evenodd" />
-          </svg>
-          Add Table
-        </button>
+        <div className="flex gap-3 mt-4 sm:mt-0">
+          {tables.length > 0 && cafe && (
+            <button
+              onClick={() => downloadAllQRs(tables, cafe)}
+              className="px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center shadow-md hover:shadow-lg"
+            >
+              <Download size={16} className="mr-2" />
+              Download All QR
+            </button>
+          )}
+          <button
+            onClick={() => setShowForm(true)}
+            className="px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors flex items-center shadow-md hover:shadow-lg"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+              <path fillRule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clipRule="evenodd" />
+            </svg>
+            Add Table
+          </button>
+        </div>
       </div>
 
       {/* Show current cafe info for super admin */}
@@ -83,6 +123,12 @@ const TableManagement = () => {
           </p>
         </div>
       )}
+      
+      {/* Debug info */}
+      <div className="mb-4 p-3 bg-yellow-50 rounded border">
+        <p className="text-sm">Debug: Tables count: {tables.length}, Cafe: {cafe ? 'Loaded' : 'Not loaded'}</p>
+        {cafe && <p className="text-sm">Cafe name: {cafe.name}</p>}
+      </div>
 
       {showForm && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
@@ -152,9 +198,20 @@ const TableManagement = () => {
                       <h3 className="font-semibold text-lg text-gray-900">Table {table.tableNumber}</h3>
                       {table.tableName && <p className="text-gray-600 mt-1">{table.tableName}</p>}
                     </div>
-                    <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(table.status)}`}>
-                      {table.status}
-                    </span>
+                    <div className="flex items-center gap-2">
+                      {cafe && (
+                        <button
+                          onClick={() => downloadSingleQR(table, cafe)}
+                          className="text-blue-600 hover:text-blue-800 p-1 rounded hover:bg-blue-50 transition-colors"
+                          title="Download QR Code"
+                        >
+                          <QrCode size={18} />
+                        </button>
+                      )}
+                      <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(table.status)}`}>
+                        {table.status}
+                      </span>
+                    </div>
                   </div>
                   
                   <div className="flex items-center text-gray-600 text-sm mt-4">
