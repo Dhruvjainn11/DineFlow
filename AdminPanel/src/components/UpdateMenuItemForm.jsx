@@ -3,8 +3,10 @@ import { useForm } from "react-hook-form";
 import { X } from "lucide-react";
 import { updateMenu, getCategories } from '../services/menuService';
 import ImageDropzone from "./ImageDropzone";
+import { useTheme } from "../context/ThemeContext";
 
 export default function UpdateMenuItemForm({ onClose, item, onRefresh }) {
+  const { theme } = useTheme();
   const [categories, setCategories] = useState([]);
   const [isUploading, setIsUploading] = useState(false);
   const [sizes, setSizes] = useState(item.sizes || []);
@@ -131,7 +133,8 @@ const submitHandler = async (data) => {
                 <label className="block mb-1 font-medium">Item Name</label>
                 <input
                   {...register("name", { required: "Item name is required" })}
-                  className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring focus:ring-blue-300"
+                  className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2"
+                  style={{ '--tw-ring-color': `${theme.primaryColor}30` }}
                   placeholder="e.g., Margherita Pizza"
                 />
                 {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name.message}</p>}
@@ -141,7 +144,8 @@ const submitHandler = async (data) => {
                 <label className="block mb-1 font-medium">Category</label>
                 <select
                   {...register("category", { required: "Category is required" })}
-                  className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring focus:ring-blue-300"
+                  className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2"
+                  style={{ '--tw-ring-color': `${theme.primaryColor}30` }}
                 >
                   {categories.map((category) => (
                     <option key={category._id} value={category._id}>
@@ -162,7 +166,8 @@ const submitHandler = async (data) => {
                       required: "Price is required if no sizes are provided",
                       min: { value: 0.01, message: "Price must be greater than 0" },
                     })}
-                    className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring focus:ring-blue-300"
+                    className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2"
+                    style={{ '--tw-ring-color': `${theme.primaryColor}30` }}
                     placeholder="e.g., 199"
                   />
                   {errors.price && <p className="text-red-500 text-sm mt-1">{errors.price.message}</p>}
@@ -198,7 +203,20 @@ const submitHandler = async (data) => {
                 <button
                   type="button"
                   onClick={handleAddSize}
-                  className="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg"
+                  className="px-4 py-2 rounded-lg border transition-colors"
+                  style={{ 
+                    borderColor: theme.primaryColor,
+                    color: theme.primaryColor,
+                    backgroundColor: 'transparent'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.target.style.backgroundColor = theme.primaryColor;
+                    e.target.style.color = 'white';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.target.style.backgroundColor = 'transparent';
+                    e.target.style.color = theme.primaryColor;
+                  }}
                 >
                   + Add Size
                 </button>
@@ -211,7 +229,8 @@ const submitHandler = async (data) => {
                 <label className="block mb-1 font-medium">Description</label>
                 <textarea
                   {...register("description")}
-                  className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring focus:ring-blue-300"
+                  className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2"
+                  style={{ '--tw-ring-color': `${theme.primaryColor}30` }}
                   placeholder="Short description of the item"
                   rows="3"
                 />
@@ -221,7 +240,8 @@ const submitHandler = async (data) => {
                 <label className="block mb-1 font-medium">Ingredients (comma-separated)</label>
                 <textarea
                   {...register("ingredients")}
-                  className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring focus:ring-blue-300"
+                  className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2"
+                  style={{ '--tw-ring-color': `${theme.primaryColor}30` }}
                   placeholder="e.g., Milk, Sugar, Cocoa"
                   rows="3"
                 />
@@ -241,7 +261,11 @@ const submitHandler = async (data) => {
                 <input
                   type="checkbox"
                   {...register("available")}
-                  className="h-5 w-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500" 
+                  className="h-5 w-5 border-gray-300 rounded focus:ring-2"
+                  style={{ 
+                    accentColor: theme.primaryColor,
+                    '--tw-ring-color': `${theme.primaryColor}50`
+                  }} 
                 />
               </div>
               
@@ -259,7 +283,12 @@ const submitHandler = async (data) => {
           <div className="text-center mt-6">
             <button
               type="submit"
-              className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg shadow-md hover:cursor-pointer"
+              className="text-white px-6 py-2 rounded-lg shadow-md hover:cursor-pointer transition-colors"
+              style={{ 
+                backgroundColor: theme.primaryColor
+              }}
+              onMouseEnter={(e) => e.target.style.backgroundColor = `${theme.primaryColor}dd`}
+              onMouseLeave={(e) => e.target.style.backgroundColor = theme.primaryColor}
             >
               Update Item
             </button>
