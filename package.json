@@ -2,9 +2,10 @@
   "name": "dineflow",
   "private": true,
   "scripts": {
-    "build:admin": "cd AdminPanel && npm install && npm run build",
-    "build:customer": "cd CustomerSide && npm install && npm run build",
-    "build:merge": "rm -rf dist && mkdir dist && cp -r AdminPanel/build/* dist/ && mkdir -p dist/cafe && cp -r CustomerSide/build/* dist/cafe/",
-    "build": "npm run build:admin && npm run build:customer && npm run build:merge"
-  }
+  "build:admin": "cd AdminPanel && npm install && npm run build",
+  "build:customer": "cd CustomerSide && npm install && npm run build",
+  "build:merge": "rm -rf dist && mkdir dist && cp -r AdminPanel/dist/* dist/ && mkdir -p dist/cafe && cp -r CustomerSide/dist/* dist/cafe/",
+  "build": "npm run build:admin && npm run build:customer && npm run build:merge"
+}
+
 }
