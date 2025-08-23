@@ -289,18 +289,18 @@ const { cafeId, tableId } = useParams();   const dispatch = useDispatch();
               <div className="mb-4">
                 {detailItem.sizes && detailItem.sizes.length > 0 ? (
                   <div>
-                    <p className="text-lg font-semibold text-amber-600 mb-2">Available Sizes:</p>
+                    <p className="text-lg font-semibold text-theme-primary mb-2">Available Sizes:</p>
                     <div className="space-y-2">
                       {detailItem.sizes.map((size, index) => (
                         <div key={index} className="flex justify-between items-center bg-gray-50 p-3 rounded-lg">
                           <span className="font-medium">{size.label}</span>
-                          <span className="text-amber-600 font-bold">₹{size.price}</span>
+                          <span className="text-theme-primary font-bold">₹{size.price}</span>
                         </div>
                       ))}
                     </div>
                   </div>
                 ) : (
-                  <p className="text-2xl font-bold text-amber-600">₹{detailItem.price}</p>
+                  <p className="text-2xl font-bold text-theme-primary">₹{detailItem.price}</p>
                 )}
               </div>
 
@@ -320,7 +320,7 @@ const { cafeId, tableId } = useParams();   const dispatch = useDispatch();
                     {detailItem.ingredients.map((ingredient, index) => (
                       <span
                         key={index}
-                        className="bg-amber-100 text-amber-800 px-3 py-1 rounded-full text-sm"
+                        className="bg-theme-primary-100 text-theme-primary px-3 py-1 rounded-full text-sm"
                       >
                         {ingredient}
                       </span>
@@ -335,7 +335,7 @@ const { cafeId, tableId } = useParams();   const dispatch = useDispatch();
                   handleAddToCart(detailItem);
                   handleCloseDetailModal();
                 }}
-                className="w-full bg-gradient-to-r from-amber-500 to-amber-600 text-white font-bold py-3 rounded-xl hover:from-amber-600 hover:to-amber-700 transition-all duration-200 shadow-lg"
+                className="w-full bg-theme-primary text-white font-bold py-3 rounded-xl hover:bg-theme-primary-dark transition-all duration-200 shadow-lg"
               >
                 Add to Cart
               </button>
