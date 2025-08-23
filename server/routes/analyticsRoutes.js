@@ -261,9 +261,34 @@ router.get("/summary", protect, allowRoles("admin", "super-admin"), async (req, 
       }
     ]);
     
-    // Generate 30-day data for Pro users
+    // Generate 30-day data and Pro features for Pro users
     let thirtyDayStats = [];
+    let peakHour = 'N/A';
+    let tableTurnover = 0;
+    
     if (isProPlan) {
+      // Get peak hour from orders
+      const peakHourData = await Order.aggregate([
+        { $match: cafeFilter },
+        {
+          $group: {
+            _id: { $hour: "$createdAt" },
+            orders: { $sum: 1 }
+          }
+        },
+        { $sort: { orders: -1 } },
+        { $limit: 1 }
+      ]);
+      
+      if (peakHourData.length > 0) {
+        const hour = peakHourData[0]._id;
+        peakHour = `${hour}:00-${hour + 1}:00`;
+      }
+      
+      // Calculate table turnover (orders per table per day)
+      if (allTables.length > 0 && totalOrders > 0) {
+        tableTurnover = (totalOrders / allTables.length / 30).toFixed(1);
+      }
       const thirtyDaysAgo = new Date();
       thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
       thirtyDaysAgo.setHours(0, 0, 0, 0);
@@ -381,8 +406,9 @@ router.get("/summary", protect, allowRoles("admin", "super-admin"), async (req, 
         daysBack: 7,
         // Popular items (different limits for different plans)
         popularItems: popularItemsData,
-        // Pro-only 30-day chart data
-        thirtyDayStats: thirtyDayStats
+        thirtyDayStats: thirtyDayStats,
+        peakHour: peakHour,
+        tableTurnover: tableTurnover
       }
     });
   } catch (err) {
