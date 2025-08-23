@@ -521,7 +521,7 @@ export default function Analytics() {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm font-medium text-gray-500 uppercase tracking-wider">Peak Hour</p>
-                    <p className="mt-2 text-2xl font-semibold text-orange-600">2-4 PM</p>
+                    <p className="mt-2 text-2xl font-semibold text-orange-600">{data.peakHour || 'N/A'}</p>
                   </div>
                   <div className="p-2 bg-orange-50 rounded-lg">
                     <Clock className="h-5 w-5 text-orange-600" />
@@ -533,7 +533,7 @@ export default function Analytics() {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm font-medium text-gray-500 uppercase tracking-wider">Table Turnover</p>
-                    <p className="mt-2 text-2xl font-semibold text-purple-600">2.3x</p>
+                    <p className="mt-2 text-2xl font-semibold text-purple-600">{data.tableTurnover || 0}x</p>
                   </div>
                   <div className="p-2 bg-purple-50 rounded-lg">
                     <Table className="h-5 w-5 text-purple-600" />
