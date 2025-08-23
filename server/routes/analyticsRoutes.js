@@ -261,6 +261,13 @@ router.get("/summary", protect, allowRoles("admin", "super-admin"), async (req, 
       }
     ]);
     
+    // Get all tables with their current orders (needed for Pro calculations)
+    const allTables = await Table.find(cafeFilter).populate({
+      path: "currentOrder",
+      model: "Order",
+      options: { sort: { createdAt: -1 } }, // latest order first
+    });
+
     // Generate 30-day data and Pro features for Pro users
     let thirtyDayStats = [];
     let peakHour = 'N/A';
@@ -344,12 +351,7 @@ router.get("/summary", protect, allowRoles("admin", "super-admin"), async (req, 
       console.log('📈 Final 30-day stats count:', thirtyDayStats.length);
     }
 
-    // Get all tables with their current orders
-    const allTables = await Table.find(cafeFilter).populate({
-      path: "currentOrder",
-      model: "Order",
-      options: { sort: { createdAt: -1 } }, // latest order first
-    });
+
 
     // Count table statuses
     const tableStatusCounts = {
