@@ -26,13 +26,14 @@ function AppWithTheme() {
   return (
     <ThemeProvider>
       <Routes>
-        <Route path="/" element={<MenuPage />} />
-        <Route path="/cart" element={<CartPage />} />
-        <Route path="/orders" element={<OrderPage />} />
-        <Route path="/payment" element={<PaymentPage />} />
+        <Route index element={<MenuPage />} />   {/* relative default route */}
+        <Route path="cart" element={<CartPage />} />
+        <Route path="orders" element={<OrderPage />} />
+        <Route path="payment" element={<PaymentPage />} />
       </Routes>
     </ThemeProvider>
   );
 }
+
 
 export default App;
