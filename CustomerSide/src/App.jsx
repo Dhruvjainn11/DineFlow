@@ -26,11 +26,13 @@ function AppWithTheme() {
   return (
     <ThemeProvider>
       <Routes>
-        <Route index element={<MenuPage />} />   {/* relative default route */}
-        <Route path="cart" element={<CartPage />} />
-        <Route path="orders" element={<OrderPage />} />
-        <Route path="payment" element={<PaymentPage />} />
-      </Routes>
+  <Route index element={<MenuPage />} />
+  <Route path="cart" element={<CartPage />} />
+  <Route path="orders" element={<OrderPage />} />
+  <Route path="payment" element={<PaymentPage />} />
+  <Route path="*" element={<MenuPage />} />   {/* catch-all fallback */}
+</Routes>
+
     </ThemeProvider>
   );
 }
