@@ -2,13 +2,16 @@ import React from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { FiHome, FiShoppingCart, FiClock, FiCreditCard } from "react-icons/fi";
 import { useSelector } from "react-redux";
+import { useCafe } from "../context/CafeContext";
 
 export default function CustomerFooter() {
   const navigate = useNavigate();
   const { tableId, cafeId } = useParams();
+  const { cafeInfo } = useCafe();
   const cartItems = useSelector((state) => state.cart.items);
 
   const totalQuantity = (cartItems || []).reduce((acc, item) => acc + item.quantity, 0);
+  const primaryColor = cafeInfo?.theme?.primaryColor || '#F59E0B';
 
 
   return (
@@ -28,7 +31,8 @@ export default function CustomerFooter() {
         <div className="relative">
           <FiShoppingCart size={20} />
           {totalQuantity > 0 && (
-            <span className="absolute -top-2 -right-2 bg-amber-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+            <span className="absolute -top-2 -right-2 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center"
+                  style={{ backgroundColor: primaryColor }}>
               {totalQuantity}
             </span>
           )}
