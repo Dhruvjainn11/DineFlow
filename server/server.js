@@ -138,6 +138,11 @@ io.on('connection', (socket) => {
 // Make io available to routes
 app.set('io', io);
 
+app.get('/healthz', (req, res) => {
+  res.status(200).json({ status: 'ok' });
+});
+
+
 // Error handling middleware
 app.use((err, req, res, next) => {
   console.error(err.stack);
