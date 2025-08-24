@@ -95,15 +95,13 @@ tableSchema.methods.generateQRCodeUrl = function(cafe, baseUrl = process.env.FRO
     return `${baseUrl}/cafe/${this.cafeId}/table/${this._id}`;
   }
   
-  // Production environment - use annsh.in domain
+  // Production environment - use customer frontend URL from env or default
   if (process.env.NODE_ENV === 'production') {
-    return `https://annsh.in/cafe/${this.cafeId}/table/${this._id}`;
+    const customerUrl = process.env.FRONTEND_URL || 'https://annsh.in';
+    return `${customerUrl}/cafe/${this.cafeId}/table/${this._id}`;
   }
   
-  // Pro plan with custom subdomain (only for actual custom domains)
-  if (cafe && cafe.features?.customDomain && cafe.subdomain && !baseUrl.includes('vercel.app')) {
-    return `https://${cafe.subdomain}.dineflow.com/cafe/${this.cafeId}/table/${this._id}`;
-  }
+
   
   // Basic plan with path-based URL
   return `${baseUrl}/cafe/${this.cafeId}/table/${this._id}`;
