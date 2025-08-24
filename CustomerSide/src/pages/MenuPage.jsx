@@ -30,24 +30,21 @@ const { cafeId, tableId } = useParams();   const dispatch = useDispatch();
 
     const fetchData = async () => {
       try {
-        // Check table status and existing orders first
-        const tableRes = await api.get(`/tables/${tableId}`);
-        const table = tableRes.data.data;
-        setTableStatus(table.status);
-        
-        // If table has current orders, fetch the latest one
-        if (table.currentOrder && table.currentOrder.length > 0) {
-          const latestOrderId = table.currentOrder[0];
-          try {
-            const orderRes = await api.get(`/orders/${latestOrderId}`);
-            const order = orderRes.data.data;
-            // Only show existing order if it's not completed/paid
-            if (order.status !== 'PAID' && order.status !== 'SERVED') {
-              setExistingOrder(order);
-            }
-          } catch (orderErr) {
-            console.log('Could not fetch existing order:', orderErr);
+        // Check for existing orders on this table
+        try {
+          const ordersRes = await api.get(`/orders?tableId=${tableId}&status=active`);
+          const activeOrders = ordersRes.data.data || [];
+          
+          // Find the most recent active order
+          const activeOrder = activeOrders.find(order => 
+            order.status !== 'PAID' && order.status !== 'SERVED' && order.status !== 'Cancelled'
+          );
+          
+          if (activeOrder) {
+            setExistingOrder(activeOrder);
           }
+        } catch (orderErr) {
+          console.log('Could not fetch existing orders:', orderErr);
         }
         
         // fetch menus & categories by cafeId
