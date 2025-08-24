@@ -6,7 +6,6 @@ import { useAuth } from "../context/AuthContext";
 import Receipt from "../components/Receipt"; // Import your Receipt component
 
 export default function AdminPaymentManager() {
-  const { cafe } = useAuth();
   const [orders, setOrders] = useState([]);
   const [paidTables, setPaidTables] = useState([]);
   const [selectedOrder, setSelectedOrder] = useState(null);
@@ -65,11 +64,6 @@ export default function AdminPaymentManager() {
 
   useEffect(() => {
     fetchAllRelevantOrders();
-    
-    // Join cafe room for real-time updates
-    if (cafe?._id) {
-      socket.emit('joinCafeRoom', cafe._id);
-    }
 
     socket.on("connect", () => {
       console.log("✅ Connected to Socket:", socket.id);
@@ -111,13 +105,8 @@ export default function AdminPaymentManager() {
       socket.off("newOrder", handleNewOrder);
       socket.off("orderStatusUpdated", handleOrderStatusUpdated);
       socket.off("orderCompleted", handleOrderStatusUpdated);
-      
-      // Leave cafe room
-      if (cafe?._id) {
-        socket.emit('leaveCafeRoom', cafe._id);
-      }
     };
-  }, [cafe?._id]);
+  }, []);
 
   // Mark ALL orders for the table as paid
   const handleMarkComplete = async (tableNumber) => {
