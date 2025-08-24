@@ -2,35 +2,21 @@ import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import api from "../utils/api";
 import { socket } from "../utils/socket";
+import { useCafe } from "../context/CafeContext";
 import CustomerFooter from "../components/CustomerFooter";
 
 export default function PaymentPage() {
-  const { tableId } = useParams();
+  const { cafeId, tableId } = useParams();
+  const { cafeInfo } = useCafe();
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [cafeInfo, setCafeInfo] = useState(null);
 
   // Fetch all orders for this table (unpaid or partially paid)
   const fetchOrders = async () => {
     try {
       const res = await api.get(`/orders/table/${tableId}`);
       console.log(res.data.data);
-      
       setOrders(res.data.data);
-      
-      // Fetch cafe info if we have orders
-      if (res.data.data.length > 0 && !cafeInfo) {
-        const cafeId = res.data.data[0].cafeId._id || res.data.data[0].cafeId;
-        try {
-          const cafeRes = await api.get(`/cafes/${cafeId}`);
-          setCafeInfo(cafeRes.data.data);
-          // Join cafe room for real-time updates
-          socket.emit('joinCafeRoom', cafeId);
-        } catch (cafeErr) {
-          console.error("Failed to fetch cafe info", cafeErr);
-        }
-      }
-      
       setLoading(false);
     } catch (err) {
       console.error("Failed to fetch orders", err);
@@ -60,6 +46,11 @@ export default function PaymentPage() {
 
   useEffect(() => {
     fetchOrders();
+    
+    // Join cafe room for real-time updates
+    if (cafeId) {
+      socket.emit('joinCafeRoom', cafeId);
+    }
 
     // Real-time payment status updates
     socket.on("paymentCompleted", (updatedOrder) => {
@@ -111,8 +102,13 @@ export default function PaymentPage() {
       socket.off("paymentRequestedBulk");
       socket.off("paymentCompletedBulk");
       socket.off("newOrder");
+      
+      // Leave cafe room
+      if (cafeId) {
+        socket.emit('leaveCafeRoom', cafeId);
+      }
     };
-  }, [tableId]);
+  }, [cafeId, tableId]);
 
   if (loading)
     return (

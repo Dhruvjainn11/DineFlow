@@ -2,41 +2,20 @@ import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import api from "../utils/api";
 import { socket } from "../utils/socket";
+import { useCafe } from "../context/CafeContext";
 import CustomerFooter from "../components/CustomerFooter";
 
 export default function CustomerOrderPage() {
-  const { tableId} = useParams();
+  const { cafeId, tableId } = useParams();
+  const { cafeInfo } = useCafe();
   const [orders, setOrders] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [cafeInfo, setCafeInfo] = useState(null);
 
   const fetchCurrentOrder = async () => {
     try {
       const res = await api.get(`/orders/table/${tableId}`);
       console.log(res.data.data);
-      
       setOrders(res.data.data);
-      
-      // Fetch cafe info if we have orders
-      if (res.data.data.length > 0 && !cafeInfo) {
-        const cafeId = res.data.data[0].cafeId._id || res.data.data[0].cafeId;
-        try {
-          // Use theme API to get cafe info with theme
-          const cafeRes = await api.get(`/theme/${cafeId}`);
-          if (cafeRes.data.success) {
-            setCafeInfo({
-              ...cafeRes.data.data,
-              id: cafeId,
-              name: cafeRes.data.data.cafeName
-            });
-          }
-          // Join cafe room for real-time updates
-          socket.emit('joinCafeRoom', cafeId);
-        } catch (cafeErr) {
-          console.error("Failed to fetch cafe info", cafeErr);
-        }
-      }
-      
       setLoading(false);
     } catch (err) {
       console.error("Failed to fetch order:", err);
@@ -46,6 +25,11 @@ export default function CustomerOrderPage() {
 
   useEffect(() => {
     fetchCurrentOrder();
+    
+    // Join cafe room for real-time updates
+    if (cafeId) {
+      socket.emit('joinCafeRoom', cafeId);
+    }
 
     // Real-time order status updates
     socket.on("orderStatusUpdated", (updatedOrder) => {
@@ -108,8 +92,13 @@ export default function CustomerOrderPage() {
       socket.off("orderCompleted");
       socket.off("paymentCompleted");
       socket.off("paymentCompletedBulk");
+      
+      // Leave cafe room
+      if (cafeId) {
+        socket.emit('leaveCafeRoom', cafeId);
+      }
     };
-  }, [tableId]);
+  }, [cafeId, tableId]);
 
   if (loading) return (
     <div className="flex flex-col min-h-screen bg-gradient-to-b from-theme-secondary to-white">
