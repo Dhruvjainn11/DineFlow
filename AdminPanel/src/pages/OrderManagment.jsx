@@ -2,9 +2,11 @@ import React, { useEffect, useState } from "react";
 import RoleBasedLayout from "../layouts/RoleBasedLayout";
 import { getOrders } from "../services/orderService";
 import { socket } from "../utils/socket";
+import { useAuth } from "../context/AuthContext";
 import { Circle, CheckCircle, Clock, XCircle, CreditCard, Utensils, Filter, Calendar, RefreshCw } from "lucide-react";
 
 const OrderManagment = () => {
+  const { cafe } = useAuth();
   const [orders, setOrders] = useState([]);
   const [statusFilter, setStatusFilter] = useState([]);
   const [dateFilter, setDateFilter] = useState("7");
@@ -12,6 +14,11 @@ const OrderManagment = () => {
   
   useEffect(() => {
     fetchOrders();
+    
+    // Join cafe room for real-time updates
+    if (cafe?._id) {
+      socket.emit('joinCafeRoom', cafe._id);
+    }
     
     const handleOrderStatusUpdated = (updatedOrder) => {
       console.log("Socket received:", updatedOrder);
@@ -32,8 +39,13 @@ const OrderManagment = () => {
       socket.off("orderCompleted", handleOrderStatusUpdated);
       socket.off("orderStatusUpdated", handleOrderStatusUpdated);
       socket.off("newOrder");
+      
+      // Leave cafe room
+      if (cafe?._id) {
+        socket.emit('leaveCafeRoom', cafe._id);
+      }
     };
-  }, []);
+  }, [cafe?._id]);
 
   const fetchOrders = async () => {
     try {
