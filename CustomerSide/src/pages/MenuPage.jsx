@@ -9,6 +9,7 @@ import api from "../utils/api";
 import { FiSearch, FiPlus, FiMinus, FiX } from "react-icons/fi";
 import CustomerFooter from "../components/CustomerFooter";
 import MenuItemModal from "../components/MenuItemModal";
+import { useCafe } from "../context/CafeContext";
 
 export default function MenuPage() {
   const { cafeId, tableId } = useParams();
