@@ -1,7 +1,6 @@
 import { Routes, Route } from "react-router-dom";
 import React, { useEffect } from "react";
 import Login from "./pages/Login";
-import Annsh from "./pages/Annsh";
 import Dashboard from "./pages/Dashboard"; // Empty for now
 import PrivateRoute from "./components/PrivateRoute"; // Private route component
 import MenuManagement from "./pages/MenuManagment";
@@ -34,7 +33,6 @@ function AppContent() {
   return ( <>
 
       <Routes>
-        <Route path="/" element={<Annsh />} />
         <Route path="/login" element={<Login />} />
 
         <Route element={<PrivateRoute />}>

@@ -53,7 +53,7 @@ const Annsh = () => {
 
             {/* Login Button & Mobile Menu */}
             <div className="flex items-center space-x-4">
-              <button onClick={() => navigate("/login")} className="hidden md:block bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+              <button onClick={() => navigate("/")} className="hidden md:block bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
                 Login
               </button>
               
@@ -98,7 +98,7 @@ const Annsh = () => {
               Seamless table orders, kitchen dashboard, and customer experience – all in one place.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <button className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 rounded-lg text-lg font-semibold transition-all transform hover:scale-105 shadow-lg hover:shadow-xl">
+              <button onClick={() => navigate("/")} className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 rounded-lg text-lg font-semibold transition-all transform hover:scale-105 shadow-lg hover:shadow-xl">
                 Get Started
               </button>
               <button className="border-2 border-gray-300 hover:border-blue-600 text-gray-700 hover:text-blue-600 px-8 py-4 rounded-lg text-lg font-semibold transition-all">
@@ -253,7 +253,7 @@ const Annsh = () => {
           <p className="text-xl text-blue-100 mb-8 max-w-2xl mx-auto">
             Join Annsh today and experience the future of restaurant management
           </p>
-          <button className="bg-white hover:bg-gray-100 text-blue-600 px-8 py-4 rounded-lg text-lg font-semibold transition-all transform hover:scale-105 shadow-lg">
+          <button onClick={() => navigate("/")} className="bg-white hover:bg-gray-100 text-blue-600 px-8 py-4 rounded-lg text-lg font-semibold transition-all transform hover:scale-105 shadow-lg">
             Get Started Now
           </button>
         </div>

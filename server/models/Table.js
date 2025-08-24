@@ -95,9 +95,9 @@ tableSchema.methods.generateQRCodeUrl = function(cafe, baseUrl = process.env.FRO
     return `${baseUrl}/cafe/${this.cafeId}/table/${this._id}`;
   }
   
-  // Production environment - always use Vercel URL
-  if (process.env.NODE_ENV === 'production' || baseUrl.includes('vercel.app')) {
-    return `${baseUrl}/cafe/${this.cafeId}/table/${this._id}`;
+  // Production environment - use annsh.in domain
+  if (process.env.NODE_ENV === 'production') {
+    return `https://annsh.in/cafe/${this.cafeId}/table/${this._id}`;
   }
   
   // Pro plan with custom subdomain (only for actual custom domains)
