@@ -11,7 +11,9 @@ import CustomerFooter from "../components/CustomerFooter";
 import MenuItemModal from "../components/MenuItemModal";
 
 export default function MenuPage() {
-const { cafeId, tableId } = useParams();   const dispatch = useDispatch();
+  const { cafeId, tableId } = useParams();
+  const { cafeInfo } = useCafe();
+  const dispatch = useDispatch();
   const cartItems = useSelector((state) => state.cart.items);
 
   const [menus, setMenus] = useState([]);
@@ -23,39 +25,60 @@ const { cafeId, tableId } = useParams();   const dispatch = useDispatch();
   const [detailItem, setDetailItem] = useState(null);
   const [tableStatus, setTableStatus] = useState(null);
   const [existingOrder, setExistingOrder] = useState(null);
+  const [debugInfo, setDebugInfo] = useState({
+    cafeId,
+    tableId,
+    apiCalls: [],
+    errors: [],
+    loadingStates: {}
+  });
   const categoryRefs = useRef({});
+  
+  const addDebugInfo = (type, data) => {
+    setDebugInfo(prev => ({
+      ...prev,
+      [type]: [...(prev[type] || []), { timestamp: new Date().toISOString(), ...data }]
+    }));
+  };
 
   useEffect(() => {
     dispatch(setTableId(tableId));
 
     const fetchData = async () => {
+      addDebugInfo('apiCalls', { action: 'fetchData_start', cafeId, tableId });
+      
       try {
         // Check for existing orders on this table
+        addDebugInfo('apiCalls', { action: 'fetching_orders', url: `/orders?tableId=${tableId}&status=active` });
         try {
           const ordersRes = await api.get(`/orders?tableId=${tableId}&status=active`);
-          const activeOrders = ordersRes.data.data || [];
+          addDebugInfo('apiCalls', { action: 'orders_success', data: ordersRes.data });
           
-          // Find the most recent active order
+          const activeOrders = ordersRes.data.data || [];
           const activeOrder = activeOrders.find(order => 
             order.status !== 'PAID' && order.status !== 'SERVED' && order.status !== 'Cancelled'
           );
           
           if (activeOrder) {
             setExistingOrder(activeOrder);
+            addDebugInfo('apiCalls', { action: 'existing_order_found', order: activeOrder });
           }
         } catch (orderErr) {
-          console.log('Could not fetch existing orders:', orderErr);
+          addDebugInfo('errors', { action: 'orders_failed', error: orderErr.message, response: orderErr.response?.data });
         }
         
         // fetch menus & categories by cafeId
+        addDebugInfo('apiCalls', { action: 'fetching_menu_categories', cafeId });
         const [menuRes, categoriesRes] = await Promise.all([
           api.get(`/menu?cafeId=${cafeId}`),
           api.get(`/categories?cafeId=${cafeId}`),
         ]);
 
+        addDebugInfo('apiCalls', { action: 'menu_success', menuCount: menuRes.data.data?.length, categoryCount: categoriesRes.data.data?.length });
         setMenus(menuRes.data.data);
         setCategories(categoriesRes.data.data);
       } catch (err) {
+        addDebugInfo('errors', { action: 'fetchData_failed', error: err.message, response: err.response?.data });
         console.error("Failed to fetch data", err);
       }
     };
@@ -172,8 +195,40 @@ const { cafeId, tableId } = useParams();   const dispatch = useDispatch();
     );
   }
 
+  // Debug panel (remove in production)
+  const showDebug = new URLSearchParams(window.location.search).get('debug') === 'true';
+  
   return (
     <div className="max-w-[480px] mx-auto bg-theme-secondary min-h-screen pb-16">
+      {/* Debug Panel */}
+      {showDebug && (
+        <div className="bg-black text-white p-4 text-xs overflow-auto max-h-96 sticky top-0 z-50">
+          <h3 className="font-bold mb-2">DEBUG INFO (add ?debug=true to URL)</h3>
+          <div className="space-y-2">
+            <div><strong>Cafe ID:</strong> {cafeId}</div>
+            <div><strong>Table ID:</strong> {tableId}</div>
+            <div><strong>Menus Count:</strong> {menus.length}</div>
+            <div><strong>Categories Count:</strong> {categories.length}</div>
+            <div><strong>Existing Order:</strong> {existingOrder ? 'YES' : 'NO'}</div>
+            <div><strong>Theme Primary:</strong> {getComputedStyle(document.documentElement).getPropertyValue('--theme-primary')}</div>
+            
+            <details>
+              <summary className="cursor-pointer font-bold">API Calls ({debugInfo.apiCalls.length})</summary>
+              <pre className="text-xs overflow-auto">{JSON.stringify(debugInfo.apiCalls, null, 2)}</pre>
+            </details>
+            
+            <details>
+              <summary className="cursor-pointer font-bold text-red-400">Errors ({debugInfo.errors.length})</summary>
+              <pre className="text-xs overflow-auto">{JSON.stringify(debugInfo.errors, null, 2)}</pre>
+            </details>
+            
+            <details>
+              <summary className="cursor-pointer font-bold">Cafe Context</summary>
+              <pre className="text-xs overflow-auto">{JSON.stringify({ cafeInfo: cafeInfo }, null, 2)}</pre>
+            </details>
+          </div>
+        </div>
+      )}
       {/* Header with Search */}
       <div className="sticky top-0 z-20 bg-white shadow-sm border-b border-theme-primary-100">
         <div className="p-4">
