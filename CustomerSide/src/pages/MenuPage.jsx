@@ -21,6 +21,8 @@ const { cafeId, tableId } = useParams();   const dispatch = useDispatch();
   const [activeCategory, setActiveCategory] = useState(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [detailItem, setDetailItem] = useState(null);
+  const [tableStatus, setTableStatus] = useState(null);
+  const [existingOrder, setExistingOrder] = useState(null);
   const categoryRefs = useRef({});
 
   useEffect(() => {
@@ -28,13 +30,33 @@ const { cafeId, tableId } = useParams();   const dispatch = useDispatch();
 
     const fetchData = async () => {
       try {
+        // Check table status and existing orders first
+        const tableRes = await api.get(`/tables/${tableId}`);
+        const table = tableRes.data.data;
+        setTableStatus(table.status);
+        
+        // If table has current orders, fetch the latest one
+        if (table.currentOrder && table.currentOrder.length > 0) {
+          const latestOrderId = table.currentOrder[0];
+          try {
+            const orderRes = await api.get(`/orders/${latestOrderId}`);
+            const order = orderRes.data.data;
+            // Only show existing order if it's not completed/paid
+            if (order.status !== 'PAID' && order.status !== 'SERVED') {
+              setExistingOrder(order);
+            }
+          } catch (orderErr) {
+            console.log('Could not fetch existing order:', orderErr);
+          }
+        }
+        
         // fetch menus & categories by cafeId
         const [menuRes, categoriesRes] = await Promise.all([
           api.get(`/menu?cafeId=${cafeId}`),
           api.get(`/categories?cafeId=${cafeId}`),
         ]);
 
-        setMenus(menuRes.data.data);       // ✅ backend sends {data: [...]}
+        setMenus(menuRes.data.data);
         setCategories(categoriesRes.data.data);
       } catch (err) {
         console.error("Failed to fetch data", err);
@@ -121,6 +143,37 @@ const { cafeId, tableId } = useParams();   const dispatch = useDispatch();
       element.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
   };
+
+  // Show existing order notification if there's an active order
+  if (existingOrder) {
+    return (
+      <div className="max-w-[480px] mx-auto bg-theme-secondary min-h-screen pb-16">
+        <div className="p-6">
+          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
+            <h2 className="text-lg font-semibold text-yellow-800 mb-2">Table Already Has an Active Order</h2>
+            <p className="text-yellow-700 mb-3">
+              This table already has an order in progress (Order #{existingOrder._id.slice(-6)}). 
+              Status: <span className="font-medium">{existingOrder.status}</span>
+            </p>
+            <div className="flex gap-2">
+              <button 
+                onClick={() => setExistingOrder(null)}
+                className="px-4 py-2 bg-theme-primary text-white rounded-lg hover:bg-theme-primary-dark"
+              >
+                Place New Order
+              </button>
+              <button 
+                onClick={() => window.location.href = `/cafe/${cafeId}/table/${tableId}/orders`}
+                className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600"
+              >
+                View Existing Order
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-[480px] mx-auto bg-theme-secondary min-h-screen pb-16">
