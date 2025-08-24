@@ -395,7 +395,12 @@ const table = await Table.findById(req.params.tableId);
 router.put("/table/:tableNumber/payment-complete-all", protect, allowRoles('admin', 'cashier'), async (req, res) => {
   try {
     const tableNum = Number(req.params.tableNumber);
-    const table = await Table.findOne({ tableNumber: tableNum });
+    const userCafeId = req.user.cafeId?._id || req.user.cafeId;
+    
+    const table = await Table.findOne({ 
+      tableNumber: tableNum,
+      cafeId: userCafeId 
+    });
     if (!table) {
       return res.status(404).json({ 
         success: false,
@@ -403,16 +408,7 @@ router.put("/table/:tableNumber/payment-complete-all", protect, allowRoles('admi
       });
     }
 
-    // Check if user has access to this table's cafe
-    const userCafeId = req.user.cafeId?._id || req.user.cafeId;
-    if (!req.user.isSuperAdmin() && 
-        table.cafeId.toString() !== userCafeId.toString()) {
-      console.log('Access denied - Table cafeId:', table.cafeId.toString(), 'User cafeId:', userCafeId?.toString());
-      return res.status(403).json({ 
-        success: false,
-        message: "Access denied to this table" 
-      });
-    }
+
     
     const updatedOrders = await Order.updateMany(
       { 
