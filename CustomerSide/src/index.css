@@ -112,3 +112,17 @@
 .focus\:ring-theme-primary-200:focus {
   --tw-ring-color: var(--theme-primary-200);
 }
+/* Hide scrollbar for webkit browsers */
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* Hide scrollbar for Firefox */
+.scrollbar-hide {
+  scrollbar-width: none;
+}
+
+/* Hide scrollbar for IE and Edge */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+}
