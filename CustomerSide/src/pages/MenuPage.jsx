@@ -233,7 +233,7 @@ export default function MenuPage() {
       {/* Header with Search */}
       <div className={`sticky top-0 z-20 bg-theme-secondary  shadow-sm border-b border-theme-primary-100 `}>
         <div className="p-4">
-          <h1 className="text-2xl font-bold text-center text-theme-primary mb-4">DineFlow Menu</h1>
+          <h1 className="text-2xl font-bold text-center text-theme-primary mb-4">The Annsh Menu</h1>
           <div className="relative">
             <FiSearch className="absolute left-3 top-3 text-theme-primary" />
             <input
