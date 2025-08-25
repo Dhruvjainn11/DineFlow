@@ -19,8 +19,8 @@ const Topbar = () => {
 
   }
   return (
-    <div className="w-full h-16 bg-white shadow-md flex items-center justify-between px-6">
-      <h2 className="text-xl font-semibold">DineFlow</h2>
+    <div className="w-full h-16 bg-[#f7f3e8] shadow-md flex items-center justify-between px-6 overflow-hidden">
+      <img src="/Annsh.png" alt="Annsh" className="h-32 w-auto object-contain" />
       <button onClick={()=>{
       handleLogout(); // Call the logout function when button is clicked
       }} className="text-sm bg-red-500 text-white px-4 py-2 rounded cursor-pointer">Logout</button>

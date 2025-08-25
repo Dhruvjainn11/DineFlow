@@ -2,7 +2,6 @@ import React, { useEffect, useState } from "react";
 import RoleBasedLayout from "../layouts/RoleBasedLayout";
 import api from "../utils/api";
 import { socket } from "../utils/socket";
-import { useAuth } from "../context/AuthContext";
 import Receipt from "../components/Receipt"; // Import your Receipt component
 
 export default function AdminPaymentManager() {

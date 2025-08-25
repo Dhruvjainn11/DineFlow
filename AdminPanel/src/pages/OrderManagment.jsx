@@ -13,26 +13,28 @@ const OrderManagment = () => {
   useEffect(() => {
     fetchOrders();
     
-    const handleOrderStatusUpdated = (updatedOrder) => {
-      console.log("Socket received:", updatedOrder);
-      if (updatedOrder.status === "Completed") {
-        setOrders((prev) => prev.filter((order) => order._id !== updatedOrder._id));
-      } else {
-        setOrders((prev) => prev.map((order) => 
-          order._id === updatedOrder._id ? updatedOrder : order
-        ));
-      }
-    };
+     socket.on("newOrder", (newOrder) =>
+          setOrders((prev) => [...prev, newOrder])
+        );
+    
+    socket.on("orderStatusUpdated", (updated) => {
+         setOrders((prev) => {
+           if (updated.status === "Completed") {
+             return prev.filter((o) => o._id !== updated._id);
+           }
+           return prev.map((o) => (o._id === updated._id ? updated : o));
+         });
+       });
+   
+       socket.on("orderCompleted", (order) =>
+         setOrders((prev) => prev.filter((o) => o._id !== order._id))
+       );
 
-    socket.on("newOrder", (newOrder) => setOrders((prev) => [...prev, newOrder]));
-    socket.on("orderCompleted", handleOrderStatusUpdated);
-    socket.on("orderStatusUpdated", handleOrderStatusUpdated);
-
-    return () => {
-      socket.off("orderCompleted", handleOrderStatusUpdated);
-      socket.off("orderStatusUpdated", handleOrderStatusUpdated);
-      socket.off("newOrder");
-    };
+   return () => {
+         socket.off("newOrder");
+         socket.off("orderCompleted");
+         socket.off("orderStatusUpdated");
+       };
   }, []);
 
   const fetchOrders = async () => {

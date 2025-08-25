@@ -471,11 +471,11 @@ const EditCafeModal = ({ isOpen, onClose, cafe, onCafeUpdated }) => {
                     <div className="grid grid-cols-3 gap-2 mb-3">
                       {[
                         { name: 'Blue', primary: '#3B82F6', secondary: '#F3F4F6' },
-                        { name: 'Green', primary: '#10B981', secondary: '#ECFDF5' },
+                        { name: 'Green', primary: '#758a81', secondary: '#D0E0DD' },
                         { name: 'Purple', primary: '#8B5CF6', secondary: '#F3E8FF' },
                         { name: 'Red', primary: '#EF4444', secondary: '#FEF2F2' },
-                        { name: 'Amber', primary: '#F59E0B', secondary: '#FEF3C7' },
-                        { name: 'Gray', primary: '#6B7280', secondary: '#F9FAFB' }
+                        { name: 'Amber', primary: '#AE431E', secondary: '#EAC891' },
+                        { name: 'white', primary: '#523F31', secondary: '#C4B6AB' }
                       ].map((preset) => (
                         <button
                           key={preset.name}
