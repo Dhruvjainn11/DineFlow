@@ -36,7 +36,7 @@ export class QRCodeGenerator {
       type: 'image/png',
       quality: 0.92,
       margin: 1,
-      width: 300,
+      width: 400, // Increased default size for better visibility
     };
 
     if (isPro) {
@@ -48,7 +48,7 @@ export class QRCodeGenerator {
           light: '#FFFFFF'
         },
         // Enhanced options for Pro
-        width: 400,
+        width: 500, // Even larger for Pro plans
         margin: 2,
         errorCorrectionLevel: 'H', // Higher error correction for logo overlay
       };
@@ -145,7 +145,7 @@ export class QRCodeGenerator {
       const options = {
         ...this.getQROptions(tableNumber),
         type: 'svg',
-        width: 300
+        width: 400 // Increased size for SVG too
       };
       
       return await QRCode.toString(url, options);
@@ -259,41 +259,44 @@ export const printQRCodes = (qrCodes, cafeInfo, theme, features) => {
       <title>QR Codes - ${cafeInfo.name}</title>
       <style>
         body {
-          font-family: Arial, sans-serif;
           margin: 0;
           padding: 0;
-          background: transparent !important;
+          font-family: Arial, sans-serif;
+          background: transparent;
+          width: 100%;
+          height: 100vh;
+          border: 5px solid red; /* Debugging purpose *
         }
         .qr-card {
           width: 6in;
           height: 4in;
-          background: transparent !important;
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          justify-content: space-between;
-          padding: 0.5in;
-          box-sizing: border-box;
-          page-break-after: always;
+          background: transparent;
+          margin: 0 auto;
+          position: relative;
           text-align: center;
+          page-break-after: always;
         }
         .cafe-name {
-          font-size: 24px;
+          font-size: 28px;
           font-weight: bold;
           color: black;
-          margin: 0;
           text-transform: uppercase;
+          text-align: center;
+          margin: 0.4in 0 0.2in 0;
+          width: 100%;
         }
         .order-text {
-          font-size: 18px;
-          font-weight: 600;
+          font-size: 20px;
           color: black;
-          margin: 0;
+          text-align: center;
+          margin: 0 0 0.3in 0;
+          width: 100%;
         }
         .qr-code {
-          width: 2in;
-          height: 2in;
-          margin: 0.2in 0;
+          width: 2.8in;
+          height: 2.8in;
+          margin: 0 auto;
+          display: block;
         }
         .qr-code img {
           width: 100%;
@@ -301,36 +304,38 @@ export const printQRCodes = (qrCodes, cafeInfo, theme, features) => {
           object-fit: contain;
         }
         .branding {
-          font-size: 14px;
+          font-size: 16px;
           color: black;
-          margin: 0;
           font-style: italic;
+          text-align: center;
+          position: absolute;
+          bottom: 0.2in;
+          width: 100%;
+          left: 0;
         }
         @media print {
-          body { 
-            margin: 0; 
-            padding: 0; 
+          body {
             background: transparent !important;
-            -webkit-print-color-adjust: exact;
+            margin: 0;
+            padding: 0;
           }
-          .qr-card { 
-            page-break-after: always;
-            background: transparent !important;
+          .qr-card {
+            margin: 0 auto;
           }
         }
       </style>
     </head>
     <body>
-        ${qrCodes.map(qr => `
-          <div class="qr-card">
-            <div class="cafe-name">${qr.cafeName || cafeInfo.name}</div>
-            <div class="order-text">Order Here</div>
-            <div class="qr-code">
-              <img src="${qr.qrCode}" alt="QR Code">
-            </div>
-            <div class="branding">By The Annsh</div>
+      ${qrCodes.map(qr => `
+        <div class="qr-card">
+          <div class="cafe-name">${qr.cafeName || cafeInfo.name}</div>
+          <div class="order-text">Order Here</div>
+          <div class="qr-code">
+            <img src="${qr.qrCode}" alt="QR Code">
           </div>
-        `).join('')}
+          <div class="branding">By The Annsh</div>
+        </div>
+      `).join('')}
     </body>
     </html>
   `;
@@ -338,7 +343,11 @@ export const printQRCodes = (qrCodes, cafeInfo, theme, features) => {
   printWindow.document.write(html);
   printWindow.document.close();
   printWindow.focus();
-  printWindow.print();
+  
+  // Wait for images to load before printing
+  printWindow.onload = function() {
+    printWindow.print();
+  };
 };
 
 export default QRCodeGenerator;

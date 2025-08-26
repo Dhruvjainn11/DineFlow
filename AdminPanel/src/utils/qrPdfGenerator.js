@@ -4,43 +4,46 @@ import { saveAs } from 'file-saver';
 
 // Generate single QR code PDF
 export const generateQRPDF = (table, cafe) => {
-  const pdf = new jsPDF('portrait', 'mm', [80, 100]); // 80x100mm (roughly 3x4 inches)
+  const pdf = new jsPDF('portrait', 'mm', [152.4, 101.6]); // 6x4 inches in mm
   
-  // Set background color (cafe theme)
-  const bgColor = cafe.theme?.primaryColor || '#3B82F6';
-  pdf.setFillColor(bgColor);
-  pdf.rect(0, 0, 80, 100, 'F');
+  // No background - transparent
   
-  // Add "Order Here" text
-  pdf.setTextColor(255, 255, 255); // White text
-  pdf.setFontSize(16);
+  // Add cafe name at top center
+  pdf.setTextColor(0, 0, 0);
+  pdf.setFontSize(30);
   pdf.setFont(undefined, 'bold');
+  const cafeText = cafe.name.toUpperCase();
+  const cafeTextWidth = pdf.getTextWidth(cafeText);
+  pdf.text(cafeText, (105 - cafeTextWidth) / 2, 18);
+  
+  // Add "Order Here" text center
+  pdf.setFontSize(22);
+  pdf.setFont(undefined, 'normal');
   const orderText = 'Order Here';
   const orderTextWidth = pdf.getTextWidth(orderText);
-  pdf.text(orderText, (80 - orderTextWidth) / 2, 15);
+  pdf.text(orderText, (105 - orderTextWidth) / 2, 30);
   
-  // Add QR code image
+  // Add large QR code image center
   if (table.qrCode) {
-    const qrSize = 50; // 50mm QR code
-    const qrX = (80 - qrSize) / 2;
-    const qrY = 25;
+    const qrSize = 70; // Much larger QR code (2.8 inches)
+    const qrX = (105 - qrSize) / 2;
+    const qrY = 40;
     
     try {
-      pdf.addImage(table.qrCode, 'PNG', qrX, qrY, qrSize, qrSize);
+      pdf.addImage(table.qrCode, 'PNG', qrX, qrY + 8, qrSize, qrSize);
     } catch (error) {
       console.error('Error adding QR code to PDF:', error);
-      // Fallback: add text instead of QR
       pdf.setFontSize(10);
-      pdf.text('QR Code Error', qrX + 20, qrY + 25);
+      pdf.text('QR Code Error', qrX + 22, qrY + 60);
     }
   }
   
-  // Add table number at bottom
-  pdf.setFontSize(12);
-  pdf.setFont(undefined, 'bold');
-  const tableText = `Table ${table.tableNumber}`;
-  const tableTextWidth = pdf.getTextWidth(tableText);
-  pdf.text(tableText, (80 - tableTextWidth) / 2, 90);
+  // Add "By The Annsh" at bottom of page
+  pdf.setFontSize(14);
+  pdf.setFont('helvetica', 'italic');
+  const brandingText = '~By The Annsh';
+  const brandingTextWidth = pdf.getTextWidth(brandingText);
+  pdf.text(brandingText, (105 - brandingTextWidth) / 2, 145);
   
   return pdf;
 };
