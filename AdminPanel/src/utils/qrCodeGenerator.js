@@ -251,7 +251,6 @@ export const downloadQRCode = (dataUrl, filename) => {
  */
 export const printQRCodes = (qrCodes, cafeInfo, theme, features) => {
   const printWindow = window.open('', '_blank');
-  const isPro = features.premiumQRCodes;
   
   const html = `
     <!DOCTYPE html>
@@ -260,88 +259,78 @@ export const printQRCodes = (qrCodes, cafeInfo, theme, features) => {
       <title>QR Codes - ${cafeInfo.name}</title>
       <style>
         body {
-          font-family: ${theme.fontFamily || 'Arial'}, sans-serif;
+          font-family: Arial, sans-serif;
           margin: 0;
-          padding: 20px;
-          background: white;
-        }
-        .page {
-          width: 210mm;
-          margin: 0 auto;
+          padding: 0;
+          background: transparent !important;
         }
         .qr-card {
-          width: 180mm;
-          height: 80mm;
-          border: 2px solid ${isPro ? theme.primaryColor : '#ccc'};
-          border-radius: 8px;
-          margin: 10mm auto;
-          padding: 10mm;
+          width: 6in;
+          height: 4in;
+          background: transparent !important;
           display: flex;
+          flex-direction: column;
           align-items: center;
-          page-break-inside: avoid;
-          background: ${isPro ? theme.secondaryColor + '10' : '#f9f9f9'};
-        }
-        .qr-code {
-          width: 60mm;
-          height: 60mm;
-          flex-shrink: 0;
-        }
-        .qr-info {
-          flex: 1;
-          padding-left: 15mm;
+          justify-content: space-between;
+          padding: 0.5in;
+          box-sizing: border-box;
+          page-break-after: always;
           text-align: center;
         }
-        .table-number {
-          font-size: 28px;
+        .cafe-name {
+          font-size: 24px;
           font-weight: bold;
-          color: ${isPro ? theme.primaryColor : '#333'};
-          margin-bottom: 5mm;
+          color: black;
+          margin: 0;
+          text-transform: uppercase;
         }
-        .title {
+        .order-text {
           font-size: 18px;
-          font-weight: bold;
-          margin-bottom: 3mm;
-          color: #333;
+          font-weight: 600;
+          color: black;
+          margin: 0;
         }
-        .subtitle {
-          font-size: 14px;
-          color: #666;
-          margin-bottom: 5mm;
+        .qr-code {
+          width: 2in;
+          height: 2in;
+          margin: 0.2in 0;
         }
-        .footer {
-          font-size: 12px;
-          color: #999;
-        }
-        .logo {
-          width: 30px;
-          height: 30px;
+        .qr-code img {
+          width: 100%;
+          height: 100%;
           object-fit: contain;
-          margin-bottom: 5mm;
+        }
+        .branding {
+          font-size: 14px;
+          color: black;
+          margin: 0;
+          font-style: italic;
         }
         @media print {
-          body { margin: 0; }
-          .page { width: 100%; }
+          body { 
+            margin: 0; 
+            padding: 0; 
+            background: transparent !important;
+            -webkit-print-color-adjust: exact;
+          }
+          .qr-card { 
+            page-break-after: always;
+            background: transparent !important;
+          }
         }
       </style>
     </head>
     <body>
-      <div class="page">
         ${qrCodes.map(qr => `
           <div class="qr-card">
+            <div class="cafe-name">${qr.cafeName || cafeInfo.name}</div>
+            <div class="order-text">Order Here</div>
             <div class="qr-code">
-              <img src="${qr.qrCode}" alt="QR Code" style="width: 100%; height: 100%;">
+              <img src="${qr.qrCode}" alt="QR Code">
             </div>
-            <div class="qr-info">
-              ${qr.branding.logoUrl ? `<img src="${qr.branding.logoUrl}" class="logo" alt="Logo">` : ''}
-              <div class="table-number">Table ${qr.tableNumber}</div>
-              <div class="title">${qr.instructions.title}</div>
-              <div class="subtitle">${qr.instructions.subtitle}</div>
-              ${qr.location ? `<div style="font-size: 12px; color: #666;">Location: ${qr.location}</div>` : ''}
-              <div class="footer">${qr.instructions.footer}</div>
-            </div>
+            <div class="branding">By The Annsh</div>
           </div>
         `).join('')}
-      </div>
     </body>
     </html>
   `;

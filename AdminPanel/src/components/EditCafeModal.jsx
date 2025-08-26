@@ -473,9 +473,10 @@ const EditCafeModal = ({ isOpen, onClose, cafe, onCafeUpdated }) => {
                         { name: 'Blue', primary: '#3B82F6', secondary: '#F3F4F6' },
                         { name: 'Green', primary: '#758a81', secondary: '#D0E0DD' },
                         { name: 'Purple', primary: '#8B5CF6', secondary: '#F3E8FF' },
-                        { name: 'Red', primary: '#EF4444', secondary: '#FEF2F2' },
-                        { name: 'Amber', primary: '#AE431E', secondary: '#EAC891' },
-                        { name: 'white', primary: '#523F31', secondary: '#C4B6AB' }
+                        { name: 'Classic ', primary: '#4A3F35', secondary: '#C9A97C' },
+                        { name: 'Amber', primary: '#2C3E50', secondary: '#D4AF37' },
+                        { name: 'Warm', primary: '#2B2B2B', secondary: '#D9A5B3' },
+                        { name: 'Luxury', primary: '#34495E', secondary: '#95A5A6' }
                       ].map((preset) => (
                         <button
                           key={preset.name}
