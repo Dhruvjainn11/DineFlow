@@ -147,7 +147,7 @@ const CafeAdminSidebar = () => {
   // Show loading state if user exists but cafe data is still loading
   if (user && user.cafeId && !cafe) {
     return (
-      <aside className="w-64 bg-white h-screen shadow-md fixed flex items-center justify-center">
+      <aside className="w-64 h-screen shadow-md fixed flex items-center justify-center" style={{backgroundColor: '#f7f3e8'}}>
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
           <p className="mt-2 text-sm text-gray-600">Loading cafe data...</p>
@@ -157,7 +157,7 @@ const CafeAdminSidebar = () => {
   }
 
   return (
-    <aside className="w-64 bg-white h-screen shadow-md fixed">
+    <aside className="w-64 h-screen shadow-md fixed" style={{backgroundColor: '#f7f3e8'}}>
       {/* Header with Cafe branding */}
       <div className="p-4 border-b">
         <div className="flex items-center space-x-3">
@@ -202,14 +202,17 @@ const CafeAdminSidebar = () => {
             <Link
               key={link.name}
               to={link.path}
-              className={`flex items-center px-6 py-3 text-sm hover:bg-gray-100 transition-colors ${
+              className={`flex items-center px-6 py-3 text-sm transition-colors ${
                 isActive 
                   ? "border-r-2 font-medium text-gray-900" 
                   : "text-gray-700"
               }`}
               style={{
-                borderRightColor: isActive ? primaryColor : 'transparent'
+                borderRightColor: isActive ? primaryColor : 'transparent',
+                backgroundColor: isActive ? '#f0ead6' : 'transparent'
               }}
+              onMouseEnter={(e) => e.target.style.backgroundColor = '#f0ead6'}
+              onMouseLeave={(e) => e.target.style.backgroundColor = isActive ? '#f0ead6' : 'transparent'}
               title={link.description}
             >
               <Icon className="h-5 w-5 mr-3" />
@@ -232,7 +235,7 @@ const CafeAdminSidebar = () => {
 
       {/* Footer with plan info */}
       {cafe && (
-        <div className="absolute bottom-0 left-0 right-0 p-4 border-t bg-gray-50">
+        <div className="absolute bottom-0 left-0 right-0 p-4 border-t" style={{backgroundColor: '#f0ead6'}}>
           <div className="text-xs text-gray-600">
             <div className="flex items-center justify-between mb-1">
               <span>Current Plan:</span>

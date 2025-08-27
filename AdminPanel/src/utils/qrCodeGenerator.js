@@ -262,19 +262,28 @@ export const printQRCodes = (qrCodes, cafeInfo, theme, features) => {
           margin: 0;
           padding: 0;
           font-family: Arial, sans-serif;
-          background: transparent;
+          background: #F5F5DC;
           width: 100%;
-          height: 100vh;
-          border: 5px solid red; /* Debugging purpose *
+          height: 150vh;
         }
         .qr-card {
           width: 6in;
           height: 4in;
-          background: transparent;
+          background: #F5F5DC;
           margin: 0 auto;
           position: relative;
           text-align: center;
           page-break-after: always;
+        }
+        .table-number {
+          background: '#523F31';
+          color: white;
+          font-size: 24px;
+          font-weight: bold;
+          text-align: center;
+          padding: 0.15in 0;
+          margin: 0;
+          width: 100%;
         }
         .cafe-name {
           font-size: 28px;
@@ -328,6 +337,7 @@ export const printQRCodes = (qrCodes, cafeInfo, theme, features) => {
     <body>
       ${qrCodes.map(qr => `
         <div class="qr-card">
+          <div class="table-number">Table ${qr.tableNumber}</div>
           <div class="cafe-name">${qr.cafeName || cafeInfo.name}</div>
           <div class="order-text">Order Here</div>
           <div class="qr-code">

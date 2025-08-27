@@ -63,13 +63,18 @@
   font-family: var(--font-family), system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
 }
 
+/* Global beige theme */
+body {
+  background-color: #f7f3e8 !important;
+}
+
 /* Dark mode variables */
 :root {
-  --bg-primary: #FFFFFF;
-  --bg-secondary: #F9FAFB;
+  --bg-primary: #f7f3e8;
+  --bg-secondary: #f0ead6;
   --text-primary: #111827;
   --text-secondary: #6B7280;
-  --border-color: #E5E7EB;
+  --border-color: #e8dcc0;
 }
 
 .dark {

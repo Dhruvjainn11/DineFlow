@@ -21,12 +21,12 @@ export default function TableManagement({ onClose }) {
   const cafeId = localStorage.getItem("cafeId");
 
   const tableStatuses = {
-    Available: "bg-gray-200",
-    Occupied: "bg-yellow-400",
-    Reserved: "bg-purple-200 border-2 border-purple-500",
-    Maintenance: "bg-red-200 border-2 border-red-500",
-    DONE: "border-4 border-green-500 animate-pulse bg-red-500",
-    PAID: "bg-green-500",
+    Available: "bg-slate-300",
+    Occupied: "bg-yellow-200",
+    Reserved: "bg-blue-200",
+    Maintenance: "bg-red-400 ",
+    // DONE: "border-4 border-green-500 animate-pulse bg-red-500",
+    // PAID: "bg-green-500",
   };
 
 useEffect(() => {
@@ -124,7 +124,17 @@ useEffect(() => {
       <div className="p-6">
         <div className="w-full flex justify-between items-center mb-6">
           <h2 className="text-2xl font-bold">Table Management</h2>
-          <div className="flex gap-3">
+          <div className="flex flex-col items-end gap-3">
+            {/* Status Legend */}
+            <div className="flex flex-wrap gap-4 text-sm">
+              {Object.entries(tableStatuses).map(([status, colorClass]) => (
+                <div key={status} className="flex items-center gap-2">
+                  <div className={`w-4 h-4 rounded-full ${colorClass.replace('border-4 border-green-500 animate-pulse ', '').replace('bg-red-500', 'bg-green-500')}`}></div>
+                  <span className="text-gray-700">{status}</span>
+                </div>
+              ))}
+            </div>
+            <div className="flex gap-3">
             {tables.length > 0 && cafe && (
               <button
                 onClick={() => downloadAllQRs(tables, cafe)}
@@ -140,6 +150,7 @@ useEffect(() => {
             >
               + Add Table
             </button>
+            </div>
           </div>
         </div>
 

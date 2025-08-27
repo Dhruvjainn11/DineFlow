@@ -9,7 +9,7 @@ const CafeAdminLayout = ({ children }) => {
       <CafeAdminSidebar />
       <div className="ml-64 flex-1">
         <Topbar />
-        <main className="p-6 bg-gray-100 min-h-[calc(100vh-4rem)]">
+        <main className="p-6 min-h-[calc(100vh-4rem)]" style={{backgroundColor: '#f7f3e8'}}>
           <Outlet />
           {children}
         </main>
