@@ -149,8 +149,8 @@ export default function CustomerOrderPage() {
 
   return (
     <div className="flex flex-col min-h-screen bg-gradient-to-b from-theme-secondary to-white">
-      <div className="flex-grow container mx-auto px-4 py-8">
-        <div className="max-w-4xl mx-auto">
+      <div className="flex-grow px-4 py-8">
+        <div className="max-w-md mx-auto">
           {/* Enhanced Header Section */}
           <div className="mb-10 text-center">
             <h1 className="text-4xl font-bold text-theme-primary mb-2">Your Dining Experience</h1>
@@ -166,9 +166,9 @@ export default function CustomerOrderPage() {
           </div>
 
           {/* Orders List with Enhanced Design */}
-          <div className="space-y-8">
+          <div className="space-y-6">
             {orders.map((order) => (
-              <div key={order._id} className="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100 hover:shadow-xl transition-all duration-300">
+              <div key={order._id} className="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100 hover:shadow-xl transition-all duration-300 w-full">
                 {/* Order Header with Gradient */}
                 <div className="bg-theme-primary px-6 py-5">
                   <div className="flex justify-between items-center">
@@ -195,7 +195,7 @@ export default function CustomerOrderPage() {
                 {/* Order Body */}
                 <div className="p-6">
                   {/* Enhanced Status Indicators */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-8">
+                  <div className="grid grid-cols-1 gap-4 mb-6">
                     <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm">
                       <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Order Status</h3>
                       <div className={`px-4 py-2 rounded-lg border ${statusColorMap[order.status]} flex items-center`}>
@@ -223,14 +223,14 @@ export default function CustomerOrderPage() {
                     </h3>
                     <ul className="divide-y divide-gray-200">
                       {order.items.map((item) => (
-                        <li key={item._id} className="py-4 flex justify-between items-center group hover:bg-theme-primary-50 transition-colors duration-200 px-3 -mx-3 rounded-lg">
-                          <div className="flex items-center">
-                            <div className="w-10 h-10 rounded-md bg-gradient-to-br from-theme-primary-100 to-theme-secondary flex items-center justify-center mr-4">
-                              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-theme-primary" viewBox="0 0 20 20" fill="currentColor">
+                        <li key={item._id} className="py-3 flex justify-between items-start group hover:bg-theme-primary-50 transition-colors duration-200 px-3 -mx-3 rounded-lg">
+                          <div className="flex items-start flex-1 min-w-0">
+                            <div className="w-8 h-8 rounded-md bg-gradient-to-br from-theme-primary-100 to-theme-secondary flex items-center justify-center mr-3 flex-shrink-0">
+                              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-theme-primary" viewBox="0 0 20 20" fill="currentColor">
                                 <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-3a1 1 0 00-.867.5 1 1 0 11-1.731-1A3 3 0 0113 8a3.001 3.001 0 01-2 2.83V11a1 1 0 11-2 0v-1a1 1 0 011-1 1 1 0 100-2zm0 8a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd" />
                               </svg>
                             </div>
-                            <div>
+                            <div className="flex-1 min-w-0">
                               <span className="font-medium text-gray-900 group-hover:text-theme-primary transition-colors duration-200">
                                 {item.menuItem?.name}
                               </span>
@@ -249,11 +249,11 @@ export default function CustomerOrderPage() {
                               )}
                             </div>
                           </div>
-                          <div className="text-right">
-                            <span className="font-medium text-gray-900">
+                          <div className="text-right flex-shrink-0 ml-2">
+                            <span className="font-medium text-gray-900 text-sm">
                               ₹{(item.itemPrice * item.quantity).toFixed(2)}
                             </span>
-                            <span className="block text-xs text-theme-primary bg-theme-primary-100 px-2 py-1 rounded-full mt-1">
+                            <span className="block text-xs text-theme-primary bg-theme-primary-100 px-2 py-1 rounded-full mt-1 whitespace-nowrap">
                               ₹{item.itemPrice} × {item.quantity}
                             </span>
                           </div>

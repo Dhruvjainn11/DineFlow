@@ -161,7 +161,9 @@ export default function MenuPage() {
     setActiveCategory(categoryId);
     const element = categoryRefs.current[categoryId];
     if (element) {
-      element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      const headerHeight = 200; // Approximate header height
+      const elementPosition = element.offsetTop - headerHeight;
+      window.scrollTo({ top: elementPosition, behavior: 'smooth' });
     }
   };
 
@@ -286,7 +288,7 @@ export default function MenuPage() {
             <section 
               key={categoryId} 
               ref={(el) => categoryRefs.current[categoryId] = el}
-              className="scroll-mt-24"
+              className="scroll-mt-52"
             >
               <h2 className="text-xl font-bold text-theme-primary mb-4 flex items-center">
                 <span className="bg-theme-primary w-1 h-6 rounded-full mr-3"></span>
@@ -309,7 +311,7 @@ export default function MenuPage() {
                         <img
                           src={item.imageUrl}
                           alt={item.name}
-                          className="absolute top-0 left-6 w-36 h-36 object-fit rounded-full border-4 border-white shadow-lg"
+                          className="absolute top-0 left-1/2 transform -translate-x-1/2 w-36 h-36 object-cover rounded-full border-4 border-white shadow-lg"
                         />
                         {/* Jain Indicator */}
                         {item.jain && (
