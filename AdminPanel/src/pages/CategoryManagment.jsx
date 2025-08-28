@@ -8,6 +8,7 @@ import {socket} from "../utils/socket"; // Adjust the import path as necessary
 import UpdateCategoryForm from "../components/UpdateCategoryForm"; // Adjust the import path as necessary
 import { toast } from "react-toastify"; // Ensure you have react-toastify installed for notifications
 import ConfirmDialog from "../components/ConfirmDialog"; // Adjust the import path as necessary
+import CategorySkeleton from "../components/Common/CategorySkeleton";
 
 
 const CategoryManagement = () => {
@@ -16,7 +17,8 @@ const CategoryManagement = () => {
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [categories, setCategories] = useState([]);
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
-const [categoryToDelete, setCategoryToDelete] = useState(null);
+  const [categoryToDelete, setCategoryToDelete] = useState(null);
+  const [loading, setLoading] = useState(true);
   
      useEffect(() => {
       // Initial fetch
@@ -32,6 +34,9 @@ const [categoryToDelete, setCategoryToDelete] = useState(null);
     })
     .catch((err) => {
       console.error("Error fetching categories:", err);
+    })
+    .finally(() => {
+      setLoading(false);
     });
   
       // Real-time state updates
@@ -95,7 +100,9 @@ const confirmDelete = async () => {
         </div>
       </div>
 
-      {categories.length === 0 ? (
+      {loading ? (
+        <CategorySkeleton />
+      ) : categories.length === 0 ? (
         <p>No Category was found.</p>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">

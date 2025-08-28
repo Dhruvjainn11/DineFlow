@@ -43,7 +43,9 @@ const confirmDelete = async () => {
           <h3 className="text-lg font-semibold">{menu.name}</h3>
           <p className="text-gray-600 text-sm">{menu.description}</p>
           <div className="flex items-center gap-2">
-            <span className="text-green-600 font-medium">₹{menu.price}</span>
+            <span className="text-green-600 font-medium">
+              ₹{menu.sizes && menu.sizes.length > 0 ? menu.sizes[0].price : menu.price}
+            </span>
             {menu.jain && (
               <span className="bg-green-500 text-white text-xs font-bold px-2 py-1 rounded-full">
                 Jain

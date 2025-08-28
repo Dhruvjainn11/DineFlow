@@ -85,14 +85,21 @@ useEffect(() => {
 
 const submitHandler = async (data) => {
   try {
+    const filteredSizes = sizes.filter(s => s.label && s.price !== '');
+    
     const updateData = {
       ...data,
-      sizes: sizes.filter(s => s.label && s.price !== ''),
+      sizes: filteredSizes,
       ingredients: data.ingredients,
       // Ensure boolean values
       available: Boolean(data.available),
       jain: Boolean(data.jain)
     };
+    
+    // Remove price field if sizes exist
+    if (filteredSizes.length > 0) {
+      delete updateData.price;
+    }
 
     console.log("Update payload:", updateData);
     await updateMenu(item._id, updateData);
@@ -163,8 +170,12 @@ const submitHandler = async (data) => {
                     type="number"
                     step="0.01"
                     {...register("price", {
-                      required: "Price is required if no sizes are provided",
-                      min: { value: 0.01, message: "Price must be greater than 0" },
+                      validate: (value) => {
+                        if (sizes.length === 0 && (!value || value <= 0)) {
+                          return "Price is required and must be greater than 0 when no sizes are provided";
+                        }
+                        return true;
+                      }
                     })}
                     className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2"
                     style={{ '--tw-ring-color': `${theme.primaryColor}30` }}

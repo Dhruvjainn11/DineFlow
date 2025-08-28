@@ -111,7 +111,35 @@ export const validateMenuUpdate = [
   validateObjectId('id'),
   body('name').optional().trim().notEmpty().withMessage('Menu item name cannot be empty'),
   body('category').optional().isMongoId().withMessage('Valid category ID required'),
-  body('price').optional().isFloat({ min: 0 }).withMessage('Price must be positive'),
+  
+  // Custom validation for price/sizes in updates
+  body().custom((value, { req }) => {
+    const { price, sizes } = req.body;
+    
+    // If sizes exist and have items, price validation is optional
+    if (sizes && Array.isArray(sizes) && sizes.length > 0) {
+      // Validate each size
+      sizes.forEach(size => {
+        if (!size.label || size.price === undefined || size.price === null) {
+          throw new Error('Each size must have both label and price');
+        }
+        if (isNaN(Number(size.price)) || Number(size.price) < 0) {
+          throw new Error('Size prices must be positive numbers');
+        }
+      });
+      return true;
+    }
+    
+    // If no sizes, validate price if provided
+    if (price !== undefined && price !== null && price !== '') {
+      if (isNaN(Number(price)) || Number(price) < 0) {
+        throw new Error('Price must be positive');
+      }
+    }
+    
+    return true;
+  }),
+  
   body('preparationTime').optional().isInt({ min: 1, max: 300 }).withMessage('Invalid preparation time'),
   body('spicyLevel').optional().isInt({ min: 0, max: 5 }).withMessage('Spicy level must be 0-5'),
   handleValidationErrors

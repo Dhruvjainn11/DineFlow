@@ -3,12 +3,14 @@ import RoleBasedLayout from "../layouts/RoleBasedLayout";
 import api from "../utils/api";
 import { socket } from "../utils/socket";
 import Receipt from "../components/Receipt"; // Import your Receipt component
+import PaymentSkeleton from "../components/Common/PaymentSkeleton";
 
 export default function AdminPaymentManager() {
   const [orders, setOrders] = useState([]);
   const [paidTables, setPaidTables] = useState([]);
   const [selectedOrder, setSelectedOrder] = useState(null);
-  const [cafeName, setCafeName] = useState(null)
+  const [cafeName, setCafeName] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   // Group orders by table and calculate total + payment status
   const groupOrdersByTable = (ordersList) => {
@@ -58,6 +60,8 @@ export default function AdminPaymentManager() {
       setCafeName(cafeId.name || "DineFlow Cafe");
     } catch (err) {
       console.error("Failed to load orders", err);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -167,6 +171,14 @@ export default function AdminPaymentManager() {
       setSelectedOrder(combinedOrder);
     }
   };
+
+  if (loading) {
+    return (
+      <RoleBasedLayout>
+        <PaymentSkeleton />
+      </RoleBasedLayout>
+    );
+  }
 
   return (
     <RoleBasedLayout>

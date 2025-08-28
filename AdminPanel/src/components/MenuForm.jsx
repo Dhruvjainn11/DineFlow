@@ -8,7 +8,7 @@ import { X } from "lucide-react";
 import ImageDropzone from "./ImageDropzone";
 import { useTheme } from "../context/ThemeContext";
 
-export default function MenuItemForm({ onClose }) {
+export default function MenuItemForm({ onClose, editData }) {
   const { theme } = useTheme();
   const [categories, setCategories] = useState([]);
   const [imageUrl, setImageUrl] = useState("");
@@ -117,7 +117,7 @@ const submitHandler = async (data) => {
           <X size={24} />
         </button>
 
-        <h2 className="text-2xl font-semibold mb-6 text-center">Add Menu Item</h2>
+        <h2 className="text-2xl font-semibold mb-6 text-center">{editData ? 'Edit Menu Item' : 'Add Menu Item'}</h2>
         <form onSubmit={handleSubmit(submitHandler)} className="space-y-5">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Left Column */}

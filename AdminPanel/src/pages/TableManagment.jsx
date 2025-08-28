@@ -7,6 +7,7 @@ import { socket } from "../utils/socket";
 import { Pencil, Trash2, X, Download, QrCode } from "lucide-react";
 import ConfirmDialog from "../components/ConfirmDialog";
 import { downloadSingleQR, downloadAllQRs } from "../utils/qrPdfGenerator";
+import TableSkeleton from "../components/Common/TableSkeleton";
 
 export default function TableManagement({ onClose }) {
   const [tables, setTables] = useState([]);
@@ -18,6 +19,7 @@ export default function TableManagement({ onClose }) {
   const [showUpdateForm, setShowUpdateForm] = useState(false);
   const [tableToUpdate, setTableToUpdate] = useState(null);
   const [cafe, setCafe] = useState(null);
+  const [loading, setLoading] = useState(true);
   const cafeId = localStorage.getItem("cafeId");
 
   const tableStatuses = {
@@ -87,6 +89,8 @@ useEffect(() => {
       }
     } catch (error) {
       console.error("Error fetching tables:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -154,75 +158,79 @@ useEffect(() => {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {tables.map((table) => (
-            <div 
-              key={table._id} 
-              className="relative bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition"
-            >
-              <div
-                className={`h-40 flex items-center justify-center cursor-pointer ${
-                  tableStatuses[table.status] || tableStatuses.Available
-                }`}
-                onClick={() => {
-                  setSelectedTable(table);
-                  setShowTableData(true);
-                }}
+        {loading ? (
+          <TableSkeleton />
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {tables.map((table) => (
+              <div 
+                key={table._id} 
+                className="relative bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition"
               >
-                <div className="text-center">
-                  <span className="text-2xl font-bold">
-                    Table {table.tableNumber}
-                  </span>
-                  <p className="text-sm mt-1">{table.status}</p>
-                </div>
-              </div>
-              
-              <div className="p-4">
-                <div className="flex justify-between items-center">
-                  <div>
-                    <p className="font-medium">Capacity: {table.capacity}</p>
-                    {table.location && (
-                      <p className="text-sm text-gray-600">{table.location}</p>
-                    )}
+                <div
+                  className={`h-40 flex items-center justify-center cursor-pointer ${
+                    tableStatuses[table.status] || tableStatuses.Available
+                  }`}
+                  onClick={() => {
+                    setSelectedTable(table);
+                    setShowTableData(true);
+                  }}
+                >
+                  <div className="text-center">
+                    <span className="text-2xl font-bold">
+                      Table {table.tableNumber}
+                    </span>
+                    <p className="text-sm mt-1">{table.status}</p>
                   </div>
-                  <div className="flex space-x-2">
-                    {cafe && (
+                </div>
+                
+                <div className="p-4">
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <p className="font-medium">Capacity: {table.capacity}</p>
+                      {table.location && (
+                        <p className="text-sm text-gray-600">{table.location}</p>
+                      )}
+                    </div>
+                    <div className="flex space-x-2">
+                      {cafe && (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            downloadSingleQR(table, cafe);
+                          }}
+                          className="text-green-600 hover:text-green-800"
+                          title="Download QR Code"
+                        >
+                          <QrCode size={20} />
+                        </button>
+                      )}
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
-                          downloadSingleQR(table, cafe);
+                          setTableToUpdate(table);
+                          setShowUpdateForm(true);
                         }}
-                        className="text-green-600 hover:text-green-800"
-                        title="Download QR Code"
+                        className="text-blue-600 hover:text-blue-800"
                       >
-                        <QrCode size={20} />
+                        <Pencil size={20} />
                       </button>
-                    )}
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setTableToUpdate(table);
-                        setShowUpdateForm(true);
-                      }}
-                      className="text-blue-600 hover:text-blue-800"
-                    >
-                      <Pencil size={20} />
-                    </button>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        promptDelete(table._id);
-                      }}
-                      className="text-red-600 hover:text-red-800"
-                    >
-                      <Trash2 size={20} />
-                    </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          promptDelete(table._id);
+                        }}
+                        className="text-red-600 hover:text-red-800"
+                      >
+                        <Trash2 size={20} />
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
 
         {/* Table Creation Modal */}
         {showForm && (

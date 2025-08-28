@@ -3,6 +3,7 @@ import RoleBasedLayout from "../layouts/RoleBasedLayout";
 import { getOrders } from "../services/orderService";
 import { socket } from "../utils/socket";
 import { Circle, CheckCircle, Clock, XCircle, CreditCard, Utensils, Filter, Calendar, RefreshCw } from "lucide-react";
+import OrderSkeleton from "../components/Common/OrderSkeleton";
 
 const OrderManagment = () => {
   const [orders, setOrders] = useState([]);
@@ -205,10 +206,7 @@ const OrderManagment = () => {
         </div>
 
         {isLoading ? (
-          <div className="flex flex-col items-center justify-center py-20 bg-gray-50 rounded-lg">
-            <RefreshCw className="h-8 w-8 text-indigo-600 animate-spin mb-4" />
-            <p className="text-gray-600">Loading orders...</p>
-          </div>
+          <OrderSkeleton />
         ) : orders.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 bg-gray-50 rounded-lg border border-gray-200">
             <Circle className="h-10 w-10 text-gray-400 mb-4" />

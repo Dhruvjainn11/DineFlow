@@ -14,24 +14,38 @@ export const AuthProvider = ({ children }) => {
 
   // Initialize user and cafe data from token
   useEffect(() => {
-    if (token) {
-      try {
-        const decoded = jwtDecode(token);
-        setUser(decoded);
-        
-        // Fetch cafe data if user is not super admin
-        if (decoded.cafeId) {
-          fetchCafeData(decoded.cafeId);
-        } else {
-          setLoading(false);
+    const initializeAuth = async () => {
+      if (token) {
+        try {
+          const decoded = jwtDecode(token);
+          setUser(decoded);
+          
+          // Fetch cafe data if user is not super admin
+          if (decoded.cafeId) {
+            await fetchCafeData(decoded.cafeId);
+          } else {
+            setLoading(false);
+          }
+        } catch (error) {
+          console.error('Invalid token:', error);
+          logout();
         }
-      } catch (error) {
-        console.error('Invalid token:', error);
-        logout();
+      } else {
+        setLoading(false);
       }
-    } else {
+    };
+
+    // Fallback timeout to prevent infinite loading
+    const fallbackTimeout = setTimeout(() => {
+      console.warn('Auth initialization taking too long, forcing loading to false');
       setLoading(false);
-    }
+    }, 15000);
+
+    initializeAuth().finally(() => {
+      clearTimeout(fallbackTimeout);
+    });
+
+    return () => clearTimeout(fallbackTimeout);
   }, [token]);
 
   // Apply theme when cafe data is loaded
@@ -47,7 +61,16 @@ export const AuthProvider = ({ children }) => {
   const fetchCafeData = async (cafeId) => {
     try {
       setLoading(true);
-      const response = await api.get(`/cafes/${cafeId}`);
+      
+      // Add timeout to prevent infinite loading
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Request timeout')), 10000)
+      );
+      
+      const response = await Promise.race([
+        api.get(`/cafes/${cafeId}`),
+        timeoutPromise
+      ]);
       
       if (response.data.success) {
         setCafe(response.data.data);

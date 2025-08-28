@@ -32,6 +32,7 @@ import {
   BarChart3
 } from "lucide-react";
 import FeatureGate from "../components/Common/FeatureGate";
+import AnalyticsSkeleton from "../components/Common/AnalyticsSkeleton";
 
 const COLORS = ["#6366f1", "#f59e0b", "#10b981", "#ef4444", "#8b5cf6", "#06b6d4", "#84cc16"];
 
@@ -64,12 +65,7 @@ export default function Analytics() {
 
   if (loading) return (
     <RoleBasedLayout>
-      <div className="flex justify-center items-center h-[calc(100vh-200px)]">
-        <div className="text-center space-y-4">
-          <Loader2 className="animate-spin h-10 w-10 text-indigo-500 mx-auto" />
-          <p className="text-gray-600">Loading analytics data...</p>
-        </div>
-      </div>
+      <AnalyticsSkeleton />
     </RoleBasedLayout>
   );
 
@@ -130,7 +126,7 @@ export default function Analytics() {
 
   return (
     <RoleBasedLayout>
-      <div className="p-6 space-y-8">
+      <div className="p-6 space-y-5">
         {/* Header */}
         <div className="space-y-2">
           <div className="flex items-center justify-between">

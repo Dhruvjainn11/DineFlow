@@ -12,13 +12,13 @@ export const generateQRPDF = (table, cafe) => {
   
   // Add table number with black background
   pdf.setFillColor(121,98,84); // Black background
-  pdf.rect(0, 0, 152.4, 12, 'F');
+  pdf.rect(0, 4, 152.4, 12, 'F');
   pdf.setTextColor(255, 255, 255); // White text
   pdf.setFontSize(24);
   pdf.setFont(undefined, 'bold');
   const tableText = `Table ${table.tableNumber}`;
   const tableTextWidth = pdf.getTextWidth(tableText);
-  pdf.text(tableText, (105 - tableTextWidth) / 2, 8);
+  pdf.text(tableText, (105 - tableTextWidth) / 2, 16);
   
   // Add cafe name at top center
   pdf.setTextColor(0, 0, 0);
