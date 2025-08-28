@@ -4,6 +4,7 @@ import api from "../utils/api";
 import { socket } from "../utils/socket";
 import { useCafe } from "../context/CafeContext";
 import CustomerFooter from "../components/CustomerFooter";
+import { OrderPageSkeleton } from "../components/SkeletonLoader";
 
 export default function CustomerOrderPage() {
   const { cafeId, tableId } = useParams();
@@ -100,18 +101,7 @@ export default function CustomerOrderPage() {
     };
   }, [cafeId, tableId]);
 
-  if (loading) return (
-    <div className="flex flex-col min-h-screen bg-gradient-to-b from-theme-secondary to-white">
-      <div className="flex-grow flex items-center justify-center">
-        <div className="text-center p-8 bg-white rounded-2xl shadow-xl max-w-md w-full border border-theme-primary-100">
-          <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-theme-primary mx-auto mb-6"></div>
-          <h2 className="text-2xl font-bold text-theme-primary mb-2">Loading Your Orders</h2>
-          <p className="text-theme-primary-dark">Preparing your dining experience...</p>
-        </div>
-      </div>
-      <CustomerFooter />
-    </div>
-  );
+  if (loading) return <OrderPageSkeleton />;
 
   if (!orders || orders.length === 0) return (
     <div className="flex flex-col min-h-screen bg-gradient-to-b from-theme-secondary to-white">
@@ -149,10 +139,10 @@ export default function CustomerOrderPage() {
 
   return (
     <div className="flex flex-col min-h-screen bg-gradient-to-b from-theme-secondary to-white">
-      <div className="flex-grow px-4 py-8">
+      <div className="flex-grow px-4 py-6 pb-20">
         <div className="max-w-md mx-auto">
           {/* Enhanced Header Section */}
-          <div className="mb-10 text-center">
+          <div className="mb-6 text-center">
             <h1 className="text-4xl font-bold text-theme-primary mb-2">Your Dining Experience</h1>
             {cafeInfo && (
               <p className="text-xl text-theme-primary-dark font-medium mb-3">{cafeInfo.name}</p>
@@ -166,19 +156,18 @@ export default function CustomerOrderPage() {
           </div>
 
           {/* Orders List with Enhanced Design */}
-          <div className="space-y-6">
+          <div className="space-y-4">
             {orders.map((order) => (
-              <div key={order._id} className="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100 hover:shadow-xl transition-all duration-300 w-full">
+              <div key={order._id} className="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-100 w-full">
                 {/* Order Header with Gradient */}
-                <div className="bg-theme-primary px-6 py-5">
+                <div className="bg-theme-primary px-4 py-4">
                   <div className="flex justify-between items-center">
-                    <div>
-                      <h2 className="text-xl font-bold text-white">
+                    <div className="flex-1 min-w-0">
+                      <h2 className="text-lg font-bold text-white truncate">
                         Order #{order.orderNumber || order._id.slice(-6).toUpperCase()}
                       </h2>
-                      <p className="text-white/80 text-sm mt-1">
+                      <p className="text-white/80 text-xs mt-1">
                         {new Date(order.createdAt).toLocaleString([], {
-                          weekday: 'short',
                           month: 'short',
                           day: 'numeric',
                           hour: '2-digit',
@@ -186,14 +175,14 @@ export default function CustomerOrderPage() {
                         })}
                       </p>
                     </div>
-                    <span className="text-xs font-bold bg-theme-primary-dark text-white px-3 py-1.5 rounded-full">
+                    <span className="text-xs font-bold bg-theme-primary-dark text-white px-2 py-1 rounded-full flex-shrink-0 ml-2">
                       {order.items.length} item{order.items.length !== 1 ? 's' : ''}
                     </span>
                   </div>
                 </div>
 
                 {/* Order Body */}
-                <div className="p-6">
+                <div className="p-4">
                   {/* Enhanced Status Indicators */}
                   <div className="grid grid-cols-1 gap-4 mb-6">
                     <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm">
@@ -263,26 +252,26 @@ export default function CustomerOrderPage() {
                   </div>
 
                   {/* Enhanced Order Summary */}
-                  <div className="bg-gradient-to-br from-theme-secondary to-white rounded-xl p-5 border border-theme-primary-100 shadow-sm">
-                    <div className="flex justify-between items-center">
-                      <div>
-                        <h4 className="text-sm font-semibold text-theme-primary uppercase tracking-wider mb-1">Total Amount</h4>
-                        <p className="text-3xl font-bold text-theme-primary">₹{order.totalPrice.toFixed(2)}</p>
-                      </div>
+                  <div className="bg-gradient-to-br from-theme-secondary to-white rounded-xl p-4 border border-theme-primary-100 shadow-sm">
+                    <div className="text-center mb-3">
+                      <h4 className="text-sm font-semibold text-theme-primary uppercase tracking-wider mb-1">Total Amount</h4>
+                      <p className="text-2xl font-bold text-theme-primary">₹{order.totalPrice.toFixed(2)}</p>
+                    </div>
+                    <div className="flex justify-center">
                       {order.paymentStatus === "Requested" && (
-                        <div className="flex items-center bg-sky-50 px-4 py-2 rounded-lg border border-sky-100">
-                          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 animate-spin text-sky-600" viewBox="0 0 20 20" fill="currentColor">
+                        <div className="flex items-center bg-sky-50 px-3 py-2 rounded-lg border border-sky-100">
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2 animate-spin text-sky-600" viewBox="0 0 20 20" fill="currentColor">
                             <path fillRule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clipRule="evenodd" />
                           </svg>
-                          <span className="text-sm font-medium text-sky-700">Payment requested</span>
+                          <span className="text-xs font-medium text-sky-700">Payment requested</span>
                         </div>
                       )}
                       {order.paymentStatus === "Completed" && (
-                        <div className="flex items-center bg-emerald-50 px-4 py-2 rounded-lg border border-emerald-100">
-                          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 text-emerald-600" viewBox="0 0 20 20" fill="currentColor">
+                        <div className="flex items-center bg-emerald-50 px-3 py-2 rounded-lg border border-emerald-100">
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2 text-emerald-600" viewBox="0 0 20 20" fill="currentColor">
                             <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                           </svg>
-                          <span className="text-sm font-medium text-emerald-700">Payment complete</span>
+                          <span className="text-xs font-medium text-emerald-700">Payment complete</span>
                         </div>
                       )}
                     </div>

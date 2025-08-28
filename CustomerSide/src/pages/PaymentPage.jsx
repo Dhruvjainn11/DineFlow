@@ -4,6 +4,7 @@ import api from "../utils/api";
 import { socket } from "../utils/socket";
 import { useCafe } from "../context/CafeContext";
 import CustomerFooter from "../components/CustomerFooter";
+import { PaymentPageSkeleton } from "../components/SkeletonLoader";
 
 export default function PaymentPage() {
   const { cafeId, tableId } = useParams();
@@ -110,27 +111,13 @@ export default function PaymentPage() {
     };
   }, [cafeId, tableId]);
 
-  if (loading)
-    return (
-      <div className="flex flex-col min-h-screen bg-gradient-to-b from-theme-secondary to-white">
-        <div className="flex-grow flex items-center justify-center">
-          <div className="text-center p-8 bg-white rounded-2xl shadow-xl max-w-md w-full border border-theme-primary-100">
-            <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-theme-primary mx-auto mb-6"></div>
-            <h2 className="text-2xl font-bold text-theme-primary mb-2">
-              Loading Your Orders
-            </h2>
-            <p className="text-theme-primary-dark">Preparing your dining experience...</p>
-          </div>
-        </div>
-        <CustomerFooter />
-      </div>
-    );
+  if (loading) return <PaymentPageSkeleton />;
 
   if (!orders || orders.length === 0)
     return (
-      <div className="flex flex-col min-h-screen bg-gradient-to-b from-theme-secondary to-white">
-        <div className="flex-grow flex items-center justify-center">
-          <div className="text-center p-8 bg-white rounded-2xl shadow-xl max-w-md w-full border border-theme-primary-100">
+      <div className="min-h-screen bg-theme-secondary pb-20">
+        <div className="max-w-md mx-auto p-4 flex items-center justify-center min-h-screen">
+          <div className="text-center p-8 bg-white rounded-2xl shadow-xl w-full border border-theme-primary-100">
             <div className="w-16 h-16 bg-theme-primary-100 rounded-full flex items-center justify-center mx-auto mb-4">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -240,8 +227,8 @@ export default function PaymentPage() {
         ))}
 
         {/* Fixed Bottom Payment Section */}
-        <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 shadow-lg">
-          <div className="max-w-md mx-auto">
+        <div className="mt-6 mb-4">
+          <div className="bg-white rounded-xl shadow-lg border border-gray-100 p-4">
             <div className="mb-3 text-center">
               <h3 className="text-base font-bold text-gray-800 mb-1">Total Amount</h3>
               <p className="text-2xl font-bold text-theme-primary">₹{totalAmount.toFixed(2)}</p>

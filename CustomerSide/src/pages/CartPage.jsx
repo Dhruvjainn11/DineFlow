@@ -5,6 +5,7 @@ import { removeFromCart, updateQty, clearCart, updateRemark } from "../redux/sli
 import { FiChevronLeft, FiTrash2, FiPlus, FiMinus, FiShoppingCart } from "react-icons/fi";
 import api from "../utils/api";
 import CustomerFooter from "../components/CustomerFooter";
+import { CartPageSkeleton } from "../components/SkeletonLoader";
 
 export default function CartPage() {
   const { tableId, cafeId } = useParams();
@@ -12,6 +13,7 @@ export default function CartPage() {
   const dispatch = useDispatch();
   const cartItems = useSelector((state) => state.cart?.items || []);
   const [isPlacingOrder, setIsPlacingOrder] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const normalizeObjectId = (possibleId) => {
     if (typeof possibleId !== "string") return possibleId;
@@ -67,6 +69,11 @@ const handlePlaceOrder = async () => {
   }
 };
 
+
+  // Show skeleton if loading
+  if (loading) {
+    return <CartPageSkeleton />;
+  }
 
   return (
     <div className="max-w-[480px] mx-auto bg-white min-h-screen pb-24">

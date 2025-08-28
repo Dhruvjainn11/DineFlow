@@ -9,6 +9,7 @@ import api from "../utils/api";
 import { FiSearch, FiPlus, FiMinus, FiX } from "react-icons/fi";
 import CustomerFooter from "../components/CustomerFooter";
 import MenuItemModal from "../components/MenuItemModal";
+import { MenuPageSkeleton } from "../components/SkeletonLoader";
 import { useCafe } from "../context/CafeContext";
 
 export default function MenuPage() {
@@ -26,6 +27,7 @@ export default function MenuPage() {
   const [detailItem, setDetailItem] = useState(null);
   const [tableStatus, setTableStatus] = useState(null);
   const [existingOrder, setExistingOrder] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [debugInfo, setDebugInfo] = useState({
     cafeId,
     tableId,
@@ -78,9 +80,11 @@ export default function MenuPage() {
         addDebugInfo('apiCalls', { action: 'menu_success', menuCount: menuRes.data.data?.length, categoryCount: categoriesRes.data.data?.length });
         setMenus(menuRes.data.data);
         setCategories(categoriesRes.data.data);
+        setLoading(false);
       } catch (err) {
         addDebugInfo('errors', { action: 'fetchData_failed', error: err.message, response: err.response?.data });
         console.error("Failed to fetch data", err);
+        setLoading(false);
       }
     };
 
@@ -198,6 +202,11 @@ export default function MenuPage() {
     );
   }
 
+  // Show skeleton while loading
+  if (loading) {
+    return <MenuPageSkeleton />;
+  }
+
   // Debug panel (remove in production)
   const showDebug = new URLSearchParams(window.location.search).get('debug') === 'true';
   
@@ -235,7 +244,9 @@ export default function MenuPage() {
       {/* Header with Search */}
       <div className={`sticky top-0 z-20 bg-theme-secondary  shadow-sm border-b border-theme-primary-100 `}>
         <div className="p-4">
-          <h1 className="text-2xl font-bold text-center text-theme-primary mb-4">The Annsh Menu</h1>
+          <h1 className="text-2xl font-bold text-center text-theme-primary mb-4">
+            {cafeInfo?.features?.customBranding && cafeInfo?.name ? `${cafeInfo.name} Menu` : 'The Annsh Menu'}
+          </h1>
           <div className="relative">
             <FiSearch className="absolute left-3 top-3 text-theme-primary" />
             <input
