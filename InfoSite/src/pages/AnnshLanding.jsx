@@ -449,7 +449,7 @@ const AnnshLanding = () => {
                   >
                     <Instagram size={20} />
                   </motion.a>
-                  <motion.a
+                  {/* <motion.a
                     whileHover={{ scale: 1.1, y: -2 }}
                     whileTap={{ scale: 0.9 }}
                     href="https://facebook.com/annsh"
@@ -464,7 +464,7 @@ const AnnshLanding = () => {
                     className="bg-sky-500 p-3 rounded-xl text-white hover:shadow-lg transition-all"
                   >
                     <Twitter size={20} />
-                  </motion.a>
+                  </motion.a> */}
                 </div>
               </div>
             </motion.div>
