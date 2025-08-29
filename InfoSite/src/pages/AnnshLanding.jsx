@@ -4,7 +4,7 @@ import { motion, useScroll, useTransform } from 'framer-motion';
 import { QrCode, Monitor, Clock, Settings, Check, MessageCircle, Mail, Phone, MapPin, Instagram, Facebook, Twitter, Menu, X } from 'lucide-react';
 
 const AnnshLanding = () => {
-  const [formData, setFormData] = useState({ name: '', email: '', message: '' });
+  const [formData, setFormData] = useState({ name: '', phone: '', email: '', message: '' });
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [showPopup, setShowPopup] = useState(false);
   const [popupMessage, setPopupMessage] = useState({ type: '', text: '' });
@@ -14,7 +14,7 @@ const AnnshLanding = () => {
     e.preventDefault();
 
     // Form validation
-    if (!formData.name.trim() || !formData.email.trim() || !formData.message.trim()) {
+    if (!formData.name.trim() || !formData.phone.trim() || !formData.email.trim() || !formData.message.trim()) {
       setPopupMessage({ type: 'error', text: 'Please fill in all fields before submitting.' });
       setShowPopup(true);
       setTimeout(() => setShowPopup(false), 3000);
@@ -27,6 +27,7 @@ const AnnshLanding = () => {
         "template_qsgmf92",  // Template ID
         {
           from_name: formData.name,
+          from_phone: formData.phone,
           from_email: formData.email,
           message: formData.message,
         },
@@ -36,7 +37,7 @@ const AnnshLanding = () => {
         (result) => {
           setPopupMessage({ type: 'success', text: 'Message sent successfully!' });
           setShowPopup(true);
-          setFormData({ name: '', email: '', message: '' });
+          setFormData({ name: '',phone:'', email: '', message: '' });
           setTimeout(() => setShowPopup(false), 3000);
         },
         (error) => {
@@ -239,7 +240,7 @@ const AnnshLanding = () => {
                 whileTap={{ scale: 0.95 }}
                 className="w-full bg-[#4b2e2e] text-[#f5f5dc] py-3 rounded-lg font-semibold hover:bg-[#4b2e2e]/90 transition-all duration-300"
               >
-                Choose Plan
+                Start Free Trial
               </motion.button>
             </motion.div>
 
@@ -279,7 +280,7 @@ const AnnshLanding = () => {
                 whileTap={{ scale: 0.95 }}
                 className="w-full bg-[#f5f5dc] text-[#4b2e2e] py-3 rounded-lg font-semibold hover:bg-white transition-all duration-300"
               >
-                Choose Plan
+                Get Started 
               </motion.button>
             </motion.div>
 
@@ -314,7 +315,7 @@ const AnnshLanding = () => {
                 whileTap={{ scale: 0.95 }}
                 className="w-full bg-[#4b2e2e] text-[#f5f5dc] py-3 rounded-lg font-semibold hover:bg-[#4b2e2e]/90 transition-all duration-300"
               >
-                Choose Plan
+                Contact Sales
               </motion.button>
             </motion.div>
           </div>
@@ -358,6 +359,17 @@ const AnnshLanding = () => {
                         placeholder="Enter your name"
                         value={formData.name}
                         onChange={(e) => setFormData({...formData, name: e.target.value})}
+                        className="w-full p-3 sm:p-4 rounded-xl border-2 border-[#4b2e2e]/10 focus:border-[#4b2e2e] outline-none transition-colors bg-white text-sm sm:text-base"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-semibold text-[#4b2e2e] mb-2">Contact No</label>
+                      <input
+                        type="tel"
+                        placeholder="Enter your Contact No"
+                        name="from_phone"
+                        value={formData.phone}
+                        onChange={(e) => setFormData({...formData, phone: e.target.value})}
                         className="w-full p-3 sm:p-4 rounded-xl border-2 border-[#4b2e2e]/10 focus:border-[#4b2e2e] outline-none transition-colors bg-white text-sm sm:text-base"
                       />
                     </div>
