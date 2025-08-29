@@ -371,6 +371,41 @@ router.delete('/:id',
 
 
 
+// @desc    Get table info by ID (Public for customers)
+// @route   GET /api/tables/:id
+// @access  Public (for customer view)
+router.get('/:id', 
+  validateObjectId('id'),
+  handleValidationErrors,
+  async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    // Find table by ID
+    const table = await Table.findById(id).select('tableNumber tableName status capacity location');
+    
+    if (!table) {
+      return res.status(404).json({
+        success: false,
+        message: 'Table not found'
+      });
+    }
+    
+    res.json({
+      success: true,
+      data: table
+    });
+    
+  } catch (error) {
+    console.error('Error fetching table info:', error);
+    res.status(500).json({ 
+      success: false,
+      message: 'Failed to fetch table info',
+      error: error.message 
+    });
+  }
+});
+
 // @desc    Get current order for a table (Public for customers)
 // @route   GET /api/tables/:id/current-order
 // @access  Public (for customer view)

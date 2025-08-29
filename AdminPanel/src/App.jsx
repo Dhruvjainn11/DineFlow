@@ -39,7 +39,7 @@ function AppContent() {
         <Route element={<PrivateRoute />}>
   {/* Cafe Admin Routes */}
   <Route path="/admin" element={<ProtectedRoute allowedRole="admin" />}>
-    <Route index element={<Dashboard />} /> 
+    <Route index element={<Analytics />} /> 
     <Route path="menu" element={<MenuManagement />} />
     <Route path="categories" element={<CategoryManagement />} />
     <Route path="tables" element={<TableManagment />} />

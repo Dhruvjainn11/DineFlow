@@ -167,24 +167,7 @@ export const checkPlanLimits = (action) => {
     try {
       switch (action) {
         case 'createMenuItem':
-          if (planType === 'basic') {
-            // Check current menu item count for Basic plan (limit: 20)
-            const MenuItem = (await import('../models/Menu.js')).default;
-            const currentCount = await MenuItem.countDocuments({ cafeId: req.user.cafeId._id });
-            
-            if (currentCount >= 20) {
-              return res.status(403).json({
-                success: false,
-                message: 'Basic plan limit reached. Maximum 20 menu items allowed. Upgrade to Pro for unlimited items.',
-                planLimit: {
-                  current: currentCount,
-                  limit: 20,
-                  planType: 'basic',
-                  upgradeRequired: true
-                }
-              });
-            }
-          }
+          // Unlimited menu items for all plans
           break;
 
         case 'createTable':

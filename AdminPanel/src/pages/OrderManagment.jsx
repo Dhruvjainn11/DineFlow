@@ -14,6 +14,12 @@ const OrderManagment = () => {
   useEffect(() => {
     fetchOrders();
     
+    // Join cafe room for real-time updates
+    const token = localStorage.getItem('token');
+    if (token) {
+      socket.emit('authenticate', token);
+    }
+    
      socket.on("newOrder", (newOrder) =>
           setOrders((prev) => [...prev, newOrder])
         );
