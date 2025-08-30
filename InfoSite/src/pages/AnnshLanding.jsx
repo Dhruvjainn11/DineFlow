@@ -66,10 +66,15 @@ const AnnshLanding = () => {
       />
       
       {/* Navbar */}
-      <nav className="fixed top-1 w-full bg-[#f5f5dc]/90 backdrop-blur-sm z-40 border-b border-[#4b2e2e]/10">
+      <nav className="fixed top-1 w-full bg-[#f5f5dc]/90 backdrop-blur-sm z-40 border-b border-[#4b2e2e]/10 overflow-hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
-            <div className="text-xl sm:text-2xl font-bold text-[#4b2e2e]">Annsh</div>
+            <div className="text-xl sm:text-2xl font-bold text-[#4b2e2e] overflow-hidden">
+              <img src="/Annsh.png" alt="annsh"
+              className="object-contain mix-blend-darken"
+              height={200}
+              width={200} />
+            </div>
             
             {/* Desktop Menu */}
             <div className="hidden md:flex space-x-8">
@@ -239,6 +244,7 @@ const AnnshLanding = () => {
                 whileHover={{ scale: 1.05, boxShadow: "0 8px 20px rgba(75, 46, 46, 0.3)" }}
                 whileTap={{ scale: 0.95 }}
                 className="w-full bg-[#4b2e2e] text-[#f5f5dc] py-3 rounded-lg font-semibold hover:bg-[#4b2e2e]/90 transition-all duration-300"
+                 onClick={() => scrollToSection("contact")}
               >
                 Start Free Trial
               </motion.button>
@@ -279,6 +285,7 @@ const AnnshLanding = () => {
                 whileHover={{ scale: 1.05, boxShadow: "0 8px 20px rgba(255, 255, 255, 0.3)" }}
                 whileTap={{ scale: 0.95 }}
                 className="w-full bg-[#f5f5dc] text-[#4b2e2e] py-3 rounded-lg font-semibold hover:bg-white transition-all duration-300"
+                 onClick={() => scrollToSection("contact")}
               >
                 Get Started 
               </motion.button>
@@ -314,6 +321,7 @@ const AnnshLanding = () => {
                 whileHover={{ scale: 1.05, boxShadow: "0 8px 20px rgba(75, 46, 46, 0.3)" }}
                 whileTap={{ scale: 0.95 }}
                 className="w-full bg-[#4b2e2e] text-[#f5f5dc] py-3 rounded-lg font-semibold hover:bg-[#4b2e2e]/90 transition-all duration-300"
+                 onClick={() => scrollToSection("contact")}
               >
                 Contact Sales
               </motion.button>
