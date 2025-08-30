@@ -23,15 +23,15 @@ const AnnshLanding = () => {
 
     emailjs
       .send(
-        "service_nlu4ewn",   // Service ID
-        "template_qsgmf92",  // Template ID
+        import.meta.env.VITE_EMAILJS_SERVICE_ID,   // Service ID
+        import.meta.env.VITE_EMAILJS_TEMPLATE_ID,  // Template ID
         {
           from_name: formData.name,
           from_phone: formData.phone,
           from_email: formData.email,
           message: formData.message,
         },
-        "f4zc1DHL2AuF8nmWi"  // Public Key
+        import.meta.env.VITE_EMAILJS_PUBLIC_KEY  // Public Key
       )
       .then(
         (result) => {

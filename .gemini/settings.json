@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "filesystem": {
+      "command": "@google-labs/mcp-filesystem",
+      "args": []
+    }
+  }
+}
