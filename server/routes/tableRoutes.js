@@ -227,76 +227,98 @@ router.post(
 // @desc    Update a table
 // @route   PUT /api/tables/:id
 // @access  Private (Admin, Cafe Admin with table management permission)
-router.put('/:id', 
-  protect, 
-  checkSubscription, 
+router.put(
+  '/:id',
+  protect,
+  checkSubscription,
   checkPlanLimits('manageTable'),
-  checkPermission('canManageTables'), 
+  checkPermission('canManageTables'),
   validateTableUpdate,
   async (req, res) => {
-  try {
-    const { status, currentOrder, tableName, capacity, location, sortOrder } = req.body;
-    
-    // Find existing table and verify ownership
-    const existingTable = await Table.findById(req.params.id);
-    if (!existingTable) {
-      return res.status(404).json({
+    try {
+      const { status, currentOrder, tableName, capacity, location, sortOrder } = req.body;
+
+      // Find existing table
+      const existingTable = await Table.findById(req.params.id);
+      if (!existingTable) {
+        return res.status(404).json({
+          success: false,
+          message: 'Table not found'
+        });
+      }
+
+      // Cafe ownership check
+      const userCafeId = req.user.isSuperAdmin()
+        ? existingTable.cafeId
+        : req.user.cafeId?._id;
+
+      // ✅ Restrict "reserved" status to Pro plan only
+      if (status === 'reserved') {
+        const cafe = await Cafe.findById(existingTable.cafeId);
+        if (!cafe) {
+          return res.status(404).json({
+            success: false,
+            message: 'Cafe not found'
+          });
+        }
+
+        if (cafe.Plan !== 'pro') {
+          return res.status(403).json({
+            success: false,
+            message: 'Table reservation is available only on the Pro plan. Please upgrade.'
+          });
+        }
+      }
+
+      // Build update object
+      const updateData = {};
+      if (status) updateData.status = status;
+      if (currentOrder !== undefined) updateData.currentOrder = currentOrder;
+      if (tableName !== undefined) updateData.tableName = tableName;
+      if (capacity !== undefined) updateData.capacity = capacity;
+      if (location !== undefined) updateData.location = location;
+      if (sortOrder !== undefined) updateData.sortOrder = sortOrder;
+
+      const updatedTable = await Table.findByIdAndUpdate(
+        req.params.id,
+        updateData,
+        { new: true, runValidators: true }
+      )
+        .populate('currentOrder')
+        .populate('cafeId', 'name features');
+
+      // Emit Socket.IO event for real-time updates
+      const io = req.app.get('io');
+      if (io && userCafeId) {
+        io.to(`cafe-${userCafeId}`).emit('tableUpdated', updatedTable);
+      }
+
+      res.json({
+        success: true,
+        message: 'Table updated successfully',
+        data: updatedTable
+      });
+    } catch (error) {
+      console.error('Error updating table:', error);
+
+      // Emit error event
+      const io = req.app.get('io');
+      const userCafeId = req.user.isSuperAdmin()
+        ? null
+        : req.user.cafeId?._id;
+      if (io && userCafeId) {
+        io.to(`cafe-${userCafeId}`).emit('tableError', { message: error.message, operation: 'update' });
+      }
+
+      res.status(500).json({
         success: false,
-        message: 'Table not found'
+        message: 'Failed to update table',
+        error: error.message
       });
     }
-    
-    // Check cafe ownership
-    const userCafeId = req.user.isSuperAdmin() ? existingTable.cafeId : req.user.cafeId._id;
-    if (existingTable.cafeId.toString() !== userCafeId.toString()) {
-      return res.status(403).json({
-        success: false,
-        message: 'Access denied to this table'
-      });
-    }
-    
-    // Build update object
-    const updateData = {};
-    if (status) updateData.status = status;
-    if (currentOrder !== undefined) updateData.currentOrder = currentOrder;
-    if (tableName !== undefined) updateData.tableName = tableName;
-    if (capacity !== undefined) updateData.capacity = capacity;
-    if (location !== undefined) updateData.location = location;
-    if (sortOrder !== undefined) updateData.sortOrder = sortOrder;
-    
-    const updatedTable = await Table.findByIdAndUpdate(
-      req.params.id,
-      updateData,
-      { new: true, runValidators: true }
-    ).populate('currentOrder').populate('cafeId', 'name features');
-    
-    // Emit Socket.IO event for real-time updates
-    const io = req.app.get('io');
-    io.to(`cafe-${userCafeId}`).emit('tableUpdated', updatedTable);
-    
-    res.json({
-      success: true,
-      message: 'Table updated successfully',
-      data: updatedTable
-    });
-    
-  } catch (error) {
-    console.error('Error updating table:', error);
-    
-    // Emit error event for real-time updates
-    const io = req.app.get('io');
-    const userCafeId = req.user.isSuperAdmin() ? existingTable?.cafeId : req.user.cafeId._id;
-    if (io && userCafeId) {
-      io.to(`cafe-${userCafeId}`).emit('tableError', { message: error.message, operation: 'update' });
-    }
-    
-    res.status(500).json({ 
-      success: false,
-      message: 'Failed to update table',
-      error: error.message 
-    });
   }
-});
+);
+
 
 // @desc    Delete a table
 // @route   DELETE /api/tables/:id

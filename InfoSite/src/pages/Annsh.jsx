@@ -1,4 +1,5 @@
 import React from 'react';
+import { Helmet } from 'react-helmet-async';
 import { 
   QrCode, 
   ChefHat, 
@@ -24,6 +25,11 @@ const Annsh = () => {
 
   return (
     <div className="min-h-screen bg-white">
+      <Helmet>
+        <title>Annsh - Old Landing Page</title>
+        <meta name="description" content="The old landing page for Annsh, a smart digital menu and ordering system for cafes and restaurants." />
+        <link rel="canonical" href="https://your-website-url.com/old" />
+      </Helmet>
       {/* Navbar */}
       <nav className="bg-white shadow-sm border-b border-gray-100 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

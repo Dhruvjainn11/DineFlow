@@ -2,8 +2,16 @@ import React from "react";
 import { useForm } from "react-hook-form";
 import { X, Calendar, User, Phone } from "lucide-react";
 import { updateTable } from "../services/tableService";
+import { FeatureToggle } from "./Common/FeatureGate";
+import { useAuth } from "../context/AuthContext";
 
 export default function TableUpdateForm({ table, onClose, onUpdate }) {
+  const { cafe } = useAuth();
+  console.log("User Permissions:", cafe.subscription.planType);
+  
+  
+const isProUser = cafe.subscription.planType === 'pro';
+
   const {
     register,
     handleSubmit,
@@ -154,7 +162,12 @@ export default function TableUpdateForm({ table, onClose, onUpdate }) {
               >
                 <option value="Available">Available</option>
                 <option value="Occupied">Occupied</option>
-                <option value="Reserved">Reserved</option>
+               {!isProUser ? (
+  <option disabled title="Upgrade to Pro to unlock">Reserved (Pro only)</option>
+) : (
+  <option value="Reserved">Reserved</option>
+)}
+
                 <option value="Maintenance">Maintenance</option>
               </select>
             </div>
