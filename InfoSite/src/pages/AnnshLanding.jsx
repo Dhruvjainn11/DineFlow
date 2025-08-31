@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { Helmet } from 'react-helmet-async';
 import emailjs from 'emailjs-com';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import { QrCode, Monitor, Clock, Settings, Check, MessageCircle, Mail, Phone, MapPin, Instagram, Facebook, Twitter, Menu, X } from 'lucide-react';
@@ -60,11 +59,6 @@ const AnnshLanding = () => {
 
   return (
     <div className="bg-[#f5f5dc] min-h-screen overflow-x-hidden scroll-smooth">
-      <Helmet>
-        <title>Annsh - Smart Digital Menu & Ordering for Cafes</title>
-        <meta name="description" content="Transform your cafe with QR code ordering, real-time kitchen management, and seamless customer experiences provided by Annsh." />
-        <link rel="canonical" href="https://annsh.in/" />
-      </Helmet>
       {/* Scroll Progress Bar */}
       <motion.div
         className="fixed top-0 left-0 right-0 h-1 bg-[#4b2e2e] origin-left z-50"
