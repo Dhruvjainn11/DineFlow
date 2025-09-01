@@ -143,7 +143,7 @@ export default function PaymentPage() {
     );
 
   // Calculate total amount for all unpaid orders
-  const totalAmount = orders.reduce((acc, order) => acc + (order.totalPrice || 0), 0);
+  const totalAmount = orders.reduce((acc, order) => acc + (order.totalAmount || order.totalPrice || 0), 0);
 
   return (
     <div className="min-h-screen bg-theme-secondary pb-20">
@@ -175,7 +175,7 @@ export default function PaymentPage() {
                 </p>
               </div>
               <div className="text-right flex-shrink-0 ml-2">
-                <p className="text-base font-bold text-theme-primary">₹{order.totalPrice?.toFixed(2)}</p>
+                <p className="text-base font-bold text-theme-primary">₹{(order.totalAmount || order.totalPrice || 0).toFixed(2)}</p>
                 <p className={`text-xs font-medium ${
                   order.paymentStatus === "Requested"
                     ? "text-blue-600"

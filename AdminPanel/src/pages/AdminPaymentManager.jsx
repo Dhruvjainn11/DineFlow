@@ -30,7 +30,7 @@ export default function AdminPaymentManager() {
       }
 
       grouped[tableNum].orders.push(order);
-      grouped[tableNum].totalPrice += order.totalPrice;
+      grouped[tableNum].totalPrice += (order.totalAmount || order.totalPrice || 0);
 
       if (order.paymentStatus === "Requested") {
         grouped[tableNum].paymentStatus = "Requested";
