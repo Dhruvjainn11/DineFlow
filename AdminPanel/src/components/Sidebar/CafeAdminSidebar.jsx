@@ -108,16 +108,13 @@ const CafeAdminSidebar = () => {
       );
     }
 
-    // Settings for cafe admins - permission-based
-    // if (hasPermission('canManageSettings')) {
-    //   links.push({ 
-    //     name: "Settings", 
-    //     path: "/admin/settings", 
-    //     icon: CogIcon, 
-    //     permission: 'canManageSettings',
-    //     description: "Manage cafe settings and configuration"
-    //   });
-    // }
+    // Settings for cafe admins - always available
+    links.push({ 
+      name: "Settings", 
+      path: "/admin/settings", 
+      icon: CogIcon, 
+      description: "Manage cafe settings and configuration"
+    });
 
     // console.log('🎯 Total navigation links built:', links.length);
     // console.log('📋 Links array:', links.map(l => l.name));

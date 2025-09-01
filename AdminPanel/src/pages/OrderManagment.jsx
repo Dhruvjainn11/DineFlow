@@ -282,6 +282,33 @@ const OrderManagment = () => {
                     </ul>
                   </div>
 
+                  {/* GST and Pricing Details */}
+                  {order.gstDetails && order.gstDetails.totalGstAmount > 0 && (
+                    <div className="bg-blue-50 p-3 rounded-lg mb-4">
+                      <h5 className="text-xs font-semibold text-blue-900 uppercase tracking-wider mb-2">
+                        Tax Details
+                      </h5>
+                      <div className="space-y-1 text-sm">
+                        <div className="flex justify-between">
+                          <span className="text-blue-700">Subtotal:</span>
+                          <span className="text-blue-900">₹{order.subtotal?.toFixed(2) || "0.00"}</span>
+                        </div>
+                        {order.gstDetails.ratesApplied?.map((rate, idx) => (
+                          <div key={idx} className="flex justify-between">
+                            <span className="text-blue-700">{rate.rateName} ({rate.percentage}%):</span>
+                            <span className="text-blue-900">₹{rate.amount?.toFixed(2) || "0.00"}</span>
+                          </div>
+                        ))}
+                        {order.serviceCharge > 0 && (
+                          <div className="flex justify-between">
+                            <span className="text-blue-700">Service Charge:</span>
+                            <span className="text-blue-900">₹{order.serviceCharge?.toFixed(2) || "0.00"}</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
                   <div className="flex justify-between items-center pt-3 border-t border-gray-100">
                     <div className="text-sm text-gray-600">
                       <span className="block text-xs text-gray-500">Customer</span>
@@ -289,7 +316,7 @@ const OrderManagment = () => {
                     </div>
                     <div className="text-right">
                       <span className="block text-xs text-gray-500">Total</span>
-                      <span className="font-bold text-gray-800">₹{order.totalPrice?.toFixed(2) || "0.00"}</span>
+                      <span className="font-bold text-gray-800">₹{order.totalAmount?.toFixed(2) || "0.00"}</span>
                     </div>
                   </div>
                 </div>

@@ -10,6 +10,7 @@ import {
   validateObjectId, 
   handleValidationErrors 
 } from '../middleware/validationMiddleware.js';
+import { calculateOrderTotal } from '../utils/gstCalculator.js';
 
 const router = express.Router();
 
@@ -82,13 +83,21 @@ router.post("/", validateOrderCreation ,async (req, res) => {
       calculatedTotalPrice += itemPrice * orderItem.quantity;
     }
 
+    // --- GST & Final Price Calculation ---
+    const cafe = table.cafeId;
+    const orderCalculation = calculateOrderTotal(finalOrderItems, cafe.settings || {});
+
+
     // ✅ Create order
     const newOrder = new Order({
       cafeId,
       tableNumber,
       items: finalOrderItems,
-      subtotal: calculatedTotalPrice,
-      totalPrice: calculatedTotalPrice,
+      subtotal: orderCalculation.subtotal,
+      gstDetails: orderCalculation.gstDetails,
+      serviceCharge: orderCalculation.serviceCharge,
+      discount: orderCalculation.discount,
+      totalAmount: orderCalculation.totalAmount,
       status: "Pending",
       paymentStatus: "Pending",
     });

@@ -53,8 +53,8 @@ const orderSchema = new mongoose.Schema(
         message: 'Order must contain at least one item.'
       }
     },
-    // The total price will be calculated and set by the server
-    totalPrice: {
+    // The total amount will be calculated and set by the server
+    totalAmount: {
       type: Number,
       required: true,
     },
@@ -97,10 +97,15 @@ const orderSchema = new mongoose.Schema(
       required: true,
       min: 0
     },
-    taxAmount: {
-      type: Number,
-      default: 0,
-      min: 0
+    gstDetails: {
+      gstNumber: { type: String, trim: true },
+      totalGstAmount: { type: Number, default: 0, min: 0 },
+      ratesApplied: [{
+        _id: false,
+        rateName: { type: String, enum: ['CGST', 'SGST', 'IGST'] },
+        percentage: { type: Number },
+        amount: { type: Number }
+      }]
     },
     serviceCharge: {
       type: Number,
@@ -167,8 +172,9 @@ orderSchema.index({ assignedTo: 1, status: 1 });
 
 // Method to calculate total with tax and service charge
 orderSchema.methods.calculateTotal = function() {
-  this.totalPrice = this.subtotal + this.taxAmount + this.serviceCharge - this.discount;
-  return this.totalPrice;
+  const totalGst = this.gstDetails ? this.gstDetails.totalGstAmount : 0;
+  this.totalAmount = this.subtotal + totalGst + this.serviceCharge - this.discount;
+  return this.totalAmount;
 };
 
 // Virtual for order duration

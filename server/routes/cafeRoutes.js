@@ -280,6 +280,59 @@ router.post('/', protect, allowRoles('super-admin'), validateCafeCreation, async
 
 
 
+// @desc    Update cafe settings (MUST BE BEFORE /:id route)
+// @route   PUT /api/cafes/settings
+// @access  Private (Cafe Admin)
+router.put('/settings', protect, async (req, res) => {
+  try {
+    const { settings } = req.body;
+    console.log(settings);
+    
+    
+    if (!settings) {
+      return res.status(400).json({
+        success: false,
+        message: 'Settings data is required'
+      });
+    }
+
+    const userCafeId = req.user.cafeId?._id || req.user.cafeId;
+    
+    if (!userCafeId) {
+      return res.status(400).json({
+        success: false,
+        message: 'No cafe associated with user'
+      });
+    }
+
+    const cafe = await Cafe.findById(userCafeId);
+    
+    if (!cafe) {
+      return res.status(404).json({
+        success: false,
+        message: 'Cafe not found'
+      });
+    }
+
+    cafe.settings = { ...cafe.settings, ...settings };
+    await cafe.save();
+
+    res.json({
+      success: true,
+      message: 'Settings updated successfully',
+      data: cafe.settings
+    });
+
+  } catch (error) {
+    console.error('Error updating cafe settings:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to update settings',
+      error: error.message
+    });
+  }
+});
+
 // @desc    Get all cafes (Super Admin only)
 // @route   GET /api/cafes
 // @access  Private (Super Admin)
@@ -355,6 +408,8 @@ router.get('/', protect, allowRoles('super-admin'), validatePaginationQuery, asy
     });
   }
 });
+
+
 
 // @desc    Get cafe by ID
 // @route   GET /api/cafes/:id

@@ -175,6 +175,12 @@ export const AuthProvider = ({ children }) => {
     setCafe(updatedCafe);
   };
 
+  const refreshCafe = async () => {
+    if (user?.cafeId) {
+      await fetchCafeData(user.cafeId);
+    }
+  };
+
   const value = {
     token,
     user,
@@ -187,7 +193,8 @@ export const AuthProvider = ({ children }) => {
     hasPermission,
     hasFeature,
     updateCafe,
-    fetchCafeData
+    fetchCafeData,
+    refreshCafe
   };
 
   return (

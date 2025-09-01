@@ -60,6 +60,17 @@ export const validateCafeUpdate = [
   body('subdomain').optional().matches(/^[a-z0-9-]+$/).isLength({ min: 3, max: 30 })
     .withMessage('Invalid subdomain format'),
   body('phone').optional().isMobilePhone().withMessage('Invalid phone number'),
+  
+  // GST Settings Validation
+  body('settings.hasGST').optional().isBoolean().withMessage('hasGST must be true or false'),
+  body('settings.gstNumber').optional().trim().if(body('settings.hasGST').equals('true'))
+    .isLength({ min: 15, max: 15 }).withMessage('GST Number must be 15 characters')
+    .matches(/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/)
+    .withMessage('Invalid GSTIN format'),
+  body('settings.gstRates').optional().isArray().withMessage('gstRates must be an array'),
+  body('settings.gstRates.*.rateName').optional().isIn(['CGST', 'SGST', 'IGST']).withMessage('Invalid GST rate name'),
+  body('settings.gstRates.*.percentage').optional().isFloat({ min: 0, max: 30 }).withMessage('GST percentage must be between 0 and 30'),
+
   handleValidationErrors
 ];
 

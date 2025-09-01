@@ -217,9 +217,22 @@ const cafeSchema = new mongoose.Schema({
       sunday: { open: String, close: String, isOpen: { type: Boolean, default: true } }
     },
     
-    // Tax settings
-    taxRate: { type: Number, default: 0, min: 0, max: 50 },
-    taxName: { type: String, default: 'GST' },
+    // GST and Tax Settings
+    hasGST: { type: Boolean, default: false },
+    gstNumber: { type: String, trim: true, default: '' },
+    gstRates: [{
+      rateName: { 
+        type: String, 
+        enum: ['CGST', 'SGST', 'IGST'],
+        required: true
+      },
+      percentage: { 
+        type: Number, 
+        default: 0,
+        min: 0,
+        max: 30
+      }
+    }],
     
     // Service charge
     serviceCharge: { type: Number, default: 0, min: 0, max: 30 },
