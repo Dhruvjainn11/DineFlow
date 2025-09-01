@@ -265,8 +265,9 @@ export default function CustomerOrderPage() {
                   {/* Enhanced Order Summary */}
                   <div className="bg-gradient-to-br from-theme-secondary to-white rounded-xl p-4 border border-theme-primary-100 shadow-sm">
                     <div className="text-center mb-3">
-                      <h4 className="text-sm font-semibold text-theme-primary uppercase tracking-wider mb-1">Total Amount</h4>
-                      <p className="text-2xl font-bold text-theme-primary">₹{(order.totalAmount || order.totalPrice || 0).toFixed(2)}</p>
+                      <h4 className="text-sm font-semibold text-theme-primary uppercase tracking-wider mb-1">Subtotal</h4>
+                      <p className="text-2xl font-bold text-theme-primary">₹{(order.subtotal || order.totalAmount || order.totalPrice || 0).toFixed(2)}</p>
+                      
                     </div>
                     <div className="flex justify-center">
                       {order.paymentStatus === "Requested" && (

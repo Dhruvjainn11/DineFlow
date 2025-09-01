@@ -43,10 +43,13 @@ export default function Analytics() {
   useEffect(() => {
     const fetchAnalytics = async () => {
       try {
-        const res = await api.get("/analytics/summary");
+        const res = await api.get("/analytics/summary?days=7");
         console.log('Analytics response:', res.data);
         if (res.data.success) {
-          console.log('30-day stats:', res.data.data.thirtyDayStats);
+          console.log('Today stats:', res.data.data.todayStats);
+          console.log('Daily stats:', res.data.data.dailyStats);
+          console.log('Payments:', res.data.data.payments);
+          console.log('Today potential revenue:', res.data.data.todayStats?.totalPotentialRevenue);
           setData(res.data.data);
         } else {
           console.error('Analytics API returned error:', res.data.message);
@@ -164,8 +167,13 @@ export default function Analytics() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-500 uppercase tracking-wider">Today's Revenue</p>
-                <p className="mt-2 text-3xl font-semibold text-emerald-600">₹{(todayStats?.revenue || 0).toLocaleString()}</p>
-                <p className="mt-1 text-xs text-gray-400">Revenue generated today</p>
+                <p className="mt-2 text-3xl font-semibold text-emerald-600">₹{(todayStats?.totalPotentialRevenue || todayStats?.revenue || 0).toLocaleString()}</p>
+                <p className="mt-1 text-xs text-gray-400">
+                  {todayStats?.revenue !== todayStats?.totalPotentialRevenue ? 
+                    `₹${(todayStats?.revenue || 0).toLocaleString()} completed` : 
+                    'Revenue generated today'
+                  }
+                </p>
               </div>
               <div className="p-3 bg-emerald-50 rounded-lg shadow-inner">
                 <DollarSign className="h-6 w-6 text-emerald-600" strokeWidth={2} />

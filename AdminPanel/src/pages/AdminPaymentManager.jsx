@@ -10,6 +10,7 @@ export default function AdminPaymentManager() {
   const [paidTables, setPaidTables] = useState([]);
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [cafeName, setCafeName] = useState(null);
+  const [cafeData, setCafeData] = useState(null);
   const [loading, setLoading] = useState(true);
 
   // Group orders by table and calculate total + payment status
@@ -23,14 +24,33 @@ export default function AdminPaymentManager() {
         grouped[tableNum] = {
           tableNumber: order.tableNumber,
           orders: [],
+          subtotal: 0,
+          totalGstAmount: 0,
+          serviceCharge: 0,
           totalPrice: 0,
           paymentStatus: "Pending",
           paymentRequestedAt: null,
+          gstDetails: { ratesApplied: [] }
         };
       }
 
       grouped[tableNum].orders.push(order);
+      grouped[tableNum].subtotal += (order.subtotal || 0);
+      grouped[tableNum].totalGstAmount += (order.gstDetails?.totalGstAmount || 0);
+      grouped[tableNum].serviceCharge += (order.serviceCharge || 0);
       grouped[tableNum].totalPrice += (order.totalAmount || order.totalPrice || 0);
+
+      // Merge GST rates from all orders
+      if (order.gstDetails?.ratesApplied) {
+        order.gstDetails.ratesApplied.forEach(rate => {
+          const existingRate = grouped[tableNum].gstDetails.ratesApplied.find(r => r.rateName === rate.rateName);
+          if (existingRate) {
+            existingRate.amount += rate.amount;
+          } else {
+            grouped[tableNum].gstDetails.ratesApplied.push({ ...rate });
+          }
+        });
+      }
 
       if (order.paymentStatus === "Requested") {
         grouped[tableNum].paymentStatus = "Requested";
@@ -54,10 +74,13 @@ export default function AdminPaymentManager() {
       console.log("Fetched orders:", res.data.data);
       
       setOrders(groupOrdersByTable(res.data.data));
-      let cafeId = res.data.data[0]?.cafeId || {};
-      console.log("Fetched Cafe ID:", cafeId.name);
+      let cafeData = res.data.data[0]?.cafeId || {};
+      console.log("Fetched Cafe ID:", cafeData.name);
       
-      setCafeName(cafeId.name || "DineFlow Cafe");
+      setCafeName(cafeData.name || "DineFlow Cafe");
+      setCafeData(cafeData);
+      
+      console.log("Fetched Cafe Data:", cafeData);
     } catch (err) {
       console.error("Failed to load orders", err);
     } finally {
@@ -159,12 +182,16 @@ export default function AdminPaymentManager() {
         }))
       );
 
-      // Sum totalPrice from grouped data (already computed)
+      // Create combined order with proper GST breakdown
       const combinedOrder = {
         _id: `Table-${tableNumber}-Receipt`,
         tableNumber: tableOrder.tableNumber,
         items: combinedItems,
+        subtotal: tableOrder.subtotal,
+        gstDetails: tableOrder.gstDetails,
+        serviceCharge: tableOrder.serviceCharge,
         totalPrice: tableOrder.totalPrice,
+        totalAmount: tableOrder.totalPrice,
         createdAt: tableOrder.paymentRequestedAt || new Date().toISOString(),
       };
 
@@ -342,8 +369,9 @@ export default function AdminPaymentManager() {
       </div>
 
       {/* Receipt Modal */}
+      {/* {console.log("CAFE DATA"+cafeData)} */}
       {selectedOrder && (
-        <Receipt order={selectedOrder} cafe={cafeName}  onClose={() => setSelectedOrder(null)} />
+        <Receipt order={selectedOrder} cafe={cafeName} cafeData={cafeData} onClose={() => setSelectedOrder(null)} />
       )}
     </RoleBasedLayout>
   );

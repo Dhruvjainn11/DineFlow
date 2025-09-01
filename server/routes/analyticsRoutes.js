@@ -36,7 +36,7 @@ router.get("/debug", protect, allowRoles("admin", "super-admin"), async (req, re
       console.log(`Order ${index + 1}:`, {
         id: order._id,
         cafeId: order.cafeId,
-        totalPrice: order.totalPrice,
+        totalAmount: order.totalAmount,
         paymentStatus: order.paymentStatus,
         status: order.status,
         createdAt: order.createdAt
@@ -46,7 +46,7 @@ router.get("/debug", protect, allowRoles("admin", "super-admin"), async (req, re
     // Count by payment status
     const statusCounts = await Order.aggregate([
       { $match: cafeFilter },
-      { $group: { _id: '$paymentStatus', count: { $sum: 1 }, totalRevenue: { $sum: '$totalPrice' } } }
+      { $group: { _id: '$paymentStatus', count: { $sum: 1 }, totalRevenue: { $sum: '$totalAmount' } } }
     ]);
     
     console.log('🔍 Debug Analytics - Status Counts:', statusCounts);
@@ -60,7 +60,7 @@ router.get("/debug", protect, allowRoles("admin", "super-admin"), async (req, re
         recentOrders: allOrders.map(o => ({
           id: o._id,
           cafeId: o.cafeId,
-          totalPrice: o.totalPrice,
+          totalAmount: o.totalAmount,
           paymentStatus: o.paymentStatus,
           createdAt: o.createdAt
         })),
@@ -94,6 +94,31 @@ router.get("/summary", protect, allowRoles("admin", "super-admin"), async (req, 
     
     console.log('📊 Analytics Summary - User:', req.user.role, 'CafeId:', cafeId);
     console.log('📊 Analytics Summary - Filter:', cafeFilter);
+    
+    // Debug: Check today's orders and their payment status
+    const todayDebug = new Date();
+    todayDebug.setHours(0, 0, 0, 0);
+    const tomorrowDebug = new Date(todayDebug);
+    tomorrowDebug.setDate(tomorrowDebug.getDate() + 1);
+    
+    const todayOrdersDebug = await Order.find({
+      ...cafeFilter,
+      createdAt: { $gte: todayDebug, $lt: tomorrowDebug }
+    }).select('paymentStatus totalAmount totalPrice');
+    
+    console.log('🔍 Today\'s orders debug:', todayOrdersDebug.map(o => ({
+      paymentStatus: o.paymentStatus,
+      totalAmount: o.totalAmount,
+      totalPrice: o.totalPrice
+    })));
+    
+    // Calculate manual total for verification
+    const manualTotal = todayOrdersDebug.reduce((sum, order) => {
+      const amount = order.totalAmount || order.totalPrice || 0;
+      console.log('Order amount:', amount, 'from totalAmount:', order.totalAmount, 'totalPrice:', order.totalPrice);
+      return sum + amount;
+    }, 0);
+    console.log('🔍 Manual total calculation:', manualTotal);
     
     // Check Pro plan status first
     let isProPlan = false;
@@ -130,14 +155,14 @@ router.get("/summary", protect, allowRoles("admin", "super-admin"), async (req, 
     // Total Revenue - from all orders (including pending payments for better tracking)
     const totalRevenueAgg = await Order.aggregate([
       { $match: cafeFilter },
-      { $group: { _id: null, total: { $sum: "$totalPrice" } } },
+      { $group: { _id: null, total: { $sum: { $ifNull: ["$totalAmount", "$totalPrice"] } } } },
     ]);
     const totalRevenue = totalRevenueAgg[0]?.total || 0;
 
     // Completed Revenue - only from completed payments
     const completedRevenueAgg = await Order.aggregate([
       { $match: { ...cafeFilter, paymentStatus: "Completed" } },
-      { $group: { _id: null, total: { $sum: "$totalPrice" } } },
+      { $group: { _id: null, total: { $sum: { $ifNull: ["$totalAmount", "$totalPrice"] } } } },
     ]);
     const completedRevenue = completedRevenueAgg[0]?.total || 0;
 
@@ -171,7 +196,7 @@ router.get("/summary", protect, allowRoles("admin", "super-admin"), async (req, 
             $sum: {
               $cond: [
                 { $eq: ["$paymentStatus", "Completed"] },
-                "$totalPrice",
+                "$totalAmount",
                 0
               ]
             }
@@ -189,7 +214,8 @@ router.get("/summary", protect, allowRoles("admin", "super-admin"), async (req, 
       dailyStatsMap[stat._id] = {
         date: stat._id,
         orders: stat.orders,
-        revenue: stat.revenue
+        revenue: stat.revenue,
+        totalPotentialRevenue: stat.totalPotentialRevenue || 0
       };
     });
 
@@ -203,7 +229,8 @@ router.get("/summary", protect, allowRoles("admin", "super-admin"), async (req, 
       completeDailyStats.push({
         date: dateStr,
         orders: dailyStatsMap[dateStr]?.orders || 0,
-        revenue: dailyStatsMap[dateStr]?.revenue || 0
+        revenue: dailyStatsMap[dateStr]?.revenue || 0,
+        totalPotentialRevenue: dailyStatsMap[dateStr]?.totalPotentialRevenue || 0
       });
     }
 
@@ -228,16 +255,27 @@ router.get("/summary", protect, allowRoles("admin", "super-admin"), async (req, 
             $sum: {
               $cond: [
                 { $eq: ["$paymentStatus", "Completed"] },
-                "$totalPrice",
+                { $ifNull: ["$totalAmount", "$totalPrice"] },
                 0
               ]
             }
-          }
+          },
+          totalPotentialRevenue: { $sum: { $ifNull: ["$totalAmount", "$totalPrice"] } }
         }
       }
     ]);
 
-    const todayData = todayStats[0] || { orders: 0, revenue: 0 };
+    const todayData = todayStats[0] || { orders: 0, revenue: 0, totalPotentialRevenue: 0 };
+    
+    // Ensure totalPotentialRevenue exists
+    if (!todayData.totalPotentialRevenue) {
+      todayData.totalPotentialRevenue = manualTotal;
+    }
+    
+    console.log('📊 Today stats result:', todayData);
+    console.log('📊 Today orders with payment status:', todayOrdersDebug.length);
+    console.log('📊 Raw today stats from aggregation:', todayStats);
+    console.log('📊 Manual total vs aggregation total:', manualTotal, 'vs', todayData.totalPotentialRevenue);
 
     // Basic popular items (7-day period for all users)
     const popularItemsData = await Order.aggregate([
@@ -318,7 +356,7 @@ router.get("/summary", protect, allowRoles("admin", "super-admin"), async (req, 
               }
             },
             orders: { $sum: 1 },
-            revenue: { $sum: "$totalPrice" }
+            revenue: { $sum: "$totalAmount" }
           }
         },
         { $sort: { _id: 1 } }
@@ -403,7 +441,12 @@ router.get("/summary", protect, allowRoles("admin", "super-admin"), async (req, 
           ...tableStatusCounts,
         },
         dailyStats: completeDailyStats,
-        todayStats: todayData,
+        todayStats: {
+          orders: todayData.orders || 0,
+          revenue: todayData.revenue || 0,
+          totalPotentialRevenue: todayData.totalPotentialRevenue || manualTotal,
+          _id: todayData._id
+        },
         planType: isProPlan ? 'pro' : 'basic',
         daysBack: 7,
         // Popular items (different limits for different plans)
@@ -475,8 +518,8 @@ router.get("/advanced", protect, allowRoles("admin", "super-admin"), requireAdva
               }
             },
             orders: { $sum: 1 },
-            revenue: { $sum: "$totalPrice" },
-            avgOrderValue: { $avg: "$totalPrice" }
+            revenue: { $sum: "$totalAmount" },
+            avgOrderValue: { $avg: "$totalAmount" }
           }
         },
         { $sort: { _id: 1 } }
@@ -496,7 +539,7 @@ router.get("/advanced", protect, allowRoles("admin", "super-admin"), requireAdva
               },
               status: "$paymentStatus"
             },
-            revenue: { $sum: "$totalPrice" },
+            revenue: { $sum: "$totalAmount" },
             count: { $sum: 1 }
           }
         },
@@ -526,7 +569,7 @@ router.get("/advanced", protect, allowRoles("admin", "super-admin"), requireAdva
           $group: {
             _id: { $hour: "$createdAt" },
             orders: { $sum: 1 },
-            revenue: { $sum: "$totalPrice" }
+            revenue: { $sum: "$totalAmount" }
           }
         },
         { $sort: { _id: 1 } }
@@ -539,7 +582,7 @@ router.get("/advanced", protect, allowRoles("admin", "super-admin"), requireAdva
           $group: {
             _id: "$paymentDetails.method",
             count: { $sum: 1 },
-            revenue: { $sum: "$totalPrice" }
+            revenue: { $sum: "$totalAmount" }
           }
         }
       ])

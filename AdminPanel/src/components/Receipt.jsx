@@ -1,13 +1,24 @@
 import React from "react";
 
-export default function Receipt({ order, onClose, cafe}) {
+export default function Receipt({ order, onClose, cafe, cafeData}) {
   if (!order) return null;
-
-  const gstPercent = 0.05; // 5% GST
-  const subtotal = order.totalPrice;
-  const gstAmount = subtotal * gstPercent;
-  const totalAmount = subtotal + gstAmount;
-  console.log(order);
+  console.log("Order data:", order);
+  
+  // Use actual GST data from order or fallback to calculation
+  const subtotal = order.subtotal || 0;
+  const totalAmount = order.totalAmount || order.totalPrice || 0;
+  const serviceCharge = order.serviceCharge || 0;
+  
+  // Get CGST and SGST amounts from order GST details
+  const cgstData = order.gstDetails?.ratesApplied?.find(rate => rate.rateName === 'CGST');
+  const sgstData = order.gstDetails?.ratesApplied?.find(rate => rate.rateName === 'SGST');
+  
+  const cgstAmount = cgstData?.amount || 0;
+  const sgstAmount = sgstData?.amount || 0;
+  const cgstRate = cgstData?.percentage || 0;
+  const sgstRate = sgstData?.percentage || 0;
+  
+  console.log("GST breakdown:", { cgstAmount, sgstAmount, cgstRate, sgstRate });
   
   
 
@@ -56,12 +67,30 @@ export default function Receipt({ order, onClose, cafe}) {
                 </td>
                 <td className="price-col">₹{subtotal.toFixed(2)}</td>
               </tr>
-              <tr>
-                <td colSpan={2} className="gst-label">
-                  GST (5%)
-                </td>
-                <td className="price-col">₹{gstAmount.toFixed(2)}</td>
-              </tr>
+              {cgstAmount > 0 && (
+                <tr>
+                  <td colSpan={2} className="gst-label">
+                    CGST ({cgstRate}%)
+                  </td>
+                  <td className="price-col">₹{cgstAmount.toFixed(2)}</td>
+                </tr>
+              )}
+              {sgstAmount > 0 && (
+                <tr>
+                  <td colSpan={2} className="gst-label">
+                    SGST ({sgstRate}%)
+                  </td>
+                  <td className="price-col">₹{sgstAmount.toFixed(2)}</td>
+                </tr>
+              )}
+              {serviceCharge > 0 && (
+                <tr>
+                  <td colSpan={2} className="gst-label">
+                    Service Charge
+                  </td>
+                  <td className="price-col">₹{serviceCharge.toFixed(2)}</td>
+                </tr>
+              )}
               <tr>
                 <td colSpan={2} className="total-label">
                   Total

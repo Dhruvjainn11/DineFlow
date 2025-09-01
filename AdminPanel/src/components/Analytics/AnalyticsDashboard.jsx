@@ -146,6 +146,15 @@ const AnalyticsDashboard = () => {
     }
   };
 
+  const revenueForPeriod = useMemo(() => {
+    if (!overview?.dailyStats) {
+      // Fallback for today's view if dailyStats is not available
+      return overview?.todayStats?.totalPotentialRevenue || overview?.todayStats?.revenue || 0;
+    }
+    // Sum revenue from daily stats for the selected period
+    return overview.dailyStats.reduce((acc, day) => acc + day.revenue, 0);
+  }, [overview]);
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -297,7 +306,7 @@ const AnalyticsDashboard = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <MetricsCard
             title="Total Revenue"
-            value={formatCurrency(overview.payments?.totalRevenue || 0)}
+            value={formatCurrency(revenueForPeriod)}
             change={overview.payments?.revenueChange || 0}
             trend={(overview.payments?.revenueChange || 0) >= 0 ? 'up' : 'down'}
             icon="💰"
@@ -313,7 +322,7 @@ const AnalyticsDashboard = () => {
           />
           <MetricsCard
             title="Average Order Value"
-            value={formatCurrency((overview.payments?.totalRevenue || 0) / (overview.totalOrders || 1))}
+            value={formatCurrency(revenueForPeriod / (overview.totalOrders || 1))}
             change={overview.aovChange || 0}
             trend={(overview.aovChange || 0) >= 0 ? 'up' : 'down'}
             icon="💵"

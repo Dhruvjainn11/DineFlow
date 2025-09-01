@@ -142,8 +142,10 @@ export default function PaymentPage() {
       </div>
     );
 
-  // Calculate total amount for all unpaid orders
+  // Calculate totals for all unpaid orders
+  const subtotalAmount = orders.reduce((acc, order) => acc + (order.subtotal || order.totalAmount || order.totalPrice || 0), 0);
   const totalAmount = orders.reduce((acc, order) => acc + (order.totalAmount || order.totalPrice || 0), 0);
+  const totalTaxes = totalAmount - subtotalAmount;
 
   return (
     <div className="min-h-screen bg-theme-secondary pb-20">
@@ -175,7 +177,9 @@ export default function PaymentPage() {
                 </p>
               </div>
               <div className="text-right flex-shrink-0 ml-2">
-                <p className="text-base font-bold text-theme-primary">₹{(order.totalAmount || order.totalPrice || 0).toFixed(2)}</p>
+                <p className="text-sm text-gray-600">₹{(order.subtotal || order.totalAmount || order.totalPrice || 0).toFixed(2)}</p>
+               
+                {/* <p className="text-base font-bold text-theme-primary">₹{(order.totalAmount || order.totalPrice || 0).toFixed(2)}</p> */}
                 <p className={`text-xs font-medium ${
                   order.paymentStatus === "Requested"
                     ? "text-blue-600"
@@ -229,9 +233,24 @@ export default function PaymentPage() {
         {/* Fixed Bottom Payment Section */}
         <div className="mt-6 mb-4">
           <div className="bg-white rounded-xl shadow-lg border border-gray-100 p-4">
-            <div className="mb-3 text-center">
-              <h3 className="text-base font-bold text-gray-800 mb-1">Total Amount</h3>
-              <p className="text-2xl font-bold text-theme-primary">₹{totalAmount.toFixed(2)}</p>
+            <div className="mb-3">
+              <div className="space-y-2 mb-3">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-gray-600">Subtotal:</span>
+                  <span className="text-sm font-medium">₹{subtotalAmount.toFixed(2)}</span>
+                </div>
+                {totalTaxes > 0 && (
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-gray-600">Taxes:</span>
+                    <span className="text-sm font-medium">₹{totalTaxes.toFixed(2)}</span>
+                  </div>
+                )}
+                <hr className="border-gray-200" />
+                <div className="flex justify-between items-center">
+                  <span className="text-base font-bold text-gray-800">Total Amount:</span>
+                  <span className="text-2xl font-bold text-theme-primary">₹{totalAmount.toFixed(2)}</span>
+                </div>
+              </div>
             </div>
             
             {allPaidOrRequested ? (
