@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import RoleBasedLayout from "../layouts/RoleBasedLayout";
 import api from "../utils/api";
+import AnalyticsDashboard from "../components/Analytics/AnalyticsDashboard";
 import {
   PieChart,
   Pie,
@@ -621,6 +622,9 @@ export default function Analytics() {
           </div>
           </div>
         )}
+        
+
+        
 
 
       </div>
