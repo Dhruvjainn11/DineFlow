@@ -28,6 +28,8 @@ export default function AdminPaymentManager() {
           totalGstAmount: 0,
           serviceCharge: 0,
           totalPrice: 0,
+          roundOffAmount: 0,
+          finalAmount: 0,
           paymentStatus: "Pending",
           paymentRequestedAt: null,
           gstDetails: { ratesApplied: [] }
@@ -65,7 +67,25 @@ export default function AdminPaymentManager() {
       }
     });
 
-    return Object.values(grouped);
+    // Calculate round-off for each table's total
+    return Object.values(grouped).map(tableOrder => {
+      const decimal = tableOrder.totalPrice % 1;
+      let roundOffAmount, finalAmount;
+      
+      if (decimal >= 0.5) {
+        roundOffAmount = parseFloat((1 - decimal).toFixed(2));
+        finalAmount = Math.ceil(tableOrder.totalPrice);
+      } else {
+        roundOffAmount = parseFloat((-decimal).toFixed(2));
+        finalAmount = Math.floor(tableOrder.totalPrice);
+      }
+      
+      return {
+        ...tableOrder,
+        roundOffAmount,
+        finalAmount
+      };
+    });
   };
 
   const fetchAllRelevantOrders = async () => {
@@ -192,6 +212,8 @@ export default function AdminPaymentManager() {
         serviceCharge: tableOrder.serviceCharge,
         totalPrice: tableOrder.totalPrice,
         totalAmount: tableOrder.totalPrice,
+        roundOffAmount: tableOrder.roundOffAmount,
+        finalAmount: tableOrder.finalAmount,
         createdAt: tableOrder.paymentRequestedAt || new Date().toISOString(),
       };
 
@@ -290,8 +312,13 @@ export default function AdminPaymentManager() {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-lg font-semibold text-gray-900">
-                          ₹{tableOrder.totalPrice.toFixed(2)}
+                          ₹{(tableOrder.finalAmount || tableOrder.totalPrice).toFixed(2)}
                         </div>
+                        {tableOrder.roundOffAmount !== 0 && (
+                          <div className="text-xs text-gray-500">
+                            (₹{tableOrder.totalPrice.toFixed(2)} {tableOrder.roundOffAmount > 0 ? '+' : ''}₹{tableOrder.roundOffAmount.toFixed(2)})
+                          </div>
+                        )}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span

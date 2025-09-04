@@ -58,6 +58,17 @@ const orderSchema = new mongoose.Schema(
       type: Number,
       required: true,
     },
+    // Round-off logic fields
+    roundOffAmount: {
+      type: Number,
+      default: 0,
+      min: -0.5,
+      max: 0.5
+    },
+    finalAmount: {
+      type: Number,
+      required: true,
+    },
     status: {
       type: String,
       enum: ["Pending", "In Progress", "Ready", "Completed"],
@@ -174,6 +185,17 @@ orderSchema.index({ assignedTo: 1, status: 1 });
 orderSchema.methods.calculateTotal = function() {
   const totalGst = this.gstDetails ? this.gstDetails.totalGstAmount : 0;
   this.totalAmount = this.subtotal + totalGst + this.serviceCharge - this.discount;
+  
+  // Calculate round-off
+  const decimal = this.totalAmount % 1;
+  if (decimal >= 0.5) {
+    this.roundOffAmount = 1 - decimal;
+    this.finalAmount = Math.ceil(this.totalAmount);
+  } else {
+    this.roundOffAmount = -decimal;
+    this.finalAmount = Math.floor(this.totalAmount);
+  }
+  
   return this.totalAmount;
 };
 

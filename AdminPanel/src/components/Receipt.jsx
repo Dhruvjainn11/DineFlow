@@ -8,6 +8,8 @@ export default function Receipt({ order, onClose, cafe, cafeData}) {
   const subtotal = order.subtotal || 0;
   const totalAmount = order.totalAmount || order.totalPrice || 0;
   const serviceCharge = order.serviceCharge || 0;
+  const roundOffAmount = order.roundOffAmount || 0;
+  const finalAmount = order.finalAmount || totalAmount;
   
   // Get CGST and SGST amounts from order GST details
   const cgstData = order.gstDetails?.ratesApplied?.find(rate => rate.rateName === 'CGST');
@@ -92,10 +94,24 @@ export default function Receipt({ order, onClose, cafe, cafeData}) {
                 </tr>
               )}
               <tr>
-                <td colSpan={2} className="total-label">
+                <td colSpan={2} className="subtotal-label">
                   Total
                 </td>
-                <td className="total-price">₹{totalAmount.toFixed(2)}</td>
+                <td className="price-col">₹{totalAmount.toFixed(2)}</td>
+              </tr>
+              {roundOffAmount !== 0 && (
+                <tr>
+                  <td colSpan={2} className="gst-label">
+                    Round Off
+                  </td>
+                  <td className="price-col">{roundOffAmount > 0 ? '+' : ''}₹{roundOffAmount.toFixed(2)}</td>
+                </tr>
+              )}
+              <tr>
+                <td colSpan={2} className="total-label">
+                  Final Amount
+                </td>
+                <td className="total-price">₹{finalAmount.toFixed(2)}</td>
               </tr>
             </tfoot>
           </table>

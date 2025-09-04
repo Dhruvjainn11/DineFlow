@@ -98,6 +98,8 @@ router.post("/", validateOrderCreation ,async (req, res) => {
       serviceCharge: orderCalculation.serviceCharge,
       discount: orderCalculation.discount,
       totalAmount: orderCalculation.totalAmount,
+      roundOffAmount: orderCalculation.roundOffAmount,
+      finalAmount: orderCalculation.finalAmount,
       status: "Pending",
       paymentStatus: "Pending",
     });

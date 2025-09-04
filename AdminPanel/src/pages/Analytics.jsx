@@ -118,14 +118,14 @@ export default function Analytics() {
   const dailyChartData = last7Days.map(day => ({
     date: new Date(day.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
     orders: day.orders,
-    revenue: day.revenue,
-    revenueFormatted: `₹${day.revenue.toLocaleString()}`
+    revenue: Math.round(day.revenue),
+    revenueFormatted: `₹${Math.round(day.revenue).toLocaleString()}`
   }));
 
   // Calculate 7-day totals from last 7 days only
   const periodStats = last7Days.reduce((acc, day) => ({
     orders: acc.orders + day.orders,
-    revenue: acc.revenue + day.revenue
+    revenue: acc.revenue + Math.round(day.revenue)
   }), { orders: 0, revenue: 0 });
 
   return (
@@ -168,10 +168,10 @@ export default function Analytics() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-500 uppercase tracking-wider">Today's Revenue</p>
-                <p className="mt-2 text-3xl font-semibold text-emerald-600">₹{(todayStats?.totalPotentialRevenue || todayStats?.revenue || 0).toLocaleString()}</p>
+                <p className="mt-2 text-3xl font-semibold text-emerald-600">₹{Math.round(todayStats?.totalPotentialRevenue || todayStats?.revenue || 0).toLocaleString()}</p>
                 <p className="mt-1 text-xs text-gray-400">
                   {todayStats?.revenue !== todayStats?.totalPotentialRevenue ? 
-                    `₹${(todayStats?.revenue || 0).toLocaleString()} completed` : 
+                    `₹${Math.round(todayStats?.revenue || 0).toLocaleString()} completed` : 
                     'Revenue generated today'
                   }
                 </p>
@@ -201,7 +201,7 @@ export default function Analytics() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-500 uppercase tracking-wider">7-Day Revenue</p>
-                <p className="mt-2 text-3xl font-semibold text-amber-600">₹{periodStats.revenue.toLocaleString()}</p>
+                <p className="mt-2 text-3xl font-semibold text-amber-600">₹{Math.round(periodStats.revenue).toLocaleString()}</p>
                 <p className="mt-1 text-xs text-gray-400">Last 7 days total</p>
               </div>
               <div className="p-3 bg-amber-50 rounded-lg shadow-inner">
@@ -232,7 +232,7 @@ export default function Analytics() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-500 uppercase tracking-wider">Total Revenue</p>
-                <p className="mt-2 text-3xl font-semibold text-emerald-600">₹{payments.totalRevenue.toLocaleString()}</p>
+                <p className="mt-2 text-3xl font-semibold text-emerald-600">₹{Math.round(payments.totalRevenue).toLocaleString()}</p>
                 <p className="mt-1 text-xs text-gray-400">Total earnings</p>
               </div>
               <div className="p-3 bg-emerald-50 rounded-lg shadow-inner">

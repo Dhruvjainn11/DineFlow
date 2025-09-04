@@ -78,12 +78,26 @@ export const calculateOrderTotal = (items, cafeSettings, discount = 0) => {
 
   // Calculate final total
   const totalAmount = subtotal + gstDetails.totalGstAmount + serviceCharge - discount;
+  
+  // Calculate round-off
+  const decimal = totalAmount % 1;
+  let roundOffAmount, finalAmount;
+  
+  if (decimal >= 0.5) {
+    roundOffAmount = parseFloat((1 - decimal).toFixed(2));
+    finalAmount = Math.ceil(totalAmount);
+  } else {
+    roundOffAmount = parseFloat((-decimal).toFixed(2));
+    finalAmount = Math.floor(totalAmount);
+  }
 
   return {
     subtotal: parseFloat(subtotal.toFixed(2)),
     gstDetails,
     serviceCharge,
     discount,
-    totalAmount: parseFloat(totalAmount.toFixed(2))
+    totalAmount: parseFloat(totalAmount.toFixed(2)),
+    roundOffAmount,
+    finalAmount
   };
 };

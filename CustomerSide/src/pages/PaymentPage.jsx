@@ -142,9 +142,24 @@ export default function PaymentPage() {
       </div>
     );
 
-  // Calculate totals for all unpaid orders
+  // Calculate totals for all unpaid orders with round-off logic
   const subtotalAmount = orders.reduce((acc, order) => acc + (order.subtotal || order.totalAmount || order.totalPrice || 0), 0);
   const totalAmount = orders.reduce((acc, order) => acc + (order.totalAmount || order.totalPrice || 0), 0);
+  
+  // Calculate round-off for the total amount
+  const decimal = totalAmount % 1;
+  let calculatedRoundOff, calculatedFinalAmount;
+  
+  if (decimal >= 0.5) {
+    calculatedRoundOff = parseFloat((1 - decimal).toFixed(2));
+    calculatedFinalAmount = Math.ceil(totalAmount);
+  } else {
+    calculatedRoundOff = parseFloat((-decimal).toFixed(2));
+    calculatedFinalAmount = Math.floor(totalAmount);
+  }
+  
+  const finalAmount = calculatedFinalAmount;
+  const roundOffAmount = calculatedRoundOff;
   const totalTaxes = totalAmount - subtotalAmount;
 
   return (
@@ -245,10 +260,20 @@ export default function PaymentPage() {
                     <span className="text-sm font-medium">₹{totalTaxes.toFixed(2)}</span>
                   </div>
                 )}
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-gray-600">Total Amount:</span>
+                  <span className="text-sm font-medium">₹{totalAmount.toFixed(2)}</span>
+                </div>
+                {roundOffAmount !== 0 && (
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-gray-600">Round Off:</span>
+                    <span className="text-sm font-medium">{roundOffAmount > 0 ? '+' : ''}₹{roundOffAmount.toFixed(2)}</span>
+                  </div>
+                )}
                 <hr className="border-gray-200" />
                 <div className="flex justify-between items-center">
-                  <span className="text-base font-bold text-gray-800">Total Amount:</span>
-                  <span className="text-2xl font-bold text-theme-primary">₹{totalAmount.toFixed(2)}</span>
+                  <span className="text-base font-bold text-gray-800">Final Amount:</span>
+                  <span className="text-2xl font-bold text-theme-primary">₹{finalAmount.toFixed(2)}</span>
                 </div>
               </div>
             </div>

@@ -68,8 +68,8 @@ router.post('/create-order', validatePaymentCreation, async (req, res) => {
       });
     }
 
-    // Calculate total amount
-    const totalAmount = orders.reduce((sum, order) => sum + order.totalPrice, 0);
+    // Calculate total amount using finalAmount for round-off
+    const totalAmount = orders.reduce((sum, order) => sum + (order.finalAmount || order.totalAmount || order.totalPrice), 0);
 
     // Create payment order based on gateway
     let paymentOrder;
@@ -544,7 +544,7 @@ router.post('/webhook/success', async (req, res) => {
       message: 'Payment completed successfully',
       data: {
         ordersUpdated: updatedOrders.modifiedCount,
-        totalAmount: completedOrders.reduce((sum, order) => sum + order.totalPrice, 0)
+        totalAmount: completedOrders.reduce((sum, order) => sum + (order.finalAmount || order.totalAmount || order.totalPrice), 0)
       }
     });
 
