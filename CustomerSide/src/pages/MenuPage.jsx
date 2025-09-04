@@ -245,7 +245,8 @@ export default function MenuPage() {
       <div className={`sticky top-0 z-20 bg-theme-secondary  shadow-sm border-b border-theme-primary-100 `}>
         <div className="p-4">
           <h1 className="text-2xl font-bold text-center text-theme-primary mb-4">
-            {cafeInfo?.features?.customBranding && cafeInfo?.name ? `${cafeInfo.name} Menu` : 'The Annsh Menu'}
+            {/* {cafeInfo?.features?.customBranding && cafeInfo?.name ? `${cafeInfo.name} Menu` : 'The Annsh Menu'} */}
+            {'The Annsh Menu'}
           </h1>
           <div className="relative">
             <FiSearch className="absolute left-3 top-3 text-theme-primary" />
@@ -322,11 +323,11 @@ export default function MenuPage() {
                         <img
                           src={item.imageUrl}
                           alt={item.name}
-                          className="absolute top-0 left-1/2 transform -translate-x-1/2 w-36 h-36 object-cover rounded-full border-4 border-white shadow-lg"
+                          className="absolute top-5 left-1/2 transform -translate-x-1/2 w-40 h-40 object-cover rounded-full border-4 border-white shadow-lg"
                         />
                         {/* Jain Indicator */}
                         {item.jain && (
-                          <div className="absolute top-2 right-2 bg-green-500 text-white text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center shadow-lg">
+                          <div className="absolute top-2 right-2 bg-green-500 text-white text-base font-bold rounded-full w-8 h-8 flex items-center justify-center shadow-lg">
                             J
                           </div>
                         )}
