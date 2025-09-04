@@ -86,7 +86,7 @@ export default function MenuPage() {
         console.error("Failed to fetch data", err);
         setLoading(false);
       }
-    };
+    };   
 
     fetchData();
   }, [tableId, dispatch]);
