@@ -319,11 +319,11 @@ export default function MenuPage() {
                       className="bg-white rounded-xl shadow-sm overflow-hidden transition-transform hover:scale-[1.02] border border-theme-primary-100 hover:shadow-md cursor-pointer"
                       onClick={() => handleItemClick(item)}
                     >
-                      <div className="relative pt-[100%]">
+                      <div className="relative pt-[100%]   ">
                         <img
                           src={item.imageUrl}
                           alt={item.name}
-                          className="absolute top-5 left-1/2 transform -translate-x-1/2 w-40 h-40 object-cover rounded-full border-4 border-white shadow-lg"
+                          className=" absolute sm:top-2 left-1/2 transform -translate-x-1/2 w-40 h-40 object-cover rounded-full border-4 border-white shadow-lg"
                         />
                         {/* Jain Indicator */}
                         {item.jain && (
