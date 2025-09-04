@@ -323,11 +323,11 @@ export default function MenuPage() {
                         <img
                           src={item.imageUrl}
                           alt={item.name}
-                          className=" absolute sm:top-2 left-1/2 transform -translate-x-1/2 w-40 h-40 object-cover rounded-full border-4 border-white shadow-lg"
+                          className=" absolute top-2 left-1/2 transform -translate-x-1/2 w-32 h-32 object-cover rounded-full border-4 border-white shadow-lg"
                         />
                         {/* Jain Indicator */}
                         {item.jain && (
-                          <div className="absolute top-2 right-2 bg-green-500 text-white text-base font-bold rounded-full w-8 h-8 flex items-center justify-center shadow-lg">
+                          <div className="absolute top-2 right-2 bg-green-500 text-white text-base font-bold rounded-full w-6 h-6 flex items-center justify-center shadow-lg">
                             J
                           </div>
                         )}
