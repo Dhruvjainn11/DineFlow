@@ -125,6 +125,18 @@ const subscriptionSchema = new mongoose.Schema({
       enum: ['pending', 'completed', 'failed', 'refunded'],
       default: 'pending'
     }
+  }],
+  extensionHistory: [{
+    extendedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    extensionDays: { type: Number, required: true },
+    reason: { 
+      type: String, 
+      enum: ['Payment Received', 'Grace Period', 'Support', 'Other'],
+      required: true 
+    },
+    previousEndDate: { type: Date, required: true },
+    newEndDate: { type: Date, required: true },
+    extendedAt: { type: Date, default: Date.now }
   }]
 }, { _id: false });
 

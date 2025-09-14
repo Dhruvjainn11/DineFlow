@@ -19,6 +19,7 @@ import {
 } from '@heroicons/react/24/outline';
 import CreateCafeModal from '../components/CreateCafeModal';
 import EditCafeModal from '../components/EditCafeModal';
+import ExtendSubscriptionModal from '../components/ExtendSubscriptionModal';
 import SuperAdminLayout from '../layouts/SuperAdminLayout';
 
 const SuperAdminCafeManagement = () => {
@@ -27,6 +28,7 @@ const SuperAdminCafeManagement = () => {
   const [loading, setLoading] = useState(true);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
+  const [showExtendModal, setShowExtendModal] = useState(false);
   const [selectedCafe, setSelectedCafe] = useState(null);
   const [statistics, setStatistics] = useState(null);
   const [filters, setFilters] = useState({
@@ -92,6 +94,11 @@ const SuperAdminCafeManagement = () => {
   const handleEditCafe = (cafe) => {
     setSelectedCafe(cafe);
     setShowEditModal(true);
+  };
+
+  const handleExtendSubscription = (cafe) => {
+    setSelectedCafe(cafe);
+    setShowExtendModal(true);
   };
 
   const handleDeleteCafe = async (cafe) => {
@@ -454,6 +461,17 @@ const SuperAdminCafeManagement = () => {
                             <PencilIcon className="h-4 w-4" />
                           </button>
                           
+                          {/* Extend Subscription Button */}
+                          <button
+                            onClick={() => handleExtendSubscription(cafe)}
+                            className="text-green-600 hover:text-green-900"
+                            title="Extend subscription"
+                          >
+                            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                          </button>
+                          
                           {/* Reactivate or Deactivate Button */}
                           {cafe.status === 'inactive' ? (
                             <button
@@ -575,6 +593,22 @@ const SuperAdminCafeManagement = () => {
           }}
           cafe={selectedCafe}
           onCafeUpdated={() => {
+            fetchCafes();
+            fetchStatistics();
+          }}
+        />
+      )}
+      
+      {/* Extend Subscription Modal */}
+      {showExtendModal && selectedCafe && (
+        <ExtendSubscriptionModal
+          isOpen={showExtendModal}
+          onClose={() => {
+            setShowExtendModal(false);
+            setSelectedCafe(null);
+          }}
+          cafe={selectedCafe}
+          onExtensionComplete={() => {
             fetchCafes();
             fetchStatistics();
           }}

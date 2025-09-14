@@ -183,4 +183,87 @@ router.put('/cafes/:cafeId/subscription', protect, allowRoles('super-admin'), as
   }
 });
 
+/**
+ * @desc    Extend cafe subscription manually
+ * @route   PUT /api/super-admin/cafes/:cafeId/extend-subscription
+ * @access  Private (Super Admin only)
+ */
+router.put('/cafes/:cafeId/extend-subscription', protect, allowRoles('super-admin'), async (req, res) => {
+  try {
+    const { cafeId } = req.params;
+    const { extensionDays, reason } = req.body;
+
+    // Validation
+    if (!extensionDays || extensionDays < 1 || extensionDays > 365) {
+      return res.status(400).json({
+        success: false,
+        message: 'Extension days must be between 1 and 365'
+      });
+    }
+
+    if (!reason) {
+      return res.status(400).json({
+        success: false,
+        message: 'Extension reason is required'
+      });
+    }
+
+    const cafe = await Cafe.findById(cafeId);
+    if (!cafe) {
+      return res.status(404).json({
+        success: false,
+        message: 'Cafe not found'
+      });
+    }
+
+    if (!cafe.subscription) {
+      return res.status(400).json({
+        success: false,
+        message: 'Cafe has no subscription to extend'
+      });
+    }
+
+    // Calculate new end date
+    const currentEndDate = cafe.subscription.endDate || new Date();
+    const extendFromDate = currentEndDate > new Date() ? currentEndDate : new Date();
+    const newEndDate = new Date(extendFromDate.getTime() + (extensionDays * 24 * 60 * 60 * 1000));
+
+    // Add to extension history
+    cafe.subscription.extensionHistory.push({
+      extendedBy: req.user._id,
+      extensionDays,
+      reason,
+      previousEndDate: cafe.subscription.endDate,
+      newEndDate,
+      extendedAt: new Date()
+    });
+
+    // Update subscription
+    cafe.subscription.endDate = newEndDate;
+    cafe.subscription.status = 'active';
+    cafe.status = 'active';
+
+    await cafe.save();
+
+    res.json({
+      success: true,
+      message: `Subscription extended by ${extensionDays} days`,
+      data: {
+        cafeId: cafe._id,
+        name: cafe.name,
+        extensionDays,
+        newEndDate,
+        subscription: cafe.subscription
+      }
+    });
+  } catch (error) {
+    console.error('Subscription extension error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to extend subscription',
+      error: error.message
+    });
+  }
+});
+
 export default router;
