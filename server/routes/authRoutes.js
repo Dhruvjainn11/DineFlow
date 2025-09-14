@@ -50,8 +50,8 @@ router.post('/login', validateLogin, async (req, res) => {
       });
     }
 
-    // Check subscription status for cafe users
-    if (user.cafeId && user.cafeId.isSubscriptionExpired()) {
+    // Check subscription status for cafe users (skip for super admin)
+    if (user.cafeId && user.role !== 'super-admin' && user.cafeId.isSubscriptionExpired()) {
       // Auto-update status to inactive if expired
       if (user.cafeId.subscription.status !== 'inactive') {
         user.cafeId.subscription.status = 'inactive';

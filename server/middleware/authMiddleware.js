@@ -35,7 +35,7 @@ export const protect = async (req, res, next) => {
       }
 
       // For non-super admin users, check if cafe is active and subscription is valid
-      if (req.user.cafeId) {
+      if (req.user.cafeId && req.user.role !== 'super-admin') {
         if (req.user.cafeId.status !== 'active') {
           return res.status(401).json({ 
             success: false,
