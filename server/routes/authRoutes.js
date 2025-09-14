@@ -51,25 +51,21 @@ router.post('/login', validateLogin, async (req, res) => {
     }
 
     // Check subscription status for cafe users
-    if (user.cafeId && user.cafeId.subscription) {
-      const subscription = user.cafeId.subscription;
-      const now = new Date();
-      
-      if (subscription.status === 'trial' && subscription.trialEndDate < now) {
-        return res.status(403).json({ 
-          success: false, 
-          message: 'Trial period has expired. Please upgrade your subscription.',
-          code: 'TRIAL_EXPIRED'
-        });
+    if (user.cafeId && user.cafeId.isSubscriptionExpired()) {
+      // Auto-update status to inactive if expired
+      if (user.cafeId.subscription.status !== 'inactive') {
+        user.cafeId.subscription.status = 'inactive';
+        user.cafeId.status = 'inactive';
+        await user.cafeId.save();
       }
       
-      if (subscription.status === 'active' && subscription.endDate < now) {
-        return res.status(403).json({ 
-          success: false, 
-          message: 'Subscription has expired. Please renew your subscription.',
-          code: 'SUBSCRIPTION_EXPIRED'
-        });
-      }
+      return res.status(401).json({ 
+        success: false, 
+        message: 'Subscription expired. Please renew your plan.',
+        code: 'SUBSCRIPTION_EXPIRED',
+        subscriptionEndDate: user.cafeId.subscription.endDate,
+        trialEndDate: user.cafeId.subscription.trialEndDate
+      });
     }
 
     // Create JWT token

@@ -424,7 +424,17 @@ const SuperAdminCafeManagement = () => {
                         {getPlanBadge(cafe.subscription?.planType)}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        {getStatusBadge(cafe.status)}
+                        <div className="space-y-1">
+                          {getStatusBadge(cafe.status)}
+                          {cafe.subscription?.status === 'inactive' && (
+                            <div className="text-xs text-red-600 font-medium">Subscription Expired</div>
+                          )}
+                          {cafe.subscription?.endDate && (
+                            <div className="text-xs text-gray-500">
+                              Expires: {new Date(cafe.subscription.endDate).toLocaleDateString()}
+                            </div>
+                          )}
+                        </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                         {new Date(cafe.createdAt).toLocaleDateString('en-US', {

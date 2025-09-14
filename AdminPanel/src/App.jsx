@@ -17,6 +17,7 @@ import SuperAdminSystemSettings from "./pages/SuperAdminSystemSettings";
 import ProtectedRoute from "./components/ProtectedRoute";
 import PaymentSettings from "./pages/PaymentSettings";
 import Settings from "./pages/Settings";
+import SubscriptionExpired from "./pages/SubscriptionExpired";
 import { AuthProvider } from "./context/AuthContext";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -35,6 +36,7 @@ function AppContent() {
       <Routes>
         <Route path="/" element={<Login />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/subscription-expired" element={<SubscriptionExpired />} />
 
         <Route element={<PrivateRoute />}>
   {/* Cafe Admin Routes */}

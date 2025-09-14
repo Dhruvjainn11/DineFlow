@@ -42,6 +42,17 @@ api.interceptors.response.use(
       
       // Handle specific error codes
       if (error.response.status === 401) {
+        const errorCode = error.response.data?.code;
+        
+        if (errorCode === 'SUBSCRIPTION_EXPIRED') {
+          // Handle subscription expiry
+          localStorage.removeItem('token');
+          localStorage.removeItem('user');
+          localStorage.removeItem('cafeId');
+          window.location.href = '/subscription-expired';
+          return Promise.reject(error);
+        }
+        
         console.error('Unauthorized - token may be invalid or expired');
         // Don't auto-logout here as it should be handled in AuthContext
       } else if (error.response.status === 403) {

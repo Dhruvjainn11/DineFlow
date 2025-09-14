@@ -1,6 +1,7 @@
 // server/middleware/authMiddleware.js
 import jwt from 'jsonwebtoken';
 import User from '../models/User.js';
+import Cafe from '../models/Cafe.js';
 
 export const protect = async (req, res, next) => {
   let token;
@@ -18,7 +19,10 @@ export const protect = async (req, res, next) => {
 
       // Attach user to request with cafe details
       req.user = await User.findById(decoded.id)
-        .populate('cafeId', 'name subdomain features subscription theme settings status')
+        .populate({
+          path: 'cafeId',
+          select: 'name subdomain features subscription theme settings status'
+        })
         .select('-password');
 
       if (!req.user) {
@@ -30,9 +34,32 @@ export const protect = async (req, res, next) => {
         return res.status(401).json({ message: 'Account deactivated' });
       }
 
-      // For non-super admin users, check if cafe is active
-      if (req.user.cafeId && req.user.cafeId.status !== 'active') {
-        return res.status(401).json({ message: 'Cafe account suspended' });
+      // For non-super admin users, check if cafe is active and subscription is valid
+      if (req.user.cafeId) {
+        if (req.user.cafeId.status !== 'active') {
+          return res.status(401).json({ 
+            success: false,
+            message: 'Cafe account suspended',
+            code: 'CAFE_SUSPENDED'
+          });
+        }
+        
+        // Check subscription expiry
+        const cafe = await Cafe.findById(req.user.cafeId._id || req.user.cafeId);
+        if (cafe && cafe.isSubscriptionExpired()) {
+          // Auto-update status to inactive if expired
+          if (cafe.subscription.status !== 'inactive') {
+            cafe.subscription.status = 'inactive';
+            cafe.status = 'inactive';
+            await cafe.save();
+          }
+          
+          return res.status(401).json({ 
+            success: false,
+            message: 'Subscription expired. Please renew your plan.',
+            code: 'SUBSCRIPTION_EXPIRED'
+          });
+        }
       }
 
       // Update last login

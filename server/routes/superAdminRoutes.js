@@ -2,6 +2,7 @@ import express from "express";
 import { protect, allowRoles } from "../middleware/authMiddleware.js";
 import { requireAdvancedAnalytics } from '../middleware/featureMiddleware.js';
 import { validateQueryPagination, handleValidationErrors } from '../middleware/validationMiddleware.js';
+import { checkExpiredSubscriptions } from '../jobs/subscriptionCron.js';
 import Order from "../models/Order.js";
 import Table from "../models/Table.js";
 import Cafe from "../models/Cafe.js";
@@ -106,5 +107,80 @@ res.json({
 });
 
 
+
+/**
+ * @desc    Manually check and update expired subscriptions
+ * @route   POST /api/super-admin/check-expired-subscriptions
+ * @access  Private (Super Admin only)
+ */
+router.post('/check-expired-subscriptions', protect, allowRoles('super-admin'), async (req, res) => {
+  try {
+    const result = await checkExpiredSubscriptions();
+    res.json({
+      success: true,
+      message: `Checked subscriptions. ${result.expiredCount} expired subscriptions updated.`,
+      data: result
+    });
+  } catch (error) {
+    console.error('Manual subscription check error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to check expired subscriptions',
+      error: error.message
+    });
+  }
+});
+
+/**
+ * @desc    Update cafe subscription status
+ * @route   PUT /api/super-admin/cafes/:cafeId/subscription
+ * @access  Private (Super Admin only)
+ */
+router.put('/cafes/:cafeId/subscription', protect, allowRoles('super-admin'), async (req, res) => {
+  try {
+    const { cafeId } = req.params;
+    const { status, planType, endDate } = req.body;
+
+    const cafe = await Cafe.findById(cafeId);
+    if (!cafe) {
+      return res.status(404).json({
+        success: false,
+        message: 'Cafe not found'
+      });
+    }
+
+    // Update subscription
+    if (status) cafe.subscription.status = status;
+    if (planType) cafe.subscription.planType = planType;
+    if (endDate) cafe.subscription.endDate = new Date(endDate);
+    
+    // Update cafe status based on subscription
+    if (status === 'active') {
+      cafe.status = 'active';
+    } else if (status === 'inactive') {
+      cafe.status = 'inactive';
+    }
+
+    await cafe.save();
+
+    res.json({
+      success: true,
+      message: 'Subscription updated successfully',
+      data: {
+        cafeId: cafe._id,
+        name: cafe.name,
+        subscription: cafe.subscription,
+        status: cafe.status
+      }
+    });
+  } catch (error) {
+    console.error('Subscription update error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to update subscription',
+      error: error.message
+    });
+  }
+});
 
 export default router;

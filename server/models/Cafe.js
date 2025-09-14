@@ -291,8 +291,21 @@ cafeSchema.methods.isSubscriptionActive = function() {
   
   const now = new Date();
   return (
-    this.subscription.status === 'active' ||
-    (this.subscription.status === 'trial' && this.subscription.trialEndDate > now)
+    this.subscription.status === 'active' && this.subscription.endDate > now
+  ) || (
+    this.subscription.status === 'trial' && this.subscription.trialEndDate > now
+  );
+};
+
+// Method to check if subscription is expired
+cafeSchema.methods.isSubscriptionExpired = function() {
+  if (!this.subscription) return true;
+  
+  const now = new Date();
+  return (
+    this.subscription.status === 'inactive' ||
+    (this.subscription.status === 'active' && this.subscription.endDate <= now) ||
+    (this.subscription.status === 'trial' && this.subscription.trialEndDate <= now)
   );
 };
 

@@ -18,6 +18,7 @@ import themeRoutes from './routes/themeRoutes.js';
 
 import publicRoutes from './routes/publicRoutes.js';
 import healthRoutes from './routes/healthRoutes.js';
+import { startSubscriptionCron } from './jobs/subscriptionCron.js';
 
 dotenv.config();
 
@@ -152,4 +153,7 @@ app.use((err, req, res, next) => {
 server.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
   console.log(`WebSocket server ready for connections`);
+  
+  // Start subscription expiry cron job
+  startSubscriptionCron();
 });

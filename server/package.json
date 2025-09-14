@@ -13,6 +13,7 @@
     "mongoose": "^8.15.1",
     "multer": "^2.0.2",
     "multer-storage-cloudinary": "^4.0.0",
+    "node-cron": "^4.2.1",
     "node-fetch": "^3.3.2",
     "qrcode": "^1.5.4",
     "razorpay": "^2.9.6",
@@ -21,7 +22,6 @@
   },
   "type": "module",
   "scripts": {
-  "start": "node server.js"
-}
-
+    "start": "node server.js"
+  }
 }
