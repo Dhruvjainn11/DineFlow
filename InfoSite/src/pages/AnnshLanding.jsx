@@ -220,7 +220,7 @@ const handleSubmit = async (e) => {
       {/* Enhanced Hero Section */}
       <section 
         id="home" 
-        className="min-h-screen flex items-center justify-center pt-8 relative overflow-hidden"
+        className="min-h-screen sm:min-h-[90vh]: flex items-center justify-center pt-8 relative overflow-hidden"
       >
         {/* Dynamic background particles */}
         <div className="absolute inset-0">
@@ -246,12 +246,12 @@ const handleSubmit = async (e) => {
           ))}
         </div>
         
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10 ">
           <motion.div
             variants={staggerContainer}
             initial="hidden"
             animate="visible"
-            className="relative"
+            className="relative sm:b-5 "
           >
             <motion.div 
               variants={fadeInUp}
