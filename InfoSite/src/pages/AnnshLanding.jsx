@@ -104,7 +104,7 @@ const handleSubmit = async (e) => {
   };
 
   return (
-    <div className="bg-[#fafafa] min-h-screen overflow-x-hidden scroll-smooth font-sans relative">
+    <div className="bg-neutral-50 min-h-screen overflow-x-hidden scroll-smooth font-sans relative">
       {/* Animated background elements */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <motion.div
