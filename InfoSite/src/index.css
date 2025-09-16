@@ -10,11 +10,15 @@
 
 body {
   font-family: 'Inter', sans-serif;
-  background-color: #fafafa;
+  background-color: #fafafa !important;
 }
 
 /* Ensure consistent background across all screen sizes */
-.bg-neutral-50 {
+* {
+  background-color: inherit;
+}
+
+.bg-neutral-50, .bg-\[\#fafafa\] {
   background-color: #fafafa !important;
 }
 

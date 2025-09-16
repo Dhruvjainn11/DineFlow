@@ -76,10 +76,13 @@ const handleSubmit = async (e) => {
 
   
   const scrollToSection = (id) => {
-    document.getElementById(id)?.scrollIntoView({ 
-      behavior: 'smooth',
-      block: 'start'
-    });
+    const element = document.getElementById(id === 'demo' ? 'contact' : id);
+    if (element) {
+      element.scrollIntoView({ 
+        behavior: 'smooth',
+        block: 'start'
+      });
+    }
     setIsMenuOpen(false);
   };
 
@@ -101,7 +104,7 @@ const handleSubmit = async (e) => {
   };
 
   return (
-    <div className="bg-neutral-50 min-h-screen overflow-x-hidden scroll-smooth font-sans relative">
+    <div className="bg-[#fafafa] min-h-screen overflow-x-hidden scroll-smooth font-sans relative">
       {/* Animated background elements */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <motion.div
@@ -196,10 +199,7 @@ const handleSubmit = async (e) => {
               {['Home', 'Features', 'Pricing', 'Contact'].map((item, index) => (
                 <motion.button
                   key={item}
-                  onClick={() => {
-                    scrollToSection(item.toLowerCase());
-                    setIsMenuOpen(false);
-                  }}
+                  onClick={() => scrollToSection(item.toLowerCase())}
                   className="block w-full text-left px-6 py-4 text-gray-700 hover:bg-amber-100 rounded-xl transition-colors font-semibold text-lg"
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
