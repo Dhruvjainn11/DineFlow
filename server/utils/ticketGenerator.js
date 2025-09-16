@@ -3,7 +3,6 @@ const generateTicket = (order) => {
     return new Date(date).toLocaleString('en-IN', {
       day: '2-digit',
       month: 'short',
-      year: 'numeric',
       hour: '2-digit',
       minute: '2-digit',
       hour12: true
@@ -11,25 +10,31 @@ const generateTicket = (order) => {
   };
 
   const formatPrice = (price) => `₹${price}`;
-  const cafeName = order.planType === 'pro' ? order.cafeName || 'THE YARD' : 'ANNSH';
+  const cafeName = order.planType === 'pro' ? order.cafeName || 'THE YARD' : 'ANNSh';
 
   let ticket = '';
-  ticket += '------------------------------\n';
-  ticket += `        ${cafeName}\n`;
-  ticket += '------------------------------\n';
+  ticket += '========================\n';
+  ticket += `    ${cafeName}\n`;
+  ticket += '========================\n';
   ticket += `Table: ${order.tableNumber}\n`;
   ticket += `Order: #${order.orderNumber}\n`;
-  ticket += `Time: ${formatDate(order.createdAt)}\n`;
-  ticket += '------------------------------\n';
+  ticket += `${formatDate(order.createdAt)}\n`;
+  ticket += '------------------------\n';
 
   order.items.forEach(item => {
     const itemLine = `${item.quantity}x ${item.name}`;
     const price = formatPrice(item.price * item.quantity);
-    const padding = 30 - itemLine.length - price.length;
-    ticket += `${itemLine}${' '.repeat(Math.max(1, padding))}${price}\n`;
+    // Adjust for smaller width (24 chars)
+    if (itemLine.length > 16) {
+      ticket += `${itemLine.substring(0, 16)}...\n`;
+      ticket += `${' '.repeat(16)}${price}\n`;
+    } else {
+      const padding = 24 - itemLine.length - price.length;
+      ticket += `${itemLine}${' '.repeat(Math.max(1, padding))}${price}\n`;
+    }
   });
 
-  ticket += '------------------------------\n';
+  ticket += '========================\n';
 
   return ticket;
 };

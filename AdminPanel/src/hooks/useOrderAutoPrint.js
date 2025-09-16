@@ -27,26 +27,27 @@ const useOrderAutoPrint = (enabled = false) => {
               <style>
                 body { 
                   font-family: 'Courier New', monospace; 
-                  font-size: 10px; 
+                  font-size: 8px; 
                   margin: 0; 
-                  padding: 5px;
-                  width: 250px;
-                  line-height: 1.2;
+                  padding: 2px;
+                  width: 200px;
+                  line-height: 1.1;
                 }
                 .ticket { 
                   white-space: pre-line;
-                  font-size: 10px;
+                  font-size: 8px;
+                  word-wrap: break-word;
                 }
                 @media print { 
                   body { 
                     margin: 0; 
-                    padding: 2px;
-                    width: 58mm;
-                    font-size: 9px;
+                    padding: 1px;
+                    width: 48mm;
+                    font-size: 7px;
                   }
                   @page { 
                     margin: 0;
-                    size: 58mm auto;
+                    size: 48mm auto;
                   }
                 }
               </style>
@@ -86,22 +87,31 @@ const useOrderAutoPrint = (enabled = false) => {
 const generateTicketHTML = (order) => {
   const cafeName = order.planType === 'pro' ? order.cafeName || 'THE YARD' : 'ANNSh';
   
-  let ticket = '------------------------------\n';
-  ticket += `        ${cafeName}\n`;
-  ticket += '------------------------------\n';
+  let ticket = '========================\n';
+  ticket += `    ${cafeName}\n`;
+  ticket += '========================\n';
   ticket += `Table: ${order.tableNumber}\n`;
   ticket += `Order: #${order.orderNumber}\n`;
-  ticket += `Time: ${new Date(order.createdAt).toLocaleString('en-IN')}\n`;
-  ticket += '------------------------------\n';
+  ticket += `${new Date(order.createdAt).toLocaleString('en-IN', { 
+    day: '2-digit', month: 'short', 
+    hour: '2-digit', minute: '2-digit' 
+  })}\n`;
+  ticket += '------------------------\n';
 
   order.items.forEach(item => {
     const itemLine = `${item.quantity}x ${item.name}`;
     const price = `₹${item.price * item.quantity}`;
-    const padding = 30 - itemLine.length - price.length;
-    ticket += `${itemLine}${' '.repeat(Math.max(1, padding))}${price}\n`;
+    // Adjust for smaller width (24 chars)
+    if (itemLine.length > 16) {
+      ticket += `${itemLine.substring(0, 16)}...\n`;
+      ticket += `${' '.repeat(16)}${price}\n`;
+    } else {
+      const padding = 24 - itemLine.length - price.length;
+      ticket += `${itemLine}${' '.repeat(Math.max(1, padding))}${price}\n`;
+    }
   });
 
-  ticket += '------------------------------\n';
+  ticket += '========================\n';
   return ticket;
 };
 
