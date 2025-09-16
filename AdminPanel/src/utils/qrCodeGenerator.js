@@ -338,7 +338,8 @@ export const printQRCodes = (qrCodes, cafeInfo, theme, features) => {
       ${qrCodes.map(qr => `
         <div class="qr-card">
           <div class="table-number">Table ${qr.tableNumber}</div>
-          <div class="cafe-name">${qr.cafeName || cafeInfo.name}</div>
+          <div class="cafe-name">Cafe Name</div>
+          
           <div class="order-text">Order Here</div>
           <div class="qr-code">
             <img src="${qr.qrCode}" alt="QR Code">
@@ -349,6 +350,7 @@ export const printQRCodes = (qrCodes, cafeInfo, theme, features) => {
     </body>
     </html>
   `;
+  // <div class="cafe-name">${qr.cafeName || cafeInfo.name}</div>
   
   printWindow.document.write(html);
   printWindow.document.close();
