@@ -114,15 +114,6 @@ router.post("/", validateOrderCreation ,async (req, res) => {
 
     const populatedOrder = await newOrder.populate("items.menuItem");
 
-    // Emit to cafe-specific socket room
-    const io = req.app.get("io");
-    io.to(`cafe-${cafeId}`).emit("newOrder", populatedOrder);
-    
-    // Also emit print event for admin panel auto-print
-    if (cafe.settings?.printerSettings?.enabled) {
-      io.to(`cafe-${cafeId}`).emit("autoPrintOrder", orderData);
-    }
-
     // AUTO-PRINT TICKET
     const orderData = {
       orderNumber: populatedOrder._id.toString().slice(-4),
@@ -142,6 +133,15 @@ router.post("/", validateOrderCreation ,async (req, res) => {
     const { printToSimplePrinter } = await import('../utils/simplePrinter.js');
     await printToSimplePrinter(orderData, cafe.settings);
 
+    // Emit to cafe-specific socket room
+    const io = req.app.get("io");
+    io.to(`cafe-${cafeId}`).emit("newOrder", populatedOrder);
+    
+    // Also emit print event for admin panel auto-print
+    if (cafe.settings?.printerSettings?.enabled) {
+      io.to(`cafe-${cafeId}`).emit("autoPrintOrder", orderData);
+    }
+
     res.status(201).json({
       success: true,
       message: "Order placed successfully",
@@ -149,12 +149,6 @@ router.post("/", validateOrderCreation ,async (req, res) => {
     });
   } catch (error) {
     console.error("Error placing order:", error);
-    
-    // Emit error event for real-time updates
-    const io = req.app.get("io");
-    if (io && cafeId) {
-      io.to(`cafe-${cafeId}`).emit('orderError', { message: error.message, operation: 'create' });
-    }
     
     res.status(500).json({
       success: false,
