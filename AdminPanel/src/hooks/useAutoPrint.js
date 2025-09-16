@@ -56,8 +56,10 @@ const autoPrintTicket = (order) => {
 };
 
 const generateTicketHTML = (order) => {
+  const cafeName = order.planType === 'pro' ? order.cafeName || 'THE YARD' : 'ANNSh';
+  
   let ticket = '------------------------------\n';
-  ticket += '        THE YARD - ANNSh\n';
+  ticket += `        ${cafeName}\n`;
   ticket += '------------------------------\n';
   ticket += `Table: ${order.tableNumber}\n`;
   ticket += `Order #: #${order.orderNumber}\n`;
@@ -71,10 +73,6 @@ const generateTicketHTML = (order) => {
     ticket += `${itemLine}${' '.repeat(Math.max(1, padding))}${price}\n`;
   });
 
-  ticket += '------------------------------\n';
-  ticket += `Total:${' '.repeat(19)}₹${order.total}\n`;
-  ticket += '------------------------------\n';
-  ticket += '          THANK YOU!\n';
   ticket += '------------------------------\n';
 
   return ticket;

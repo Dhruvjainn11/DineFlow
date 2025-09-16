@@ -11,13 +11,14 @@ const generateTicket = (order) => {
   };
 
   const formatPrice = (price) => `₹${price}`;
+  const cafeName = order.planType === 'pro' ? order.cafeName || 'THE YARD' : 'ANNSh';
 
   let ticket = '';
   ticket += '------------------------------\n';
-  ticket += '        THE YARD - ANNSh\n';
+  ticket += `        ${cafeName}\n`;
   ticket += '------------------------------\n';
   ticket += `Table: ${order.tableNumber}\n`;
-  ticket += `Order #: #${order.orderNumber}\n`;
+  ticket += `Order: #${order.orderNumber}\n`;
   ticket += `Time: ${formatDate(order.createdAt)}\n`;
   ticket += '------------------------------\n';
 
@@ -28,10 +29,6 @@ const generateTicket = (order) => {
     ticket += `${itemLine}${' '.repeat(Math.max(1, padding))}${price}\n`;
   });
 
-  ticket += '------------------------------\n';
-  ticket += `Total:${' '.repeat(19)}${formatPrice(order.total)}\n`;
-  ticket += '------------------------------\n';
-  ticket += '          THANK YOU!\n';
   ticket += '------------------------------\n';
 
   return ticket;

@@ -81,6 +81,8 @@ export default function OrderCard({ order }) {
             tableNumber: order.tableNumber,
             createdAt: order.createdAt,
             total: order.totalAmount,
+            planType: 'pro', // You can get this from user context
+            cafeName: 'THE YARD', // You can get this from user context
             items: order.items.map(item => ({
               name: item.menuItem?.name || "Unknown Item",
               quantity: item.quantity,

@@ -328,6 +328,8 @@ const OrderManagment = () => {
                         tableNumber: order.tableNumber,
                         createdAt: order.createdAt,
                         total: order.totalAmount,
+                        planType: 'pro', // You can get this from user context
+                        cafeName: order.cafeId?.name || 'THE YARD',
                         items: order.items.map(item => ({
                           name: item.menuItem?.name || "Unknown Item",
                           quantity: item.quantity,

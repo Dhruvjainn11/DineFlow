@@ -125,6 +125,8 @@ router.post("/", validateOrderCreation ,async (req, res) => {
       tableNumber: tableNumber,
       createdAt: populatedOrder.createdAt,
       total: populatedOrder.finalAmount,
+      planType: cafe.planType,
+      cafeName: cafe.name,
       items: populatedOrder.items.map(item => ({
         name: item.menuItem.name,
         quantity: item.quantity,
