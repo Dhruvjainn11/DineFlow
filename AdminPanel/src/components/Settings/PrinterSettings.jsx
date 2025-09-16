@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import api from '../../utils/api';
 import { Printer } from 'lucide-react';
+import PrinterSetupGuide from '../PrinterSetupGuide';
 
 const PrinterSettings = () => {
   const [settings, setSettings] = useState({
@@ -48,6 +49,8 @@ const PrinterSettings = () => {
           <p className="text-sm text-gray-600">Configure automatic ticket printing for orders</p>
         </div>
       </div>
+      
+      <PrinterSetupGuide />
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Enable Printing */}
