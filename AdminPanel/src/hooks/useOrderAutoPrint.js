@@ -87,26 +87,26 @@ const useOrderAutoPrint = (enabled = false) => {
 const generateTicketHTML = (order) => {
   const cafeName = order.planType === 'pro' ? order.cafeName || 'THE YARD' : 'ANNSh';
   
-  let ticket = '--------------------------------\n';
-  ticket += `         ${cafeName}\n`;
-  ticket += '--------------------------------\n';
+  let ticket = '----------------------------------------\n';
+  ticket += `           ${cafeName}\n`;
+  ticket += '----------------------------------------\n';
   ticket += `Table: ${order.tableNumber}\n`;
   ticket += `Order: #${order.orderNumber}\n`;
   ticket += `${new Date(order.createdAt).toLocaleString('en-IN', { 
     day: '2-digit', month: 'short', 
     hour: '2-digit', minute: '2-digit' 
   })}\n`;
-  ticket += '--------------------------------\n';
+  ticket += '----------------------------------------\n';
 
   order.items.forEach(item => {
     const itemLine = `${item.quantity}x ${item.name}`;
     const price = `₹${item.price * item.quantity}`;
-    // Adjust for 32 character width
-    const padding = 32 - itemLine.length - price.length;
+    // Adjust for 40 character width to accommodate sizes
+    const padding = 40 - itemLine.length - price.length;
     ticket += `${itemLine}${' '.repeat(Math.max(1, padding))}${price}\n`;
   });
 
-  ticket += '--------------------------------\n';
+  ticket += '----------------------------------------\n';
   return ticket;
 };
 
