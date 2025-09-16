@@ -1,0 +1,18 @@
+{
+  "orderNumber": "1023",
+  "tableNumber": "5",
+  "createdAt": "2024-09-16T17:42:00.000Z",
+  "total": 390,
+  "items": [
+    {
+      "name": "Cold Coffee",
+      "quantity": 2,
+      "price": 120
+    },
+    {
+      "name": "Sandwich",
+      "quantity": 1,
+      "price": 150
+    }
+  ]
+}
