@@ -248,7 +248,16 @@ const cafeSchema = new mongoose.Schema({
     
     // Service charge
     serviceCharge: { type: Number, default: 0, min: 0, max: 30 },
-    serviceChargeType: { type: String, enum: ['percentage', 'fixed'], default: 'percentage' }
+    serviceChargeType: { type: String, enum: ['percentage', 'fixed'], default: 'percentage' },
+    
+    // Printer Settings
+    printerSettings: {
+      enabled: { type: Boolean, default: false },
+      printerName: { type: String, default: '' },
+      printerType: { type: String, enum: ['thermal', 'regular'], default: 'thermal' },
+      autoPrint: { type: Boolean, default: false },
+      copies: { type: Number, default: 1, min: 1, max: 5 }
+    }
   },
   
   // Status and metadata

@@ -125,14 +125,14 @@ router.post("/", validateOrderCreation ,async (req, res) => {
       tableNumber: tableNumber,
       createdAt: populatedOrder.createdAt,
       total: populatedOrder.finalAmount,
-      planType: cafe.planType,
+      planType: cafe.subscription?.planType || 'basic',
       cafeName: cafe.name,
       items: populatedOrder.items.map(item => ({
         name: item.menuItem.name,
         quantity: item.quantity,
         price: item.itemPrice
       }))
-    });
+    }, cafe.settings); // Pass cafe settings
 
     res.status(201).json({
       success: true,

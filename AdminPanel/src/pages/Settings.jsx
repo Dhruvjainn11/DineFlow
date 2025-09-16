@@ -2,6 +2,7 @@ import React, { useState, } from 'react';
 import RoleBasedLayout from "../layouts/RoleBasedLayout";
 import ThemeSettings from '../components/Settings/ThemeSettings';
 import GSTSettings from '../components/Settings/GSTSettings';
+import PrinterSettings from '../components/Settings/PrinterSettings';
 
 export default function Settings() {
   const [activeTab, setActiveTab] = useState('general');
@@ -31,9 +32,8 @@ export default function Settings() {
           <div className="border-b border-gray-200">
             <nav className="flex space-x-8 px-6" aria-label="Tabs">
               {[
-                
                 { name: 'theme', label: 'Theme' },
-             
+                { name: 'printer', label: 'Printer' },
                 { name: 'gst', label: 'GST & Tax' }
               ].map((tab) => (
                 <button
@@ -56,9 +56,10 @@ export default function Settings() {
             {activeTab === 'theme' && (
               <div className="space-y-6">
                 <ThemeSettings />
-               
               </div>
             )}
+            
+            {activeTab === 'printer' && <PrinterSettings />}
           
             {activeTab === 'gst' && <GSTSettings />}
           </div>
