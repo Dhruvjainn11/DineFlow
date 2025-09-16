@@ -2,9 +2,13 @@ import RoleBasedLayout from "../layouts/RoleBasedLayout";
 import React from "react";
 import { useAuth } from "../context/AuthContext";
 import RealtimeTestPanel from "../components/RealtimeTestPanel";
+import useOrderAutoPrint from "../hooks/useOrderAutoPrint";
 
 const Dashboard = () => {
   const { isSuperAdmin } = useAuth();
+  
+  // Enable auto-print for new orders
+  useOrderAutoPrint(true);
   
   return (
     <RoleBasedLayout>

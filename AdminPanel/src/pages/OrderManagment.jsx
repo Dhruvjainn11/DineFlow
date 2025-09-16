@@ -5,12 +5,16 @@ import { socket } from "../utils/socket";
 import { Circle, CheckCircle, Clock, XCircle, CreditCard, Utensils, Filter, Calendar, RefreshCw, Printer } from "lucide-react";
 import OrderSkeleton from "../components/Common/OrderSkeleton";
 import TicketPrinter from "../components/TicketPrinter";
+import useOrderAutoPrint from "../hooks/useOrderAutoPrint";
 
 const OrderManagment = () => {
   const [orders, setOrders] = useState([]);
   const [statusFilter, setStatusFilter] = useState([]);
   const [dateFilter, setDateFilter] = useState("7");
   const [isLoading, setIsLoading] = useState(false);
+  
+  // Enable auto-print for new orders
+  useOrderAutoPrint(true);
   
   useEffect(() => {
     fetchOrders();
@@ -21,9 +25,10 @@ const OrderManagment = () => {
       socket.emit('authenticate', token);
     }
     
-     socket.on("newOrder", (newOrder) =>
-          setOrders((prev) => [...prev, newOrder])
-        );
+     socket.on("newOrder", (newOrder) => {
+          setOrders((prev) => [...prev, newOrder]);
+          console.log('🔔 New order received in admin panel:', newOrder._id);
+        });
     
     socket.on("orderStatusUpdated", (updated) => {
          setOrders((prev) => {
