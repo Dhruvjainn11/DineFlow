@@ -11,7 +11,7 @@ const generateTicket = (order) => {
   };
 
   const formatPrice = (price) => `₹${price}`;
-  const cafeName = order.planType === 'pro' ? order.cafeName || 'THE YARD' : 'ANNSh';
+  const cafeName = order.planType === 'pro' ? order.cafeName || 'THE YARD' : 'ANNSH';
 
   let ticket = '';
   ticket += '------------------------------\n';
