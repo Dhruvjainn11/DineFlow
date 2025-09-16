@@ -1,4 +1,4 @@
-const { generateTicket } = require('./ticketGenerator');
+import { generateTicket } from './ticketGenerator.js';
 
 // For future thermal printer integration
 const printToThermalPrinter = async (order, printerName = null) => {
@@ -21,4 +21,4 @@ const printToThermalPrinter = async (order, printerName = null) => {
 // 2. For USB: const escpos = require('@node-escpos/core'); const USB = require('@node-escpos/usb-adapter');
 // 3. For network: const Network = require('@node-escpos/network-adapter');
 
-module.exports = { printToThermalPrinter };
+export { printToThermalPrinter };

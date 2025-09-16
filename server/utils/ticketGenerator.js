@@ -37,4 +37,4 @@ const generateTicket = (order) => {
   return ticket;
 };
 
-module.exports = { generateTicket };
+export { generateTicket };
