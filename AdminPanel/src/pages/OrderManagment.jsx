@@ -23,12 +23,24 @@ const OrderManagment = () => {
     const token = localStorage.getItem('token');
     if (token) {
       socket.emit('authenticate', token);
+      
+      // Also join cafe room explicitly
+      const user = JSON.parse(localStorage.getItem('user'));
+      if (user?.cafeId) {
+        socket.emit('joinCafeRoom', user.cafeId);
+        console.log('🏪 Joined cafe room:', user.cafeId);
+      }
     }
     
      socket.on("newOrder", (newOrder) => {
           setOrders((prev) => [...prev, newOrder]);
           console.log('🔔 New order received in admin panel:', newOrder._id);
         });
+        
+     // Listen for auto-print events
+     socket.on("autoPrintOrder", (orderData) => {
+       console.log('🖨️ Auto-print event received:', orderData);
+     });
     
     socket.on("orderStatusUpdated", (updated) => {
          setOrders((prev) => {
@@ -47,6 +59,7 @@ const OrderManagment = () => {
          socket.off("newOrder");
          socket.off("orderCompleted");
          socket.off("orderStatusUpdated");
+         socket.off("autoPrintOrder");
        };
   }, []);
 

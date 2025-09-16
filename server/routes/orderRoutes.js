@@ -135,11 +135,15 @@ router.post("/", validateOrderCreation ,async (req, res) => {
 
     // Emit to cafe-specific socket room
     const io = req.app.get("io");
+    console.log(`📡 Emitting newOrder to cafe-${cafeId}`);
     io.to(`cafe-${cafeId}`).emit("newOrder", populatedOrder);
     
     // Also emit print event for admin panel auto-print
     if (cafe.settings?.printerSettings?.enabled) {
+      console.log(`🖨️ Emitting autoPrintOrder to cafe-${cafeId}`);
       io.to(`cafe-${cafeId}`).emit("autoPrintOrder", orderData);
+    } else {
+      console.log('🚫 Auto-print disabled in cafe settings');
     }
 
     res.status(201).json({
