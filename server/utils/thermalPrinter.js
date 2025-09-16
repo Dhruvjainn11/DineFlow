@@ -21,8 +21,11 @@ const printToThermalPrinter = async (order, cafeSettings = null) => {
         return { success: true, ticket: ticketText, printed: false };
       }
       
+      // Handle different printer types
+      const printerType = printerSettings.printerType === 'regular' ? PrinterTypes.STAR : PrinterTypes.EPSON;
+      
       let printer = new ThermalPrinter({
-        type: PrinterTypes.EPSON,
+        type: printerType,
         interface: 'printer:' + printerName,
         characterSet: CharacterSet.PC852_LATIN2,
         removeSpecialCharacters: false,
