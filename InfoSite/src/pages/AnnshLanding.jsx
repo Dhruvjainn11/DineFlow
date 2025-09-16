@@ -189,38 +189,38 @@ const handleSubmit = async (e) => {
           </div>
 
           {/* Mobile Menu */}
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ 
-              opacity: isMenuOpen ? 1 : 0, 
-              height: isMenuOpen ? 'auto' : 0 
-            }}
-            transition={{ duration: 0.3, ease: "easeOut" }}
-            className={`md:hidden absolute top-full left-0 right-0 bg-white/95 backdrop-blur-xl border-b border-amber-200/50 shadow-2xl overflow-hidden z-50 ${isMenuOpen ? 'block' : 'hidden'}`}
-          >
-            <div className="px-4 py-6 space-y-2">
-              {['Home', 'Features', 'Pricing', 'Contact'].map((item, index) => (
-                <motion.button
-                  key={item}
-                  onClick={() => scrollToSection(item.toLowerCase())}
-                  className="block w-full text-left px-6 py-4 text-gray-700 hover:bg-amber-100 rounded-xl transition-colors font-semibold text-lg"
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: index * 0.1 }}
-                  whileHover={{ x: 10 }}
-                >
-                  {item}
-                </motion.button>
-              ))}
-            </div>
-          </motion.div>
+          {isMenuOpen && (
+            <motion.div
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.3, ease: "easeOut" }}
+              className="md:hidden absolute top-full left-0 right-0 bg-white/95 backdrop-blur-xl border-b border-amber-200/50 shadow-2xl z-50"
+            >
+              <div className="px-4 py-6 space-y-2">
+                {['Home', 'Features', 'Pricing', 'Contact'].map((item, index) => (
+                  <motion.button
+                    key={item}
+                    onClick={() => scrollToSection(item.toLowerCase())}
+                    className="block w-full text-left px-6 py-4 text-gray-700 hover:bg-amber-100 rounded-xl transition-colors font-semibold text-lg"
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: index * 0.1 }}
+                    whileHover={{ x: 10 }}
+                  >
+                    {item}
+                  </motion.button>
+                ))}
+              </div>
+            </motion.div>
+          )}
         </div>
       </motion.nav>
 
       {/* Enhanced Hero Section */}
       <section 
         id="home" 
-        className="min-h-screen flex items-center justify-center pt-16 sm:pt-20 relative overflow-hidden"
+        className="min-h-screen flex items-center justify-center pt-12 sm:pt-16 relative overflow-hidden"
       >
         {/* Dynamic background particles */}
         <div className="absolute inset-0">
@@ -328,7 +328,7 @@ const handleSubmit = async (e) => {
       {/* Enhanced Features Section */}
       <section 
         id="features" 
-        className="py-8 sm:py-16 lg:py-24 bg-gradient-to-b from-white to-amber-50/50 relative overflow-hidden"
+        className="py-4 sm:py-8 lg:py-16 bg-gradient-to-b from-white to-amber-50/50 relative overflow-hidden"
       >
         <div className="absolute inset-0 bg-gradient-to-r from-amber-100/20 to-amber-50/20" />
         
