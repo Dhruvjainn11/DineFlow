@@ -22,6 +22,7 @@ import { AuthProvider } from "./context/AuthContext";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { useRealtimeNotifications } from "./hooks/useRealtimeNotifications";
+import AutoPrintTest from "./pages/AutoPrintTest";
 
 function AppContent() {
   useRealtimeNotifications();
@@ -38,10 +39,12 @@ function AppContent() {
         <Route path="/login" element={<Login />} />
         <Route path="/subscription-expired" element={<SubscriptionExpired />} />
 
+
         <Route element={<PrivateRoute />}>
   {/* Cafe Admin Routes */}
   <Route path="/admin" element={<ProtectedRoute allowedRole="admin" />}>
     <Route index element={<Analytics />} /> 
+        <Route path="auto-print-test" element={<AutoPrintTest />} />
     <Route path="menu" element={<MenuManagement />} />
     <Route path="categories" element={<CategoryManagement />} />
     <Route path="tables" element={<TableManagment />} />
