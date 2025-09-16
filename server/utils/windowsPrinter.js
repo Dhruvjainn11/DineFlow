@@ -31,8 +31,8 @@ const printToWindowsPrinter = async (order, cafeSettings = null) => {
       const tempFile = path.join(tempDir, `ticket_${Date.now()}.txt`);
       fs.writeFileSync(tempFile, ticketText);
       
-      // Print using Windows command
-      const printCommand = `print /D:"${printerName}" "${tempFile}"`;
+      // Print using PowerShell (more reliable)
+      const printCommand = `powershell -Command "Get-Content '${tempFile}' | Out-Printer -Name '${printerName}'"`;
       execSync(printCommand, { stdio: 'ignore' });
       
       // Clean up temp file
@@ -49,7 +49,8 @@ const printToWindowsPrinter = async (order, cafeSettings = null) => {
       // Print multiple copies if configured
       const copies = printerSettings.copies || 1;
       for (let i = 1; i < copies; i++) {
-        execSync(printCommand, { stdio: 'ignore' });
+        const copyCommand = `powershell -Command "Get-Content '${tempFile}' | Out-Printer -Name '${printerName}'"`;        
+        execSync(copyCommand, { stdio: 'ignore' });
         console.log(`✅ Copy ${i + 1} printed`);
       }
       

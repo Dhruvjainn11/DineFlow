@@ -117,6 +117,11 @@ router.post("/", validateOrderCreation ,async (req, res) => {
     // Emit to cafe-specific socket room
     const io = req.app.get("io");
     io.to(`cafe-${cafeId}`).emit("newOrder", populatedOrder);
+    
+    // Also emit print event for admin panel auto-print
+    if (cafe.settings?.printerSettings?.enabled) {
+      io.to(`cafe-${cafeId}`).emit("autoPrintOrder", orderData);
+    }
 
     // AUTO-PRINT TICKET
     const orderData = {
@@ -133,14 +138,9 @@ router.post("/", validateOrderCreation ,async (req, res) => {
       }))
     };
     
-    // Use Windows printer for regular printers, thermal printer for thermal printers
-    if (cafe.settings?.printerSettings?.printerType === 'regular') {
-      const { printToWindowsPrinter } = await import('../utils/windowsPrinter.js');
-      await printToWindowsPrinter(orderData, cafe.settings);
-    } else {
-      const { printToThermalPrinter } = await import('../utils/thermalPrinter.js');
-      await printToThermalPrinter(orderData, cafe.settings);
-    }
+    // Use simple printer (console + manual setup)
+    const { printToSimplePrinter } = await import('../utils/simplePrinter.js');
+    await printToSimplePrinter(orderData, cafe.settings);
 
     res.status(201).json({
       success: true,
