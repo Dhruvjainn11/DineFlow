@@ -24,6 +24,13 @@ const Login = () => {
         response = await api.post("/auth/login", { username, password });
       } catch (firstError) {
         console.log('General login failed, trying super-admin endpoint:', firstError.response?.data?.message);
+        
+        // Check if cafe is suspended
+        if (firstError.response?.data?.message === 'Cafe account is suspended') {
+          navigate('/subscription-expired');
+          return;
+        }
+        
         response = await api.post("/auth/login/super-admin", { username, password });
       }
       
@@ -39,10 +46,21 @@ const Login = () => {
           localStorage.removeItem("cafeId"); // avoid sending invalid cafeId
         }
   
-        if (user.role === 'super-admin') {
+        // Check subscription status for cafe admins
+        if (user.role === 'admin' && cafeId) {
+          try {
+            // Make a test API call to check subscription status
+            await api.get('/cafes/info');
+            navigate('/admin/');
+          } catch (subscriptionError) {
+            if (subscriptionError.response?.data?.code === 'SUBSCRIPTION_EXPIRED') {
+              navigate('/subscription-expired');
+              return;
+            }
+            navigate('/admin/');
+          }
+        } else if (user.role === 'super-admin') {
           navigate('/super-admin/');
-        } else if (user.role === 'admin' && cafeId) {
-          navigate('/admin/');
         } else {
           navigate('/admin/');
         }

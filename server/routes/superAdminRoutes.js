@@ -17,17 +17,17 @@ const router = express.Router();
  */
 router.get("/analytics", protect, allowRoles("super-admin"), async (req, res) => {
     try {
-      const [totalCafes, totalUsers, totalOrders, totalRevenueAgg, topCafes] = await Promise.all([
+      const [totalCafes, totalUsers, totalOrders, totalRevenueAgg, topCafes, subscriptionStats, cafeStatusStats] = await Promise.all([
         Cafe.countDocuments(),
         User.countDocuments(),
         Order.countDocuments(),
         Order.aggregate([
           { $match: { paymentStatus: "Completed" } },
-          { $group: { _id: null, total: { $sum: "$totalPrice" } } },
+          { $group: { _id: null, total: { $sum: { $ifNull: ["$finalAmount", "$totalAmount"] } } } },
         ]),
         Order.aggregate([
           { $match: { paymentStatus: "Completed" } },
-          { $group: { _id: "$cafeId", revenue: { $sum: "$totalPrice" }, orders: { $sum: 1 } } },
+          { $group: { _id: "$cafeId", revenue: { $sum: { $ifNull: ["$finalAmount", "$totalAmount"] } }, orders: { $sum: 1 } } },
           { $sort: { revenue: -1 } },
           { $limit: 5 },
           {
@@ -40,6 +40,24 @@ router.get("/analytics", protect, allowRoles("super-admin"), async (req, res) =>
           },
           { $unwind: "$cafe" },
         ]),
+        // Subscription analytics
+        Cafe.aggregate([
+          {
+            $group: {
+              _id: "$subscription.status",
+              count: { $sum: 1 }
+            }
+          }
+        ]),
+        // Cafe status analytics
+        Cafe.aggregate([
+          {
+            $group: {
+              _id: "$status",
+              count: { $sum: 1 }
+            }
+          }
+        ])
       ]);
   
      // Compute last 7 days stats
@@ -59,7 +77,7 @@ const dailyStats = await Order.aggregate([
       _id: {
         $dateToString: { format: "%Y-%m-%d", date: "$createdAt" },
       },
-      revenue: { $sum: "$totalPrice" },
+      revenue: { $sum: { $ifNull: ["$finalAmount", "$totalAmount"] } },
       orders: { $sum: 1 },
     },
   },
@@ -84,6 +102,27 @@ for (let i = 6; i >= 0; i--) {
   });
 }
 
+// Process subscription stats
+const subscriptionBreakdown = {
+  active: 0,
+  inactive: 0,
+  trial: 0,
+  suspended: 0
+};
+subscriptionStats.forEach(stat => {
+  subscriptionBreakdown[stat._id] = stat.count;
+});
+
+// Process cafe status stats
+const cafeStatusBreakdown = {
+  active: 0,
+  inactive: 0,
+  suspended: 0
+};
+cafeStatusStats.forEach(stat => {
+  cafeStatusBreakdown[stat._id] = stat.count;
+});
+
 res.json({
   success: true,
   data: {
@@ -92,7 +131,9 @@ res.json({
     totalOrders,
     totalRevenue: totalRevenueAgg[0]?.total || 0,
     topCafes,
-    dailyStats: filledStats, // 👈 added
+    dailyStats: filledStats,
+    subscriptionBreakdown,
+    cafeStatusBreakdown
   },
 });
 
