@@ -27,27 +27,27 @@ const useOrderAutoPrint = (enabled = false) => {
               <style>
                 body { 
                   font-family: 'Courier New', monospace; 
-                  font-size: 8px; 
+                  font-size: 7px; 
                   margin: 0; 
-                  padding: 2px;
-                  width: 200px;
-                  line-height: 1.1;
+                  padding: 3px;
+                  width: 280px;
+                  line-height: 1.2;
                 }
                 .ticket { 
                   white-space: pre-line;
-                  font-size: 8px;
+                  font-size: 7px;
                   word-wrap: break-word;
                 }
                 @media print { 
                   body { 
-                    margin: 0; 
-                    padding: 1px;
-                    width: 48mm;
-                    font-size: 7px;
+                    margin: 2mm; 
+                    padding: 2mm;
+                    width: 72mm;
+                    font-size: 6px;
                   }
                   @page { 
-                    margin: 0;
-                    size: 48mm auto;
+                    margin: 2mm;
+                    size: 80mm auto;
                   }
                 }
               </style>
@@ -87,31 +87,26 @@ const useOrderAutoPrint = (enabled = false) => {
 const generateTicketHTML = (order) => {
   const cafeName = order.planType === 'pro' ? order.cafeName || 'THE YARD' : 'ANNSh';
   
-  let ticket = '========================\n';
-  ticket += `    ${cafeName}\n`;
-  ticket += '========================\n';
+  let ticket = '--------------------------------\n';
+  ticket += `         ${cafeName}\n`;
+  ticket += '--------------------------------\n';
   ticket += `Table: ${order.tableNumber}\n`;
   ticket += `Order: #${order.orderNumber}\n`;
   ticket += `${new Date(order.createdAt).toLocaleString('en-IN', { 
     day: '2-digit', month: 'short', 
     hour: '2-digit', minute: '2-digit' 
   })}\n`;
-  ticket += '------------------------\n';
+  ticket += '--------------------------------\n';
 
   order.items.forEach(item => {
     const itemLine = `${item.quantity}x ${item.name}`;
     const price = `₹${item.price * item.quantity}`;
-    // Adjust for smaller width (24 chars)
-    if (itemLine.length > 16) {
-      ticket += `${itemLine.substring(0, 16)}...\n`;
-      ticket += `${' '.repeat(16)}${price}\n`;
-    } else {
-      const padding = 24 - itemLine.length - price.length;
-      ticket += `${itemLine}${' '.repeat(Math.max(1, padding))}${price}\n`;
-    }
+    // Adjust for 32 character width
+    const padding = 32 - itemLine.length - price.length;
+    ticket += `${itemLine}${' '.repeat(Math.max(1, padding))}${price}\n`;
   });
 
-  ticket += '========================\n';
+  ticket += '--------------------------------\n';
   return ticket;
 };
 

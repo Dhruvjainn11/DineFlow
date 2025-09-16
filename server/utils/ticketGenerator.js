@@ -13,28 +13,23 @@ const generateTicket = (order) => {
   const cafeName = order.planType === 'pro' ? order.cafeName || 'THE YARD' : 'ANNSh';
 
   let ticket = '';
-  ticket += '========================\n';
-  ticket += `    ${cafeName}\n`;
-  ticket += '========================\n';
+  ticket += '--------------------------------\n';
+  ticket += `         ${cafeName}\n`;
+  ticket += '--------------------------------\n';
   ticket += `Table: ${order.tableNumber}\n`;
   ticket += `Order: #${order.orderNumber}\n`;
   ticket += `${formatDate(order.createdAt)}\n`;
-  ticket += '------------------------\n';
+  ticket += '--------------------------------\n';
 
   order.items.forEach(item => {
     const itemLine = `${item.quantity}x ${item.name}`;
     const price = formatPrice(item.price * item.quantity);
-    // Adjust for smaller width (24 chars)
-    if (itemLine.length > 16) {
-      ticket += `${itemLine.substring(0, 16)}...\n`;
-      ticket += `${' '.repeat(16)}${price}\n`;
-    } else {
-      const padding = 24 - itemLine.length - price.length;
-      ticket += `${itemLine}${' '.repeat(Math.max(1, padding))}${price}\n`;
-    }
+    // Adjust for 32 character width
+    const padding = 32 - itemLine.length - price.length;
+    ticket += `${itemLine}${' '.repeat(Math.max(1, padding))}${price}\n`;
   });
 
-  ticket += '========================\n';
+  ticket += '--------------------------------\n';
 
   return ticket;
 };
