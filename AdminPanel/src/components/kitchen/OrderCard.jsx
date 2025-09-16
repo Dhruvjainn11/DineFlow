@@ -1,5 +1,6 @@
 import api from "../../utils/api";
 import React from "react";
+import TicketPrinter from "../TicketPrinter";
 
 export default function OrderCard({ order }) {
   const updateStatus = async (status) => {
@@ -73,8 +74,24 @@ export default function OrderCard({ order }) {
         )}
       </div>
       
-      <div className="mt-4 pt-4 border-t border-slate-100 text-xs text-slate-400">
-        Order ID: {order._id.substring(0, 8)}...
+      <div className="mt-4 pt-4 border-t border-slate-100">
+        <TicketPrinter 
+          order={{
+            orderNumber: order._id.slice(-4),
+            tableNumber: order.tableNumber,
+            createdAt: order.createdAt,
+            total: order.totalAmount,
+            items: order.items.map(item => ({
+              name: item.menuItem?.name || "Unknown Item",
+              quantity: item.quantity,
+              price: item.size?.price ?? item.itemPrice ?? item.menuItem?.price ?? 0
+            }))
+          }}
+          onPrint={() => console.log('Kitchen printed order', order._id)}
+        />
+        <div className="text-xs text-slate-400 mt-2">
+          Order ID: {order._id.substring(0, 8)}...
+        </div>
       </div>
     </div>
   );

@@ -114,6 +114,20 @@ router.post("/", validateOrderCreation ,async (req, res) => {
 
     const populatedOrder = await newOrder.populate("items.menuItem");
 
+    // AUTO-PRINT TICKET
+    const { printToThermalPrinter } = await import('../utils/thermalPrinter.js');
+    await printToThermalPrinter({
+      orderNumber: populatedOrder._id.toString().slice(-4),
+      tableNumber: tableNumber,
+      createdAt: populatedOrder.createdAt,
+      total: populatedOrder.finalAmount,
+      items: populatedOrder.items.map(item => ({
+        name: item.menuItem.name,
+        quantity: item.quantity,
+        price: item.itemPrice
+      }))
+    });
+
     // Emit to cafe-specific socket room
     const io = req.app.get("io");
     io.to(`cafe-${cafeId}`).emit("newOrder", populatedOrder);

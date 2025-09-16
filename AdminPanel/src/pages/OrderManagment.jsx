@@ -2,8 +2,9 @@ import React, { useEffect, useState } from "react";
 import RoleBasedLayout from "../layouts/RoleBasedLayout";
 import { getOrders } from "../services/orderService";
 import { socket } from "../utils/socket";
-import { Circle, CheckCircle, Clock, XCircle, CreditCard, Utensils, Filter, Calendar, RefreshCw } from "lucide-react";
+import { Circle, CheckCircle, Clock, XCircle, CreditCard, Utensils, Filter, Calendar, RefreshCw, Printer } from "lucide-react";
 import OrderSkeleton from "../components/Common/OrderSkeleton";
+import TicketPrinter from "../components/TicketPrinter";
 
 const OrderManagment = () => {
   const [orders, setOrders] = useState([]);
@@ -318,6 +319,23 @@ const OrderManagment = () => {
                       <span className="block text-xs text-gray-500">Total</span>
                       <span className="font-bold text-gray-800">₹{order.totalAmount?.toFixed(2) || "0.00"}</span>
                     </div>
+                  </div>
+                  
+                  <div className="pt-3 border-t border-gray-100">
+                    <TicketPrinter 
+                      order={{
+                        orderNumber: order.orderNumber || order._id.slice(-4),
+                        tableNumber: order.tableNumber,
+                        createdAt: order.createdAt,
+                        total: order.totalAmount,
+                        items: order.items.map(item => ({
+                          name: item.menuItem?.name || "Unknown Item",
+                          quantity: item.quantity,
+                          price: item.size?.price ?? item.itemPrice ?? item.menuItem?.price ?? 0
+                        }))
+                      }}
+                      onPrint={() => console.log('Reprinted order', order._id)}
+                    />
                   </div>
                 </div>
               </div>
