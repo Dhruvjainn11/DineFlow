@@ -220,7 +220,7 @@ const handleSubmit = async (e) => {
       {/* Enhanced Hero Section */}
       <section 
         id="home" 
-        className="min-h-screen flex items-center justify-center pt-12 sm:pt-16 relative overflow-hidden"
+        className="min-h-screen flex items-center justify-center pt-8 relative overflow-hidden"
       >
         {/* Dynamic background particles */}
         <div className="absolute inset-0">
@@ -328,7 +328,7 @@ const handleSubmit = async (e) => {
       {/* Enhanced Features Section */}
       <section 
         id="features" 
-        className="py-4 sm:py-8 lg:py-16 bg-gradient-to-b from-white to-amber-50/50 relative overflow-hidden"
+        className="py-2 sm:py-4 lg:py-8 bg-gradient-to-b from-white to-amber-50/50 relative overflow-hidden"
       >
         <div className="absolute inset-0 bg-gradient-to-r from-amber-100/20 to-amber-50/20" />
         
@@ -338,7 +338,7 @@ const handleSubmit = async (e) => {
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
             viewport={{ once: true, margin: "-100px" }}
-            className="text-center mb-24"
+            className="text-center mb-12 sm:mb-16 lg:mb-24"
           >
             <motion.div 
               initial={{ opacity: 0, scale: 0.8 }}
