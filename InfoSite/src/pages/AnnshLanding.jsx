@@ -76,7 +76,10 @@ const handleSubmit = async (e) => {
 
   
   const scrollToSection = (id) => {
-    const element = document.getElementById(id === 'demo' ? 'contact' : id);
+    console.log('Scrolling to:', id); // Debug log
+    const targetId = id === 'demo' ? 'contact' : id;
+    const element = document.getElementById(targetId);
+    console.log('Element found:', element); // Debug log
     if (element) {
       element.scrollIntoView({ 
         behavior: 'smooth',
@@ -217,7 +220,7 @@ const handleSubmit = async (e) => {
       {/* Enhanced Hero Section */}
       <section 
         id="home" 
-        className="min-h-screen flex items-center justify-center pt-20 relative overflow-hidden"
+        className="min-h-screen flex items-center justify-center pt-16 sm:pt-20 relative overflow-hidden"
       >
         {/* Dynamic background particles */}
         <div className="absolute inset-0">
@@ -252,7 +255,7 @@ const handleSubmit = async (e) => {
           >
             <motion.div 
               variants={fadeInUp}
-              className="inline-flex items-center bg-[#F5F5DC] text-[#654321] px-8 py-4 rounded-full mb-8 border border-amber-200/50 shadow-lg backdrop-blur-sm"
+              className="hidden sm:inline-flex items-center bg-[#F5F5DC] text-[#654321] px-8 py-4 rounded-full mb-8 border border-amber-200/50 shadow-lg backdrop-blur-sm"
             >
               <Sparkles size={20} className="mr-3" />
               <span className="text-sm font-semibold tracking-wide">✨ Revolutionizing Café Experiences</span>
@@ -325,7 +328,7 @@ const handleSubmit = async (e) => {
       {/* Enhanced Features Section */}
       <section 
         id="features" 
-        className="py-16 sm:py-24 lg:py-32 bg-gradient-to-b from-white to-amber-50/50 relative overflow-hidden"
+        className="py-8 sm:py-16 lg:py-24 bg-gradient-to-b from-white to-amber-50/50 relative overflow-hidden"
       >
         <div className="absolute inset-0 bg-gradient-to-r from-amber-100/20 to-amber-50/20" />
         
