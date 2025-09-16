@@ -133,7 +133,7 @@ const handleSubmit = async (e) => {
         initial={{ y: -100, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.8, ease: "easeOut" }}
-        className="fixed top-0 w-full bg-white/80 backdrop-blur-xl z-40 border-b border-amber-200/50 shadow-xl overflow-hidden"
+        className="fixed top-0 w-full bg-white/80 backdrop-blur-xl z-40 border-b border-amber-200/50 shadow-xl"
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-20">
@@ -183,31 +183,34 @@ const handleSubmit = async (e) => {
           </div>
 
           {/* Mobile Menu */}
-          {isMenuOpen && (
-            <motion.div
-              initial={{ opacity: 0, y: -20, scale: 0.95 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: -20, scale: 0.95 }}
-              transition={{ duration: 0.3, ease: "easeOut" }}
-              className="md:hidden absolute top-20 left-0 right-0 bg-white/95 backdrop-blur-xl border-b border-amber-200/50 shadow-2xl"
-            >
-              <div className="px-4 py-6 space-y-2">
-                {['Home', 'Features', 'Pricing', 'Contact'].map((item, index) => (
-                  <motion.button
-                    key={item}
-                    onClick={() => scrollToSection(item.toLowerCase())}
-                    className="block w-full text-left px-6 py-4 text-gray-700 hover:bg-amber-100 rounded-xl transition-colors font-semibold text-lg"
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: index * 0.1 }}
-                    whileHover={{ x: 10 }}
-                  >
-                    {item}
-                  </motion.button>
-                ))}
-              </div>
-            </motion.div>
-          )}
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ 
+              opacity: isMenuOpen ? 1 : 0, 
+              height: isMenuOpen ? 'auto' : 0 
+            }}
+            transition={{ duration: 0.3, ease: "easeOut" }}
+            className={`md:hidden absolute top-full left-0 right-0 bg-white/95 backdrop-blur-xl border-b border-amber-200/50 shadow-2xl overflow-hidden z-50 ${isMenuOpen ? 'block' : 'hidden'}`}
+          >
+            <div className="px-4 py-6 space-y-2">
+              {['Home', 'Features', 'Pricing', 'Contact'].map((item, index) => (
+                <motion.button
+                  key={item}
+                  onClick={() => {
+                    scrollToSection(item.toLowerCase());
+                    setIsMenuOpen(false);
+                  }}
+                  className="block w-full text-left px-6 py-4 text-gray-700 hover:bg-amber-100 rounded-xl transition-colors font-semibold text-lg"
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: index * 0.1 }}
+                  whileHover={{ x: 10 }}
+                >
+                  {item}
+                </motion.button>
+              ))}
+            </div>
+          </motion.div>
         </div>
       </motion.nav>
 
@@ -296,7 +299,7 @@ const handleSubmit = async (e) => {
               >
                 <div className="absolute inset-0 bg-[#F5F5DC] opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                 <span className="relative z-10 flex items-center gap-3">
-                  Get Started Free
+                  Get Started 
                   <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
                 </span>
               </motion.button>
@@ -322,7 +325,7 @@ const handleSubmit = async (e) => {
       {/* Enhanced Features Section */}
       <section 
         id="features" 
-        className="py-32 bg-gradient-to-b from-white to-amber-50/50 relative overflow-hidden"
+        className="py-16 sm:py-24 lg:py-32 bg-gradient-to-b from-white to-amber-50/50 relative overflow-hidden"
       >
         <div className="absolute inset-0 bg-gradient-to-r from-amber-100/20 to-amber-50/20" />
         
@@ -349,7 +352,7 @@ const handleSubmit = async (e) => {
           </motion.div>
 
           <motion.div 
-            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8"
+            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8"
             variants={staggerContainer}
             initial="hidden"
             whileInView="visible"
@@ -402,33 +405,27 @@ const handleSubmit = async (e) => {
               <motion.div
                 key={index}
                 variants={fadeInUp}
-                whileHover={{ y: -10, scale: 1.02 }}
-                transition={{ type: "spring", stiffness: 300, damping: 20 }}
-                className="bg-white/80 backdrop-blur-sm p-6 sm:p-8 rounded-3xl shadow-xl border border-white/50 hover:shadow-2xl transition-all duration-500 group relative overflow-hidden"
+                whileHover={{ y: -15 }}
+                transition={{ duration: 0.2, ease: "easeOut" }}
+                className="bg-white/80 backdrop-blur-sm p-4 sm:p-6 lg:p-8 rounded-3xl shadow-xl border border-white/50 hover:shadow-2xl transition-shadow duration-200 group relative overflow-hidden"
               >
                 <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                 <div className={`bg-gradient-to-br ${feature.color} w-16 h-16 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300 shadow-lg`}>
                   <feature.icon className={feature.iconColor} size={28} />
                 </div>
-                <h3 className="text-2xl font-bold text-gray-900 mb-4">{feature.title}</h3>
-                <p className="text-gray-600 leading-relaxed font-light mb-6">{feature.desc}</p>
-                <motion.div 
-                  className="flex items-center text-[#654321] font-semibold text-sm group-hover:gap-3 transition-all cursor-pointer"
-                  whileHover={{ x: 5 }}
-                >
-                  <span>Learn more</span>
-                  <ArrowRight size={16} className="ml-2 group-hover:translate-x-1 transition-transform" />
-                </motion.div>
+                <h3 className="text-xl sm:text-2xl font-bold text-gray-900 mb-3 sm:mb-4">{feature.title}</h3>
+                <p className="text-gray-600 leading-relaxed font-light">{feature.desc}</p>
               </motion.div>
             ))}
           </motion.div>
         </div>
       </section>
 
+
       {/* Enhanced Pricing Section */}
       <section 
         id="pricing" 
-        className="py-32 bg-gradient-to-b from-amber-50/30 to-white relative overflow-hidden"
+        className="py-16 sm:py-24 lg:py-32 bg-gradient-to-b from-amber-50/30 to-white relative overflow-hidden"
       >
         <div className="absolute inset-0">
           <div className="absolute top-1/4 left-0 w-96 h-96 bg-gradient-to-r from-amber-200/30 to-orange-200/30 rounded-full blur-3xl" />
@@ -460,7 +457,7 @@ const handleSubmit = async (e) => {
           {/* Pricing Cards Container */}
           <div className="max-w-7xl mx-auto  ">
             <motion.div 
-              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 lg:gap-12 px-4 justify-items-center"
+              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 lg:gap-12 px-4 justify-items-center"
               variants={staggerContainer}
               initial="hidden"
               whileInView="visible"
@@ -475,7 +472,7 @@ const handleSubmit = async (e) => {
               >
                 <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-gray-400 to-gray-600" />
                 <div className="text-center mb-8">
-                  <h3 className="text-2xl font-bold text-gray-900 mb-3">Essential</h3>
+                  <h3 className="text-2xl font-bold text-gray-900 mb-3">Basic</h3>
                   <div className="text-5xl font-bold text-gray-900 mb-2">₹999</div>
                   <div className="text-gray-600 font-medium">/month</div>
                   <div className="mt-4">
@@ -486,7 +483,7 @@ const handleSubmit = async (e) => {
                 </div>
                 
                 <div className="space-y-4 mb-8">
-                  {['Digital menu creation', 'QR code ordering', 'Order tracking', 'Real-time updates', 'Kitchen dashboard', 'Analytics (7 days)', 'Up to 5 tables'].map((item, i) => (
+                  {['Digital menu creation', 'QR code ordering', 'Order tracking', 'Real-time updates', 'Kitchen dashboard', 'Analytics (7 days)', 'Up to 5 tables QR-Code'].map((item, i) => (
                     <div key={i} className="flex items-start">
                       <Check className="text-green-500 mr-3 mt-1 flex-shrink-0" size={18} />
                       <span className="text-gray-700 text-sm leading-relaxed">{item}</span>
@@ -500,7 +497,7 @@ const handleSubmit = async (e) => {
                   className="w-full bg-gray-100 text-gray-900 py-4 rounded-2xl font-semibold hover:bg-gray-200 transition-all duration-300"
                   onClick={() => scrollToSection("contact")}
                 >
-                  Start Free Trial
+                  Get Started Now
                 </motion.button>
               </motion.div>
 
@@ -518,7 +515,7 @@ const handleSubmit = async (e) => {
                 
                 <div className="relative z-10">
                   <div className="text-center mb-8">
-                    <h3 className="text-2xl font-bold text-white mb-3">Professional</h3>
+                    <h3 className="text-2xl font-bold text-white mb-3">Pro</h3>
                     <div className="text-5xl font-bold text-white mb-2">₹1999</div>
                     <div className="text-white/80 font-medium">/month</div>
                     <div className="mt-4">
@@ -529,7 +526,7 @@ const handleSubmit = async (e) => {
                   </div>
                   
                   <div className="space-y-4 mb-8">
-                    {['Everything in Essential', 'WhiteLabeling', 'Analytics (30 days)', 'Payment Integration', 'Customize Menu Theme', 'Advanced table management', 'Up to 10 tables', 'Priority Support'].map((item, i) => (
+                    {['Everything in Essential', 'WhiteLabeling', 'Analytics (30 days)', 'Payment Integration', 'Customize Menu Theme', 'Advanced table management', 'Up to 10 tables QR-Code', 'Priority Support'].map((item, i) => (
                       <div key={i} className="flex items-start">
                         <Check className="text-green-300 mr-3 mt-1 flex-shrink-0" size={18} />
                         <span className="text-white/90 text-sm leading-relaxed">{item}</span>
@@ -593,7 +590,7 @@ const handleSubmit = async (e) => {
       {/* Enhanced Contact Section */}
       <section 
         id="contact" 
-        className="py-32 bg-gradient-to-b from-white to-amber-50/50 relative overflow-hidden"
+        className="py-16 sm:py-24 lg:py-32 bg-gradient-to-b from-white to-amber-50/50 relative overflow-hidden"
       >
         {/* Background elements */}
         <div className="absolute inset-0">
@@ -623,7 +620,7 @@ const handleSubmit = async (e) => {
             <p className="text-lg sm:text-xl text-gray-600 max-w-3xl mx-auto font-light px-4 sm:px-0">Ready to transform your café? We'd love to hear from you and help you get started!</p>
           </motion.div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-12">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8 lg:gap-12">
             {/* Enhanced Contact Form */}
             <motion.div
               initial={{ opacity: 0, x: -40 }}
@@ -733,7 +730,7 @@ const handleSubmit = async (e) => {
                   <div className="space-y-6">
                     {[
                       { icon: Phone, label: "Phone", value: "+91 70439 74792", color: "from-green-400 to-emerald-500" },
-                      { icon: Mail, label: "Email", value: "dhruvjainn25@gmail.com", color: "from-blue-400 to-indigo-500" },
+                      { icon: Mail, label: "Email", value: "theannsh.info@gmail.com", color: "from-blue-400 to-indigo-500" },
                       { icon: MapPin, label: "Location", value: "Ahmedabad, India", color: "from-red-400 to-pink-500" }
                     ].map((item, index) => (
                       <motion.div 
@@ -856,7 +853,7 @@ const handleSubmit = async (e) => {
       )}
 
       {/* Enhanced Footer */}
-      <footer className="bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 text-white py-20 relative overflow-hidden">
+      <footer className="bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 text-white py-12 sm:py-16 lg:py-20 relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-amber-900/20 to-orange-900/20" />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <motion.div 
@@ -867,14 +864,14 @@ const handleSubmit = async (e) => {
             viewport={{ once: true }}
           >
             {/* Brand Column */}
-            <div className="sm:col-span-2">
+            <div className="sm:col-span-2 ">
               <motion.div 
-                className="text-4xl font-bold bg-gradient-to-r from-amber-400 to-orange-400 bg-clip-text text-transparent mb-6"
+                className="block sm:hidden text-4xl font-bold bg-gradient-to-r from-amber-400 to-orange-400 bg-clip-text text-transparent mb-6"
                 whileHover={{ scale: 1.05 }}
               >
                 Annsh
               </motion.div>
-              <p className="text-gray-300 text-base sm:text-lg leading-relaxed mb-6 max-w-md">
+              <p className="text-gray-300 text-base sm:text-lg leading-relaxed mb-6 max-w-md ">
                 Revolutionizing café experiences with cutting-edge digital solutions. Join hundreds of satisfied customers who've transformed their business with us.
               </p>
               <div className="flex space-x-4">
