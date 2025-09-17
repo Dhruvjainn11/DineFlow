@@ -13,13 +13,19 @@ const TicketPrinter = ({ order, onPrint }) => {
   };
 
   const handlePrint = () => {
+    console.log('🖨️ Manual print clicked for order:', order.orderNumber);
+    console.log('Order data:', order);
+    
     try {
       const printWindow = window.open('', '_blank', 'width=400,height=600');
       
       if (!printWindow) {
+        console.error('❌ Popup blocked for manual print');
         alert('Popup blocked! Please allow popups and try again.');
         return;
       }
+      
+      console.log('✅ Print window opened successfully');
       
       const ticketContent = `
         <html>
@@ -53,7 +59,7 @@ const TicketPrinter = ({ order, onPrint }) => {
               }
             </style>
           </head>
-          <body>
+          <body onload="setTimeout(() => { window.print(); setTimeout(() => window.close(), 1000); }, 300);">
             <div class="ticket">${generateTicketHTML(order)}</div>
           </body>
         </html>
@@ -61,8 +67,12 @@ const TicketPrinter = ({ order, onPrint }) => {
       
       printWindow.document.write(ticketContent);
       printWindow.document.close();
-      printWindow.print();
-      printWindow.close();
+      
+      // Wait for content to load, then print automatically
+      setTimeout(() => {
+        printWindow.print();
+        setTimeout(() => printWindow.close(), 1000);
+      }, 500);
       
       if (onPrint) onPrint();
       
