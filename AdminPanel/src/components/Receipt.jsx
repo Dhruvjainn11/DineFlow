@@ -2,23 +2,37 @@ import React from "react";
 
 export default function Receipt({ order, onClose, cafe, cafeData}) {
   if (!order) return null;
-  console.log("Receipt component rendered for order:", order._id);
   
-  const handlePrint = () => {
-    console.log('🖨️ Print Bill clicked - preventing double print');
-    // Add a flag to prevent multiple prints
-    if (window.printInProgress) {
-      console.log('⚠️ Print already in progress, skipping');
+  // Debug: Check for multiple renders
+  const renderCount = React.useRef(0);
+  renderCount.current += 1;
+  console.log(`Receipt render #${renderCount.current} for order:`, order._id);
+  
+  const handlePrint = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    console.log('🖨️ Print Bill clicked');
+    
+    // Prevent multiple rapid clicks
+    if (window.receiptPrintInProgress) {
+      console.log('⚠️ Receipt print already in progress');
       return;
     }
     
-    window.printInProgress = true;
+    window.receiptPrintInProgress = true;
+    
+    // Use a longer delay to ensure single print
     setTimeout(() => {
+      console.log('🖨️ Executing window.print()');
       window.print();
+      
+      // Reset flag after print dialog closes
       setTimeout(() => {
-        window.printInProgress = false;
-      }, 2000);
-    }, 100);
+        window.receiptPrintInProgress = false;
+        console.log('✅ Receipt print flag reset');
+      }, 3000);
+    }, 200);
   };
   
   // Use actual GST data from order or fallback to calculation
@@ -50,7 +64,6 @@ export default function Receipt({ order, onClose, cafe, cafeData}) {
           <div className="cafe-address">
             <p>123 Main Street</p>
             <p>City, State - 123456</p>
-            <p>Phone: +91 98765 43210</p>
           </div>
           <div className="receipt-meta">
             <p>Order ID: {order._id}</p>
@@ -174,12 +187,12 @@ export default function Receipt({ order, onClose, cafe, cafeData}) {
           left: 50%;
           transform: translate(-50%, -50%);
           background: white;
-          padding: 6px;
-          width: 250px;
-          max-width: 70mm;
+          padding: 4px;
+          width: 175px;
+          max-width: 50mm;
           font-family: "Courier New", Courier, monospace;
-          font-size: 7px;
-          line-height: 1.2;
+          font-size: 6px;
+          line-height: 1.1;
           border-radius: 8px;
           box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
           z-index: 1001;
@@ -243,21 +256,21 @@ export default function Receipt({ order, onClose, cafe, cafeData}) {
 
         .item-col {
           text-align: left;
-          width: 50%;
-          padding-right: 2px;
+          width: 55%;
+          padding-right: 1px;
           word-wrap: break-word;
         }
 
         .qty-col {
           text-align: center;
-          width: 15%;
-          padding: 0 2px;
+          width: 12%;
+          padding: 0 1px;
         }
 
         .price-col {
           text-align: right;
-          width: 35%;
-          padding-left: 2px;
+          width: 33%;
+          padding-left: 1px;
         }
 
         .subtotal-label,
@@ -335,14 +348,14 @@ export default function Receipt({ order, onClose, cafe, cafeData}) {
             position: absolute;
             top: 0;
             left: 0;
-            width: 70mm;
-            max-width: 70mm;
-            padding: 2mm;
+            width: 50mm;
+            max-width: 50mm;
+            padding: 1mm;
             margin: 0;
             box-shadow: none;
             border-radius: 0;
             transform: none;
-            font-size: 6px;
+            font-size: 5px;
           }
 
           .action-buttons {
@@ -366,8 +379,8 @@ export default function Receipt({ order, onClose, cafe, cafeData}) {
         }
 
         @page {
-          size: 70mm auto;
-          margin: 1mm;
+          size: 50mm auto;
+          margin: 0.5mm;
         }
       `}</style>
     </>
