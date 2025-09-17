@@ -8,32 +8,32 @@ export default function Receipt({ order, onClose, cafe, cafeData}) {
   renderCount.current += 1;
   console.log(`Receipt render #${renderCount.current} for order:`, order._id);
   
-  const handlePrint = (e) => {
+  const handlePrint = React.useCallback((e) => {
     e.preventDefault();
     e.stopPropagation();
     
     console.log('🖨️ Print Bill clicked');
     
-    // Prevent multiple rapid clicks
-    if (window.receiptPrintInProgress) {
-      console.log('⚠️ Receipt print already in progress');
+    // Create unique flag for this component instance
+    const flagKey = `receiptPrint_${order._id}`;
+    
+    if (window[flagKey]) {
+      console.log('⚠️ Receipt print already in progress for this order');
       return;
     }
     
-    window.receiptPrintInProgress = true;
+    window[flagKey] = true;
     
-    // Use a longer delay to ensure single print
+    // Direct print without delay
+    console.log('🖨️ Executing window.print()');
+    window.print();
+    
+    // Reset flag after a reasonable time
     setTimeout(() => {
-      console.log('🖨️ Executing window.print()');
-      window.print();
-      
-      // Reset flag after print dialog closes
-      setTimeout(() => {
-        window.receiptPrintInProgress = false;
-        console.log('✅ Receipt print flag reset');
-      }, 3000);
-    }, 200);
-  };
+      window[flagKey] = false;
+      console.log('✅ Receipt print flag reset');
+    }, 2000);
+  }, [order._id]);
   
   // Use actual GST data from order or fallback to calculation
   const subtotal = order.subtotal || 0;
@@ -160,7 +160,15 @@ export default function Receipt({ order, onClose, cafe, cafeData}) {
         </div>
 
         <div className="action-buttons">
-          <button className="print-button" onClick={handlePrint}>
+          <button 
+            className="print-button" 
+            onClick={handlePrint}
+            onDoubleClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              console.log('⚠️ Double click prevented');
+            }}
+          >
             Print Bill
           </button>
           <button className="close-button" onClick={onClose}>
@@ -187,9 +195,9 @@ export default function Receipt({ order, onClose, cafe, cafeData}) {
           left: 50%;
           transform: translate(-50%, -50%);
           background: white;
-          padding: 4px;
-          width: 175px;
-          max-width: 50mm;
+          padding: 6px;
+          width: 200px;
+          max-width: 58mm;
           font-family: "Courier New", Courier, monospace;
           font-size: 6px;
           line-height: 1.1;
@@ -208,9 +216,11 @@ export default function Receipt({ order, onClose, cafe, cafeData}) {
           text-align: center;
           margin: 0 0 3px 0;
           font-weight: bold;
-          font-size: 9px;
+          font-size: 8px;
           padding-bottom: 2px;
           width: 100%;
+          word-wrap: break-word;
+          overflow-wrap: break-word;
         }
         
         .cafe-address {
@@ -246,7 +256,18 @@ export default function Receipt({ order, onClose, cafe, cafeData}) {
           padding: 2px 1px;
           border-bottom: 1px solid #000;
           font-weight: bold;
+        }
+        
+        .receipt-table th.item-col {
           text-align: left;
+        }
+        
+        .receipt-table th.qty-col {
+          text-align: center;
+        }
+        
+        .receipt-table th.price-col {
+          text-align: right;
         }
 
         .receipt-table td {
@@ -256,21 +277,21 @@ export default function Receipt({ order, onClose, cafe, cafeData}) {
 
         .item-col {
           text-align: left;
-          width: 55%;
-          padding-right: 1px;
+          width: 60%;
+          padding-right: 2px;
           word-wrap: break-word;
         }
 
         .qty-col {
           text-align: center;
-          width: 12%;
-          padding: 0 1px;
+          width: 15%;
+          padding: 0;
         }
 
         .price-col {
           text-align: right;
-          width: 33%;
-          padding-left: 1px;
+          width: 25%;
+          padding-left: 2px;
         }
 
         .subtotal-label,
@@ -348,9 +369,9 @@ export default function Receipt({ order, onClose, cafe, cafeData}) {
             position: absolute;
             top: 0;
             left: 0;
-            width: 50mm;
-            max-width: 50mm;
-            padding: 1mm;
+            width: 58mm;
+            max-width: 58mm;
+            padding: 2mm;
             margin: 0;
             box-shadow: none;
             border-radius: 0;
@@ -379,8 +400,8 @@ export default function Receipt({ order, onClose, cafe, cafeData}) {
         }
 
         @page {
-          size: 50mm auto;
-          margin: 0.5mm;
+          size: 58mm auto;
+          margin: 1mm;
         }
       `}</style>
     </>
