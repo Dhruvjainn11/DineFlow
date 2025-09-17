@@ -22,10 +22,11 @@ const generateTicket = (order) => {
   ticket += '----------------------------------------\n';
 
   order.items.forEach(item => {
-    const itemLine = `${item.quantity}x ${item.name}`;
+    const sizePart = item.size ? ` (${item.size})` : '';
+    const itemLine = `${item.quantity}x ${item.name}${sizePart}`;
     const price = formatPrice(item.price * item.quantity);
     // Adjust for 40 character width to accommodate sizes
-    const padding = 45 - itemLine.length - price.length;
+    const padding = 40 - itemLine.length - price.length;
     ticket += `${itemLine}${' '.repeat(Math.max(1, padding))}${price}\n`;
   });
 

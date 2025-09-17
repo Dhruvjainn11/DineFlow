@@ -99,7 +99,8 @@ const generateTicketHTML = (order) => {
   ticket += '----------------------------------------\n';
 
   order.items.forEach(item => {
-    const itemLine = `${item.quantity}x ${item.name}`;
+    const sizePart = item.size ? ` (${item.size})` : '';
+    const itemLine = `${item.quantity}x ${item.name}${sizePart}`;
     const price = `₹${item.price * item.quantity}`;
     // Adjust for 40 character width to accommodate sizes
     const padding = 40 - itemLine.length - price.length;
