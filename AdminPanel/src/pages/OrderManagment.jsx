@@ -351,10 +351,11 @@ const OrderManagment = () => {
                         items: order.items.map(item => ({
                           name: item.menuItem?.name || "Unknown Item",
                           quantity: item.quantity,
-                          price: item.size?.price ?? item.itemPrice ?? item.menuItem?.price ?? 0
+                          price: item.size?.price ?? item.itemPrice ?? item.menuItem?.price ?? 0,
+                          size: item.size?.label || item.sizeLabel || null
                         }))
                       }}
-                      onPrint={() => console.log('Reprinted order', order._id)}
+                      onPrint={() => console.log('✅ Manual print - Order:', order._id.slice(-4))}
                     />
                   </div>
                 </div>

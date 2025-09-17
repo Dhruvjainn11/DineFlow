@@ -125,7 +125,8 @@ router.post("/", validateOrderCreation ,async (req, res) => {
       items: populatedOrder.items.map(item => ({
         name: item.menuItem.name,
         quantity: item.quantity,
-        price: item.itemPrice
+        price: item.itemPrice,
+        size: item.size?.label || null
       }))
     };
     
