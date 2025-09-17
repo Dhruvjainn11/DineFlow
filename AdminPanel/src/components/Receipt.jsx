@@ -195,12 +195,12 @@ export default function Receipt({ order, onClose, cafe, cafeData}) {
           left: 50%;
           transform: translate(-50%, -50%);
           background: white;
-          padding: 5px;
-          width: 180px;
-          max-width: 52mm;
+          padding: 8px;
+          width: 280px;
+          max-width: 80mm;
           font-family: "Courier New", Courier, monospace;
-          font-size: 6px;
-          line-height: 1.1;
+          font-size: 7px;
+          line-height: 1.2;
           border-radius: 8px;
           box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
           z-index: 1001;
@@ -369,14 +369,15 @@ export default function Receipt({ order, onClose, cafe, cafeData}) {
             position: absolute;
             top: 0;
             left: 0;
-            width: 52mm;
-            max-width: 52mm;
-            padding: 1.5mm;
+            width: 80mm;
+            max-width: 80mm;
+            height: 80mm;
+            padding: 3mm;
             margin: 0;
             box-shadow: none;
             border-radius: 0;
             transform: none;
-            font-size: 5px;
+            font-size: 6px;
           }
 
           .action-buttons {
@@ -400,8 +401,8 @@ export default function Receipt({ order, onClose, cafe, cafeData}) {
         }
 
         @page {
-          size: 52mm auto;
-          margin: 0.5mm;
+          size: 80mm 80mm;
+          margin: 2mm;
         }
       `}</style>
     </>
