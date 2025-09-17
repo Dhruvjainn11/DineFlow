@@ -2,7 +2,24 @@ import React from "react";
 
 export default function Receipt({ order, onClose, cafe, cafeData}) {
   if (!order) return null;
-  console.log("Order data:", order);
+  console.log("Receipt component rendered for order:", order._id);
+  
+  const handlePrint = () => {
+    console.log('🖨️ Print Bill clicked - preventing double print');
+    // Add a flag to prevent multiple prints
+    if (window.printInProgress) {
+      console.log('⚠️ Print already in progress, skipping');
+      return;
+    }
+    
+    window.printInProgress = true;
+    setTimeout(() => {
+      window.print();
+      setTimeout(() => {
+        window.printInProgress = false;
+      }, 2000);
+    }, 100);
+  };
   
   // Use actual GST data from order or fallback to calculation
   const subtotal = order.subtotal || 0;
@@ -125,7 +142,7 @@ export default function Receipt({ order, onClose, cafe, cafeData}) {
         </div>
 
         <div className="action-buttons">
-          <button className="print-button" onClick={() => window.print()}>
+          <button className="print-button" onClick={handlePrint}>
             Print Bill
           </button>
           <button className="close-button" onClick={onClose}>
