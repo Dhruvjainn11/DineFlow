@@ -47,6 +47,11 @@ export default function Receipt({ order, onClose, cafe, cafeData}) {
       <div className="receipt-container" id="receipt-to-print">
         <div className="receipt-content">
           <h2 className="receipt-header">Cafe {cafe}</h2>
+          <div className="cafe-address">
+            <p>123 Main Street</p>
+            <p>City, State - 123456</p>
+            <p>Phone: +91 98765 43210</p>
+          </div>
           <div className="receipt-meta">
             <p>Order ID: {order._id}</p>
             <p>Table No: {order.tableNumber || "N/A"}</p>
@@ -68,7 +73,7 @@ export default function Receipt({ order, onClose, cafe, cafeData}) {
                 return (
                   <tr key={menuItem?._id || index}>
                     <td className="item-col">
-                      <div style={{wordWrap: 'break-word', fontSize: '7px'}}>
+                      <div style={{wordWrap: 'break-word', fontSize: '6px', lineHeight: '1.1'}}>
                         {menuItem?.name || 'Unknown Item'}
                         {size?.label && <span style={{color: '#666'}}> ({size.label})</span>}
                       </div>
@@ -169,12 +174,12 @@ export default function Receipt({ order, onClose, cafe, cafeData}) {
           left: 50%;
           transform: translate(-50%, -50%);
           background: white;
-          padding: 8px;
-          width: 300px;
-          max-width: 80mm;
+          padding: 6px;
+          width: 250px;
+          max-width: 70mm;
           font-family: "Courier New", Courier, monospace;
-          font-size: 8px;
-          line-height: 1.3;
+          font-size: 7px;
+          line-height: 1.2;
           border-radius: 8px;
           box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
           z-index: 1001;
@@ -188,17 +193,29 @@ export default function Receipt({ order, onClose, cafe, cafeData}) {
 
         .receipt-header {
           text-align: center;
-          margin: 0 0 6px 0;
+          margin: 0 0 3px 0;
           font-weight: bold;
-          font-size: 10px;
-          padding-bottom: 4px;
-          border-bottom: 1px dashed #000;
+          font-size: 9px;
+          padding-bottom: 2px;
           width: 100%;
+        }
+        
+        .cafe-address {
+          text-align: center;
+          margin: 0 0 4px 0;
+          font-size: 6px;
+          line-height: 1.1;
+          padding-bottom: 3px;
+          border-bottom: 1px dashed #000;
+        }
+        
+        .cafe-address p {
+          margin: 1px 0;
         }
 
         .receipt-meta {
-          margin-bottom: 6px;
-          font-size: 7px;
+          margin-bottom: 4px;
+          font-size: 6px;
         }
 
         .receipt-meta p {
@@ -208,38 +225,39 @@ export default function Receipt({ order, onClose, cafe, cafeData}) {
         .receipt-table {
           width: 100%;
           border-collapse: collapse;
-          margin: 6px 0;
-          font-size: 7px;
+          margin: 4px 0;
+          font-size: 6px;
         }
 
         .receipt-table th {
-          padding: 3px 2px;
+          padding: 2px 1px;
           border-bottom: 1px solid #000;
           font-weight: bold;
           text-align: left;
         }
 
         .receipt-table td {
-          padding: 2px 2px;
+          padding: 1px 1px;
           vertical-align: top;
         }
 
         .item-col {
           text-align: left;
-          width: 55%;
-          padding-right: 4px;
+          width: 50%;
+          padding-right: 2px;
+          word-wrap: break-word;
         }
 
         .qty-col {
           text-align: center;
           width: 15%;
-          padding: 0 4px;
+          padding: 0 2px;
         }
 
         .price-col {
           text-align: right;
-          width: 30%;
-          padding-left: 4px;
+          width: 35%;
+          padding-left: 2px;
         }
 
         .subtotal-label,
@@ -264,9 +282,9 @@ export default function Receipt({ order, onClose, cafe, cafeData}) {
 
         .receipt-footer {
           text-align: center;
-          margin-top: 8px;
-          font-size: 7px;
-          padding-top: 4px;
+          margin-top: 6px;
+          font-size: 6px;
+          padding-top: 3px;
           border-top: 1px dashed #000;
           width: 100%;
         }
@@ -317,14 +335,14 @@ export default function Receipt({ order, onClose, cafe, cafeData}) {
             position: absolute;
             top: 0;
             left: 0;
-            width: 80mm;
-            max-width: 80mm;
-            padding: 3mm;
+            width: 70mm;
+            max-width: 70mm;
+            padding: 2mm;
             margin: 0;
             box-shadow: none;
             border-radius: 0;
             transform: none;
-            font-size: 7px;
+            font-size: 6px;
           }
 
           .action-buttons {
@@ -348,8 +366,8 @@ export default function Receipt({ order, onClose, cafe, cafeData}) {
         }
 
         @page {
-          size: 80mm auto;
-          margin: 2mm;
+          size: 70mm auto;
+          margin: 1mm;
         }
       `}</style>
     </>

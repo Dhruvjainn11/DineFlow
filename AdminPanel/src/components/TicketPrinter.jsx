@@ -34,27 +34,27 @@ const TicketPrinter = ({ order, onPrint }) => {
             <style>
               body { 
                 font-family: 'Courier New', monospace; 
-                font-size: 7px; 
+                font-size: 6px; 
                 margin: 0; 
-                padding: 3px;
-                width: 280px;
-                line-height: 1.2;
+                padding: 2px;
+                width: 220px;
+                line-height: 1.1;
               }
               .ticket { 
                 white-space: pre-line;
-                font-size: 7px;
+                font-size: 6px;
                 word-wrap: break-word;
               }
               @media print { 
                 body { 
-                  margin: 2mm; 
-                  padding: 2mm;
-                  width: 72mm;
-                  font-size: 6px;
+                  margin: 1mm; 
+                  padding: 1mm;
+                  width: 58mm;
+                  font-size: 5px;
                 }
                 @page { 
-                  margin: 2mm;
-                  size: 80mm auto;
+                  margin: 1mm;
+                  size: 60mm auto;
                 }
               }
             </style>
@@ -86,16 +86,15 @@ const TicketPrinter = ({ order, onPrint }) => {
     const cafeName = order.planType === 'pro' ? order.cafeName || 'THE YARD' : 'ANNSh';
     
     let ticket = '';
-    ticket += '----------------------------------------\n';
-    ticket += `           ${cafeName}\n`;
-    ticket += '----------------------------------------\n';
-    ticket += `Table: ${order.tableNumber}\n`;
-    ticket += `Order #: #${order.orderNumber}\n`;
-    ticket += `Time: ${new Date(order.createdAt).toLocaleString('en-IN', { 
+    ticket += '----------------------------\n';
+    ticket += `      ${cafeName}\n`;
+    ticket += '----------------------------\n';
+    ticket += `T:${order.tableNumber} #${order.orderNumber}\n`;
+    ticket += `${new Date(order.createdAt).toLocaleString('en-IN', { 
       day: '2-digit', month: 'short', 
       hour: '2-digit', minute: '2-digit' 
     })}\n`;
-    ticket += '----------------------------------------\n';
+    ticket += '----------------------------\n';
 
     order.items.forEach(item => {
       // Check for size in different possible locations
@@ -103,11 +102,11 @@ const TicketPrinter = ({ order, onPrint }) => {
       const sizePart = sizeInfo ? ` (${sizeInfo})` : '';
       const itemLine = `${item.quantity}x ${item.name}${sizePart}`;
       const price = `₹${item.price * item.quantity}`;
-      const padding = 40 - itemLine.length - price.length;
+      const padding = 28 - itemLine.length - price.length;
       ticket += `${itemLine}${' '.repeat(Math.max(1, padding))}${price}\n`;
     });
 
-    ticket += '----------------------------------------\n';
+    ticket += '----------------------------\n';
 
     return ticket;
   };
