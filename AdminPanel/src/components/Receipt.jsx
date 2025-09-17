@@ -195,9 +195,9 @@ export default function Receipt({ order, onClose, cafe, cafeData}) {
           left: 50%;
           transform: translate(-50%, -50%);
           background: white;
-          padding: 6px;
-          width: 200px;
-          max-width: 58mm;
+          padding: 5px;
+          width: 180px;
+          max-width: 52mm;
           font-family: "Courier New", Courier, monospace;
           font-size: 6px;
           line-height: 1.1;
@@ -277,21 +277,21 @@ export default function Receipt({ order, onClose, cafe, cafeData}) {
 
         .item-col {
           text-align: left;
-          width: 60%;
-          padding-right: 2px;
+          width: 65%;
+          padding-right: 1px;
           word-wrap: break-word;
         }
 
         .qty-col {
           text-align: center;
-          width: 15%;
-          padding: 0;
+          width: 10%;
+          padding: 0 1px;
         }
 
         .price-col {
           text-align: right;
           width: 25%;
-          padding-left: 2px;
+          padding-left: 1px;
         }
 
         .subtotal-label,
@@ -304,14 +304,14 @@ export default function Receipt({ order, onClose, cafe, cafeData}) {
         .total-label {
           text-align: right;
           font-weight: bold;
-          font-size: 14px;
-          padding-right: 8px;
+          font-size: 7px;
+          padding-right: 4px;
         }
 
         .total-price {
           text-align: right;
           font-weight: bold;
-          font-size: 14px;
+          font-size: 7px;
         }
 
         .receipt-footer {
@@ -369,9 +369,9 @@ export default function Receipt({ order, onClose, cafe, cafeData}) {
             position: absolute;
             top: 0;
             left: 0;
-            width: 58mm;
-            max-width: 58mm;
-            padding: 2mm;
+            width: 52mm;
+            max-width: 52mm;
+            padding: 1.5mm;
             margin: 0;
             box-shadow: none;
             border-radius: 0;
@@ -400,8 +400,8 @@ export default function Receipt({ order, onClose, cafe, cafeData}) {
         }
 
         @page {
-          size: 58mm auto;
-          margin: 1mm;
+          size: 52mm auto;
+          margin: 0.5mm;
         }
       `}</style>
     </>
